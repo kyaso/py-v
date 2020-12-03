@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.autoComplete.extraPaths": [
+			"${workspaceFolder}/src"
+		],
+		"terminal.integrated.env.linux": {
+			"PYTHONPATH":  "${workspaceFolder}/src"
+		}
+	}
+}

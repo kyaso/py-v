@@ -188,6 +188,9 @@ def test_AUIPC(coreFx):
 
 # Unconditional Jumps
 
+def test_JAL(coreFx):
+    res = coreFx.i_JAL(0x80000000, ) # IN: PC, imm (20bit, sign-ext); OUT: link reg (pc+4, rd)
+
 # Conditional Branches
 
 # ---------------------------------------
