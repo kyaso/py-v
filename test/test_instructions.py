@@ -179,9 +179,6 @@ def test_AUIPC(coreFx):
     res = coreFx.i_AUIPC(0x00001000, 0x0007ffff) # PC, imm (sign-ext)
     assert res == 0x00080FFF
 
-
-
-
 # ---------------------------------------
 # Control Transfer Instructions
 # ---------------------------------------
@@ -189,9 +186,200 @@ def test_AUIPC(coreFx):
 # Unconditional Jumps
 
 def test_JAL(coreFx):
-    res = coreFx.i_JAL(0x80000000, ) # IN: PC, imm (20bit, sign-ext); OUT: link reg (pc+4, rd)
+    (npc, res) = coreFx.i_JAL(0x80000000, 8) # IN: PC, imm (20bit, sign-ext); OUT: next PC, link reg (pc+4, rd)
+    assert (npc==0x80000008 and res==0x80000004)
+
+    (npc, res) = coreFx.i_JAL(0x90000000, 0xffffffec) # Jump back 20 bytes
+    assert (npc==0x8FFFFFEC and res==0x90000004)
+
+def test_JALR(coreFx):
+    (npc, res) = coreFx.i_JALR(0x80000000, 8) # IN: rs1, imm (12bit, sign-ext); OUT: next PC, link reg (pc+4, rd)
+    assert (npc==0x80000008 and res==0x80000004)
+
+    (npc, res) = coreFx.i_JALR(0x90000000, 0xffffffec) # Jump back 20 bytes
+    assert (npc==0x8FFFFFEC and res==0x90000004)
+
+    (npc, res) = coreFx.i_JALR(0x90000000, 13) # Test setting LSB of rs1+imm to 0
+    assert (npc==0x9000000c and res==0x90000004)
 
 # Conditional Branches
+
+def test_BEQ(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BEQ(0, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BEQ(1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BEQ(-1, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BEQ(-1, -1, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BEQ(0, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BEQ(1, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BEQ(-1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+def test_BNE(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BNE(0, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BNE(1, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BNE(-1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BNE(0, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BNE(1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BNE(-1, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BNE(-1, -1, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==False)
+
+def test_BLT(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BLT(0, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BLT(-1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BLT(-2, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BLT(-2, -1, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BLT(1, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BLT(1, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BLT(-1, -2, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+def test_BLTU(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BLTU(0x00000000, 0x00000001, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BLTU(0xfffffffe, 0xffffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BLTU(0x00000000, 0xffffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BLTU(0x00000000, 0x00000001, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BLTU(0x00000001, 0x00000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BLTU(0xffffffff, 0xfffffffe, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BLTU(0xffffffff, 0x00000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BLTU(0x80000000, 0x7fffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+def test_BGE(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BGE(0, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGE(1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGE(-1, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGE(1, 0, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGE(1, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGE(-1, -2, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BGE(-1, -2, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BGE(0, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGE(-1, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGE(-2, -1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGE(-2, 1, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+def test_BGEU(coreFx):
+    # Test taken branches
+    (npc, take_branch) = coreFx.i_BGEU(0x00000000, 0x00000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGEU(0x00000001, 0x00000001, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGEU(0xffffffff, 0xffffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGEU(0x00000001, 0x00000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGEU(0xffffffff, 0xfffffffe, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    (npc, take_branch) = coreFx.i_BGEU(0xffffffff, 0x00000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==True)
+
+    ## Test backwards jump
+    (npc, take_branch) = coreFx.i_BGEU(0xffffffff, 0x00000000, 0x90000000, 0xffffffec) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x8FFFFFEC and take_branch==True)
+
+    # Test not taken branches
+    (npc, take_branch) = coreFx.i_BGEU(0x00000000, 0x00000001, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGEU(0xfffffffe, 0xffffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGEU(0x00000000, 0xffffffff, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
+
+    (npc, take_branch) = coreFx.i_BGEU(0x7fffffff, 0x80000000, 0x80000000, 8) # IN: rs1, rs2, PC, imm (12bit sign-ext); OUT: next PC, take_branch flag
+    assert (npc==0x80000008 and take_branch==False)
 
 # ---------------------------------------
 # Load and Store Instructions

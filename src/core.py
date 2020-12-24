@@ -1,4 +1,4 @@
-import util
+from util import *
 
 class Core:
     def __init__(self):
@@ -43,8 +43,8 @@ class Core:
             0 otherwise
         """
 
-        msb_r = util.msb_32(val1)
-        msb_i = util.msb_32(val2)
+        msb_r = msb_32(val1)
+        msb_i = msb_32(val2)
 
         # Check if both operands are positive
         if (msb_r==0) and (msb_i==0):
@@ -132,7 +132,7 @@ class Core:
             Logical left shift of val1 by val2 (5 bits)
         """
 
-        return (util.MASK_32 & (val1<<(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+        return (MASK_32 & (val1<<(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
 
     def i_SRL(self, val1, val2):
         """ SRL[I] instruction
@@ -145,7 +145,7 @@ class Core:
             Logical right shift of val1 by val2 (5 bits)
         """
 
-        return (util.MASK_32 & (val1>>(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+        return (MASK_32 & (val1>>(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
 
     def i_SRA(self, val1, val2):
         """ SRA[I] instruction
@@ -158,14 +158,14 @@ class Core:
             Arithmetic right shift of val1 by val2 (5 bits)
         """
 
-        msb_r = util.msb_32(val1)
+        msb_r = msb_32(val1)
         shamt = 0x1f & val2
-        rshift = (util.MASK_32 & (val1>>shamt)) # Mask so that bits above bit 31 turn to zero (for Python)
+        rshift = (MASK_32 & (val1>>shamt)) # Mask so that bits above bit 31 turn to zero (for Python)
         if msb_r==0:
             return rshift 
         else:
             # Fill upper bits with 1s
-            return (util.MASK_32 & (rshift | (0xffffffff<<(util.XLEN-shamt)))) 
+            return (MASK_32 & (rshift | (0xffffffff<<(XLEN-shamt)))) 
             
     def i_LUI(self, imm):
         """LUI instruction
@@ -177,7 +177,7 @@ class Core:
             imm + 12 lower bits zeroes
         """
 
-        return (util.MASK_32 & (imm<<12))
+        return (MASK_32 & (imm<<12))
 
     def i_AUIPC(self, pc, imm):
         """AUIPC instruction
@@ -190,6 +190,153 @@ class Core:
             Upper-immediate + PC
         """
         
-        upper_imm = (util.MASK_32 & (imm<<12))
-        return (util.MASK_32 & (pc + imm))
-            
+        upper_imm = (MASK_32 & (imm<<12))
+        return (MASK_32 & (pc + imm))
+
+    def i_JAL(self, pc, imm):
+        """JAL instruction
+
+        Parameters:
+            pc:     Current PC
+            imm:    Sign-extended immediate
+
+        Returns:
+            Next PC
+            PC+4 --> to be stored in rd
+        """
+
+        npc = MASK_32 & (pc + imm)
+        rd = pc + 4
+
+        return (npc, rd)
+    
+    def i_JALR(self, rs1, imm):
+        """JALR instruction
+
+        Parameters:
+            rs1:    Value of register "rs1"
+            imm:    Sign-extended immediate
+
+        Returns:
+            Next PC (with LSB set to 0)
+            PC+4 --> to be stored in rd
+        """
+
+        npc = MASK_32 & (0xfffffffe & (rs1 + imm))
+        rd = rs1 + 4
+
+        return (npc, rd)
+
+    def i_BEQ(self, rs1, rs2, pc, imm):
+        """BEQ instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BEQ instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (rs1==rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
+    
+    def i_BNE(self, rs1, rs2, pc, imm):
+        """BNE instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BNE instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (rs1!=rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
+    
+    def i_BLT(self, rs1, rs2, pc, imm):
+        """BLT instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BLT instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (rs1 < rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
+    
+    def i_BLTU(self, rs1, rs2, pc, imm):
+        """BLTU instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BLTU instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (MASK_32&rs1 < MASK_32&rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
+    
+    def i_BGE(self, rs1, rs2, pc, imm):
+        """BGE instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BGE instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (rs1 >= rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
+    
+    def i_BGEU(self, rs1, rs2, pc, imm):
+        """BGEU instruction
+
+        Parameters:
+            rs1:    Value of register rs1
+            rs2:    Value of register rs2
+            pc:     PC of BGEU instruction
+            imm:    Sign-ext. 12bit immediate
+        
+        Return:
+            Next PC
+            Flag indicating branch result (taken or not)
+        """
+
+        take_branch = (MASK_32&rs1 >= MASK_32&rs2)
+        npc = MASK_32 & (pc+imm)
+
+        return (npc, take_branch)
