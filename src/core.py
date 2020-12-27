@@ -190,6 +190,7 @@ class Core:
             Upper-immediate + PC
         """
         
+        # TODO: ??
         upper_imm = (MASK_32 & (imm<<12))
         return (MASK_32 & (pc + imm))
 
@@ -210,7 +211,7 @@ class Core:
 
         return (npc, rd)
     
-    def i_JALR(self, rs1, imm):
+    def i_JALR(self, pc, rs1, imm):
         """JALR instruction
 
         Parameters:
@@ -223,7 +224,7 @@ class Core:
         """
 
         npc = MASK_32 & (0xfffffffe & (rs1 + imm))
-        rd = rs1 + 4
+        rd = pc + 4
 
         return (npc, rd)
 

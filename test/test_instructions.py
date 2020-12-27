@@ -193,14 +193,14 @@ def test_JAL(coreFx):
     assert (npc==0x8FFFFFEC and res==0x90000004)
 
 def test_JALR(coreFx):
-    (npc, res) = coreFx.i_JALR(0x80000000, 8) # IN: rs1, imm (12bit, sign-ext); OUT: next PC, link reg (pc+4, rd)
-    assert (npc==0x80000008 and res==0x80000004)
+    (npc, res) = coreFx.i_JALR(0x60000000, 0x80000000, 8) # IN: rs1, imm (12bit, sign-ext); OUT: next PC, link reg (pc+4, rd)
+    assert (npc==0x80000008 and res==0x60000004)
 
-    (npc, res) = coreFx.i_JALR(0x90000000, 0xffffffec) # Jump back 20 bytes
-    assert (npc==0x8FFFFFEC and res==0x90000004)
+    (npc, res) = coreFx.i_JALR(0x60000000, 0x90000000, 0xffffffec) # Jump back 20 bytes
+    assert (npc==0x8FFFFFEC and res==0x60000004)
 
-    (npc, res) = coreFx.i_JALR(0x90000000, 13) # Test setting LSB of rs1+imm to 0
-    assert (npc==0x9000000c and res==0x90000004)
+    (npc, res) = coreFx.i_JALR(0x60000000, 0x90000000, 13) # Test setting LSB of rs1+imm to 0
+    assert (npc==0x9000000c and res==0x60000004)
 
 # Conditional Branches
 
