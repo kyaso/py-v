@@ -43,8 +43,8 @@ class Core:
             0 otherwise
         """
 
-        msb_r = msb_32(val1)
-        msb_i = msb_32(val2)
+        msb_r = getBit(val1, 31)
+        msb_i = getBit(val2, 31)
 
         # Check if both operands are positive
         if (msb_r==0) and (msb_i==0):
@@ -158,7 +158,7 @@ class Core:
             Arithmetic right shift of val1 by val2 (5 bits)
         """
 
-        msb_r = msb_32(val1)
+        msb_r = getBit(val1, 31)
         shamt = 0x1f & val2
         rshift = (MASK_32 & (val1>>shamt)) # Mask so that bits above bit 31 turn to zero (for Python)
         if msb_r==0:
