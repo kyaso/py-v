@@ -6,5 +6,5 @@ def test_port():
     assert A.val == 0
 
     B = A
-    A.val = 0x42
-    assert B.val == 0x42
+    A.write(0x42)
+    assert B.read() == 0x42

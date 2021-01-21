@@ -29,14 +29,14 @@ class Reg(RegBase):
 
         self.next = Port()
         self.cur = Port()
-        self.cur.val = initVal
+        self.cur.write(initVal)
         self.nextv = 0
     
     def prepareNextVal(self):
-        self.nextv = self.next.val
+        self.nextv = self.next.read()
 
     def tick(self):
-        self.cur.val = self.nextv
+        self.cur.write(self.nextv)
 
 class Regfile(RegBase):
 
@@ -76,9 +76,9 @@ class Regfile(RegBase):
 
 
     def prepareNextVal(self):
-        self.nextv = self.rd_val_i.val
+        self.nextv = self.rd_val_i.read()
 
     def tick(self):
         # Write
-        if self.we.val and (self.rd_idx_i.val != 0):
-            self.regs[self.rd_idx_i.val] = self.nextv
+        if self.we.read() and (self.rd_idx_i.read() != 0):
+            self.regs[self.rd_idx_i.read()] = self.nextv

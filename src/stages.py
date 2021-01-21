@@ -25,12 +25,12 @@ class FetchStage(Module):
     
     def process(self):
         # Read inputs
-        self.IR = self.inst_i.val # TODO: Read instruction mem
-        self.PC = self.npc_i.val
+        self.IR = self.inst_i.read() # TODO: Read instruction mem
+        self.PC = self.npc_i.read()
 
         # Outputs
-        self.inst_o.val = self.IR
-        self.pc_o.val = self.PC
+        self.inst_o.write(self.IR)
+        self.pc_o.write(self.PC)
 
 class DecodeStage(Module):
     def __init__(self, regf):

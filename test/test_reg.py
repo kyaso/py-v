@@ -3,21 +3,21 @@ from reg import *
 
 def test_reg():
     reg = Reg()
-    assert reg.cur.val == 0
+    assert reg.cur.read() == 0
 
-    reg.next.val = 0x42
-    assert reg.cur.val == 0
-
-    reg.prepareNextVal()
-    reg.tick()
-    assert reg.cur.val == 0x42
-
-    reg.next.val = 0x69
-    assert reg.cur.val == 0x42
+    reg.next.write(0x42)
+    assert reg.cur.read() == 0
 
     reg.prepareNextVal()
     reg.tick()
-    assert reg.cur.val == 0x69
+    assert reg.cur.read() == 0x42
+
+    reg.next.write(0x69)
+    assert reg.cur.read() == 0x42
+
+    reg.prepareNextVal()
+    reg.tick()
+    assert reg.cur.read() == 0x69
 
 def test_regfile():
     rf = Regfile()
@@ -29,9 +29,9 @@ def test_regfile():
     assert val2 == 0
 
     # Write some values
-    rf.rd_idx_i.val = 14
-    rf.rd_val_i.val = 0xdeadbeef
-    rf.we.val = True
+    rf.rd_idx_i.write(14)
+    rf.rd_val_i.write(0xdeadbeef)
+    rf.we.write(True)
     rval = rf.read(14)
     assert rval == 0
     rf.prepareNextVal()
@@ -39,9 +39,9 @@ def test_regfile():
     rval = rf.read(14)
     assert rval == 0xdeadbeef
 
-    rf.rd_idx_i.val = 2
-    rf.rd_val_i.val = 0x42
-    rf.we.val = True
+    rf.rd_idx_i.write(2)
+    rf.rd_val_i.write(0x42)
+    rf.we.write(True)
     rval = rf.read(2)
     assert rval == 0
     rf.prepareNextVal()
@@ -50,17 +50,17 @@ def test_regfile():
     assert rval == 0x42
 
     # Write to x0
-    rf.rd_idx_i.val = 0
-    rf.rd_val_i.val = 0xdeadbeef
+    rf.rd_idx_i.write(0)
+    rf.rd_val_i.write(0xdeadbeef)
     rf.prepareNextVal()
     rf.tick()
     rval = rf.read(0)
     assert rval == 0
 
     # Test with WE=0
-    rf.rd_idx_i.val = 14
-    rf.rd_val_i.val = 0xaffeaffe
-    rf.we.val = False
+    rf.rd_idx_i.write(14)
+    rf.rd_val_i.write(0xaffeaffe)
+    rf.we.write(False)
     rval = rf.read(14)
     assert rval == 0xdeadbeef
     rf.prepareNextVal()
@@ -78,10 +78,10 @@ def test_regChain():
     C.next = B.cur
     D.next = C.cur
 
-    A.next.val = 0x42
+    A.next.write(0x42)
 
     RegBase.updateRegs()
-    assert A.cur.val == 0x42
-    assert B.cur.val == 0
-    assert C.cur.val == 0
-    assert D.cur.val == 0
+    assert A.cur.read() == 0x42
+    assert B.cur.read() == 0
+    assert C.cur.read() == 0
+    assert D.cur.read() == 0
