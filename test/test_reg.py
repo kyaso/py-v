@@ -19,6 +19,18 @@ def test_reg():
     reg.tick()
     assert reg.cur.read() == 0x69
 
+def test_regX():
+    reg = RegX('A', 'B')
+
+    reg.next.write('A', 42, 'B', 69)
+    assert reg.cur.val == {'A':0, 'B':0}
+    reg.prepareNextVal()
+    reg.tick()
+    assert reg.cur.val == {'A':42, 'B':69}
+
+    assert reg.cur.read() == {'A':42, 'B':69}
+
+
 def test_regfile():
     rf = Regfile()
 
@@ -85,3 +97,61 @@ def test_regChain():
     assert B.cur.read() == 0
     assert C.cur.read() == 0
     assert D.cur.read() == 0
+
+    A.next.write(0)
+
+    RegBase.updateRegs()
+    assert A.cur.read() == 0
+    assert B.cur.read() == 0x42
+    assert C.cur.read() == 0
+    assert D.cur.read() == 0
+
+    RegBase.updateRegs()
+    assert A.cur.read() == 0
+    assert B.cur.read() == 0
+    assert C.cur.read() == 0x42
+    assert D.cur.read() == 0
+
+    RegBase.updateRegs()
+    assert A.cur.read() == 0
+    assert B.cur.read() == 0
+    assert C.cur.read() == 0
+    assert D.cur.read() == 0x42
+
+def test_regChainX():
+    A = RegX('A', 'B')
+    B = RegX('A', 'B')
+    C = RegX('A', 'B')
+    D = RegX('A', 'B')
+
+    B.next = A.cur
+    C.next = B.cur
+    D.next = C.cur
+
+    A.next.write('A',45,'B',78)
+
+    RegBase.updateRegs()
+    assert A.cur.read() == {'A':45, 'B':78}
+    assert B.cur.read() == {'A':0, 'B':0}
+    assert C.cur.read() == {'A':0, 'B':0}
+    assert D.cur.read() == {'A':0, 'B':0}
+
+    A.next.write('A',0,'B',0)
+
+    RegBase.updateRegs()
+    assert A.cur.read() == {'A':0, 'B':0}
+    assert B.cur.read() == {'A':45, 'B':78}
+    assert C.cur.read() == {'A':0, 'B':0}
+    assert D.cur.read() == {'A':0, 'B':0}
+
+    RegBase.updateRegs()
+    assert A.cur.read() == {'A':0, 'B':0}
+    assert B.cur.read() == {'A':0, 'B':0}
+    assert C.cur.read() == {'A':45, 'B':78}
+    assert D.cur.read() == {'A':0, 'B':0}
+
+    RegBase.updateRegs()
+    assert A.cur.read() == {'A':0, 'B':0}
+    assert B.cur.read() == {'A':0, 'B':0}
+    assert C.cur.read() == {'A':0, 'B':0}
+    assert D.cur.read() == {'A':45, 'B':78}

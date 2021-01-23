@@ -1,3 +1,4 @@
+import copy
 from port import *
 
 # TODO: Maybe make abstract
@@ -33,10 +34,17 @@ class Reg(RegBase):
         self.nextv = 0
     
     def prepareNextVal(self):
-        self.nextv = self.next.read()
+        self.nextv = copy.deepcopy(self.next.read())
 
     def tick(self):
-        self.cur.write(self.nextv)
+        self.cur.write(copy.deepcopy(self.nextv))
+
+class RegX(Reg):
+    def __init__(self, *args):
+        super().__init__()
+
+        self.next = PortX(*args)
+        self.cur = PortX(*args)
 
 class Regfile(RegBase):
 
@@ -76,9 +84,9 @@ class Regfile(RegBase):
 
 
     def prepareNextVal(self):
-        self.nextv = self.rd_val_i.read()
+        self.nextv = copy.deepcopy(self.rd_val_i.read())
 
     def tick(self):
         # Write
         if self.we.read() and (self.rd_idx_i.read() != 0):
-            self.regs[self.rd_idx_i.read()] = self.nextv
+            self.regs[self.rd_idx_i.read()] = copy.deepcopy(self.nextv)
