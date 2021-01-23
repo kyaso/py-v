@@ -32,3 +32,12 @@ def test_portx():
     ret = A.read('two')
     assert ret == 45
 
+    # Test reading multiple subports
+    val1, val2 = A.read('two', 'one')
+    assert val1 == 45
+    assert val2 == 42
+
+    # Test writing to all subports using dict
+    new = {'one':99, 'two':34, 'three':135}
+    A.write(new)
+    assert A.val == new
