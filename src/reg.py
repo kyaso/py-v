@@ -46,47 +46,16 @@ class RegX(Reg):
         self.next = PortX(*args)
         self.cur = PortX(*args)
 
-class Regfile(RegBase):
-
-    # rs1_idx_i = Port()
-    # rs2_idx_i = Port()
-
-    # rs1_val_o = Port()
-    # rs2_val_o = Port()
-
+class Regfile():
     def __init__(self):
-        # Add this register to the global register list
-        super().__init__()
-
         self.regs = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-        self.rd_idx_i = Port()
-        self.rd_val_i = Port()
-        self.we = Port(False)
 
     def read(self, reg):
-        # This was from before where I tried to be very close to hardware.
-        # However, it is way simpler to do the read directly as below.
-        #
-        # if self.rs1_idx_i.val != 0:
-        #     self.rs1_val_o.val = self.regs[self.rs1_idx_i.val]
-        # else:
-        #     self.rs1_val_o.val = 0
-        
-        # if self.rs2_idx_i.val != 0:
-        #     self.rs2_val_o.val = self.regs[self.rs2_idx_i.val]
-        # else:
-        #     self.rs2_val_o.val = 0
-
         if reg == 0:
             return 0
         else:
             return self.regs[reg]
 
-
-    def prepareNextVal(self):
-        self.nextv = copy.deepcopy(self.rd_val_i.read())
-
-    def tick(self):
-        # Write
-        if self.we.read() and (self.rd_idx_i.read() != 0):
-            self.regs[self.rd_idx_i.read()] = copy.deepcopy(self.nextv)
+    def write(self, reg, val):
+        if reg != 0:
+            self.regs[reg] = val

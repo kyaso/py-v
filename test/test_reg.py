@@ -41,44 +41,15 @@ def test_regfile():
     assert val2 == 0
 
     # Write some values
-    rf.rd_idx_i.write(14)
-    rf.rd_val_i.write(0xdeadbeef)
-    rf.we.write(True)
-    rval = rf.read(14)
-    assert rval == 0
-    rf.prepareNextVal()
-    rf.tick()
-    rval = rf.read(14)
-    assert rval == 0xdeadbeef
+    rf.write(14, 0xdeadbeef)
+    assert rf.regs[14] == 0xdeadbeef
 
-    rf.rd_idx_i.write(2)
-    rf.rd_val_i.write(0x42)
-    rf.we.write(True)
-    rval = rf.read(2)
-    assert rval == 0
-    rf.prepareNextVal()
-    rf.tick()
-    rval = rf.read(2)
-    assert rval == 0x42
+    rf.write(2, 0x42)
+    assert rf.regs[2] == 0x42
 
     # Write to x0
-    rf.rd_idx_i.write(0)
-    rf.rd_val_i.write(0xdeadbeef)
-    rf.prepareNextVal()
-    rf.tick()
-    rval = rf.read(0)
-    assert rval == 0
-
-    # Test with WE=0
-    rf.rd_idx_i.write(14)
-    rf.rd_val_i.write(0xaffeaffe)
-    rf.we.write(False)
-    rval = rf.read(14)
-    assert rval == 0xdeadbeef
-    rf.prepareNextVal()
-    rf.tick()
-    rval = rf.read(14)
-    assert rval == 0xdeadbeef
+    rf.write(0, 0xdeadbeef)
+    assert rf.regs[0] == 0
 
 def test_regChain():
     A = Reg()
