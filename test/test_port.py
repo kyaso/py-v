@@ -10,19 +10,20 @@ def test_port():
     assert B.read() == 0x42
 
 def test_portx():
-    init = {'one':0, 'two':0, 'three':0}
-
-    # Test init
+    # Init
     A = PortX('one', 'two', 'three')
-    assert A.val == init
 
     # Test write
     A.write('one', 42, 'two', 45)
-    assert A.val == {'one':42, 'two':45, 'three':0}
+    assert A.val['one'].val == 42
+    assert A.val['two'].val == 45
+    assert A.val['three'].val == 0
 
     # Test reading all subports
     ret = A.read()
-    assert ret == {'one':42, 'two':45, 'three':0}
+    assert ret['one'] == 42
+    assert ret['two'] == 45
+    assert ret['three'] == 0
 
     # Test reading one subport
     ret = A.read('one')
@@ -38,6 +39,8 @@ def test_portx():
     assert val2 == 42
 
     # Test writing to all subports using dict
-    new = {'one':99, 'two':34, 'three':135}
+    new = {'one':89, 'two':12, 'three':90}
     A.write(new)
-    assert A.val == new
+    assert A.val['one'].val == 89
+    assert A.val['two'].val == 12
+    assert A.val['three'].val == 90

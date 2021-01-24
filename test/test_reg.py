@@ -23,12 +23,16 @@ def test_regX():
     reg = RegX('A', 'B')
 
     reg.next.write('A', 42, 'B', 69)
-    assert reg.cur.val == {'A':0, 'B':0}
+    assert reg.cur.val['A'].val == 0
+    assert reg.cur.val['B'].val == 0
     reg.prepareNextVal()
     reg.tick()
-    assert reg.cur.val == {'A':42, 'B':69}
+    assert reg.cur.val['A'].val == 42
+    assert reg.cur.val['B'].val == 69
 
-    assert reg.cur.read() == {'A':42, 'B':69}
+    ret = reg.cur.read()
+    assert ret['A'] == 42
+    assert ret['B'] == 69
 
 
 def test_regfile():
