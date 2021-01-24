@@ -13,24 +13,24 @@ from reg import *
 #     def process(self):
 #         self.C_o.val = self.A_i.val + self.B_i.val
     
-class FetchStage(Module):
+class IFStage(Module):
     def __init__(self):
         self.npc_i = Port()
         self.inst_i = Port()
-        self.inst_o = Port()
-        self.pc_o = Port()
+        self.IFID_o = PortX('inst', 'pc')
 
-        self.PC = 0
-        self.IR = 0
+        self.PC = Reg()
+        # Connect next pc with next value in of PC reg
+        self.PC.next = self.npc_i
+        # Connect current PC to output
+        self.IFID_o.val['pc'] = self.PC.cur
     
     def process(self):
-        # Read inputs
-        self.IR = self.inst_i.read() # TODO: Read instruction mem
-        self.PC = self.npc_i.read()
+        # Read instruction
+        ir = self.inst_i.read() # TODO: Read instruction mem
 
         # Outputs
-        self.inst_o.write(self.IR)
-        self.pc_o.write(self.PC)
+        self.IFID_o.write('inst', ir)
 
 class DecodeStage(Module):
     def __init__(self, regf):
