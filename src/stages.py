@@ -1,6 +1,8 @@
 from module import *
 from port import *
 from reg import *
+import isa
+from util import *
 
 # class Stage:
 #     def __init__(self):
@@ -32,37 +34,83 @@ class IFStage(Module):
         # Outputs
         self.IFID_o.write('inst', ir)
 
-class DecodeStage(Module):
+class IDStage(Module):
     def __init__(self, regf):
         self.regfile = regf
 
-        self.inst_i = Port()
-        self.pc_i = Port()
-        
-        self.rs1_o = Port()
-        self.rs2_o = Port()
-        self.imm_o = Port()
-        self.pc_o = Port()
-        self.rd_o = Port()
-        self.we_o = Port(False)
+        self.IFID_i = PortX('inst', 'pc')
+
+        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we')
         
     def process(self):
+        # Read inputs
+        inst, pc = self.IFID_i.read('inst', 'pc')
+        
+        # Determine opcode (inst[6:2])
+        opcode = getBits(inst, 6, 2)
+
         # Determine register indeces
-        rs1_idx = 0 # TODO
-        rs2_idx = 0
+        rs1_idx = getBits(inst, 19, 15)
+        rs2_idx = getBits(inst, 24, 20)
+        rd_idx = getBits(inst, 11, 7)
 
         # Read regfile
         rs1 = self.regfile.read(rs1_idx)
         rs2 = self.regfile.read(rs2_idx)
 
+        # funct3, funct7
+        funct3 = getBits(inst, 14, 12)
+        funct7 = getBits(inst, 31, 25)
+
         # Decode immediate
-        imm = 0 # TODO
+        imm = self.decImm(opcode, inst) # TODO
+
+        # Determine register file write enable
+        we = opcode in isa.REG_OPS # TODO
 
         # Outputs
-        self.rs1_o.val = rs1
-        self.rs2_o.val = rs2
-        self.imm_o.val = imm
-        self.pc_o.val = self.pc_i.val
-        self.rd_o.val = 0 # TODO
-        self.we_o.val = 0 # TODO
+        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we)
 
+    def decImm(self, opcode, inst):
+        # Save sign bit
+        sign = getBit(inst, 31)
+
+        sign_ext = 0
+
+        # Decode + sign-extend immediate
+        if opcode in isa.INST_I:
+            imm_11_0 = getBits(inst, 31, 20)
+            imm = imm_11_0
+            if sign:
+                sign_ext = 0xfffff<<12
+        
+        elif opcode in isa.INST_S:
+            imm_11_5 = getBits(inst, 31, 25)
+            imm_4_0 = getBits(inst, 11, 7)
+            imm = (imm_11_5<<5) | imm_4_0
+            if sign:
+                sign_ext = 0xfffff<<12
+        
+        elif opcode in isa.INST_B:
+            imm_12 = getBit(inst, 31)
+            imm_10_5 = getBits(inst, 30, 25)
+            imm_4_1 = getBits(inst, 11, 8)
+            imm_11 = getBits(inst, 7, 7)
+            imm =  (imm_12<<12) | (imm_11<<11) | (imm_10_5<<5) | (imm_4_1<<1)
+            if sign:
+                sign_ext = 0x7ffff<<13
+        
+        elif opcode in isa.INST_U:
+            imm_31_12 = getBits(inst, 31, 12)
+            imm = imm_31_12<<12
+        
+        elif opcode in isa.INST_J:
+            imm_20 = getBit(inst, 31)
+            imm_10_1 = getBits(inst, 30, 21)
+            imm_11 = getBits(inst, 20, 20)
+            imm_19_12 = getBits(inst, 19, 12)
+            imm = (imm_20<<20) | (imm_19_12<<12) | (imm_11<<11) | (imm_10_1<<1)
+            if sign:
+                sign_ext = 0x7ff<<21
+
+        return (sign_ext | imm)

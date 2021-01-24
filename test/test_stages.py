@@ -8,22 +8,25 @@ def test_sanity():
 # ---------------------------------------
 # Test FETCH
 # ---------------------------------------
-def test_FETCH():
-    fetch = FetchStage()
+def test_IFStage():
+    fetch = IFStage()
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
     fetch.inst_i.write(0xfea42623)
     fetch.npc_i.write(0x80000004)
+
+    RegBase.updateRegs()
     fetch.process()
 
-    assert fetch.inst_o.read() == 0xfea42623
-    assert fetch.pc_o.read() == 0x80000004
+    out = fetch.IFID_o.read()
+    assert out['inst'] == 0xfea42623
+    assert out['pc'] == 0x80000004
 
 # ---------------------------------------
 # Test DECODE
 # ---------------------------------------
 def test_decImm():
-    dec = DecodeStage(None)
+    dec = IDStage(None)
     # --- Test I-type -------------------------
     # 001100110000 10000 000 00001 0010011
     inst = 0b00110011000010000000000010010011
@@ -84,40 +87,39 @@ def test_decImm():
     imm = dec.decImm(0b11011, inst)
     assert imm == 0xFFF1A7AC
 
-def test_DECODE():
+def test_IDStage():
     regf = Regfile()
-    decode = DecodeStage(regf)
+    decode = IDStage(regf)
 
     # SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
     # Write some values into the relevant registers
-    regf.we.write(True)
-    # regf.write(True, 8, 0x80000000)
-    regf.rd_idx_i.write(8)
-    regf.rd_val_i.write(0x80000000)
-    regf.prepareNextVal()
-    regf.tick()
-
-    # regf.write(True, 10, 42)
-    regf.rd_idx_i.write(10)
-    regf.rd_val_i.write(42)
-    regf.prepareNextVal()
-    regf.tick()
+    regf.write(8, 0x80000000)
+    regf.write(10, 42)
 
     # Set inputs
-    decode.inst_i.write(0xfea42623)
-    decode.pc_i.write(0x80000004)
+    decode.IFID_i.write('inst', 0xfea42623, 'pc', 0x80000004)
     decode.process()
 
     # Validate outputs
-    #return # TODO: For now
-    assert decode.rs1_o.read() == 0x80000000
-    assert decode.rs2_o.read() == 42
-    assert decode.imm_o.read() == 0xffffffec # -20, 32-bit sign-extended
-    assert decode.pc_o.read() == 0x80000004
-    assert decode.rd_o.read() == 0x0C # rd is bits [11:7] of instruction
-    assert decode.we_o.read() == False
+    out = decode.IDEX_o.read()
+    assert out['rs1'] == 0x80000000
+    assert out['rs2'] == 42
+    assert out['imm'] == 0xffffffec
+    assert out['pc'] == 0x80000004
+    assert out['rd'] == 0x0C
+    assert out['we'] == False
 
-    # TODO: Test instruction with register write
+    # Test instruction with register write
+    # ADDI x0, x0, 0
+    decode.IFID_i.write('inst', 0x00000013)
+    decode.process()
+    out = decode.IDEX_o.read()
+    assert out['rs1'] == 0
+    assert out['rs2'] == 0
+    assert out['imm'] == 0
+    assert out['pc'] == 0x80000004
+    assert out['rd'] == 0
+    assert out['we'] == True
 
 # ---------------------------------------
 # Test EXECUTE
