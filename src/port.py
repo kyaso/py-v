@@ -43,3 +43,14 @@ class PortX(Port):
         # Odd indices: value
         for i in range(0, len(args), 2):
             self.val[args[i]].write(args[i+1])
+    
+    # These two overrides are necessary when we want to connect two subports
+    # directly by applying [] to the PortX object, instead of PortX.val[..].
+    def __getitem__(self, key):
+        return self.val[key]
+    
+    def __setitem__(self, key, value):
+        if not isinstance(value, Port):
+            raise TypeError("{} is not of type Port!".format(value))
+
+        self.val[key] = value

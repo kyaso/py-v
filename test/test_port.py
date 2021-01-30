@@ -44,3 +44,17 @@ def test_portx():
     assert A.val['one'].val == 89
     assert A.val['two'].val == 12
     assert A.val['three'].val == 90
+
+    # Test reading with square brackets operator
+    for key, val in A.val.items():
+        assert A[key] is A.val[key]
+
+    # Test writing with sq. brackets
+    B = Port()
+    A['two'] = B
+    B.write(5678)
+    assert A.val['two'].val == 5678
+
+    # Test invalid sq. brackets assignment
+    with pytest.raises(TypeError):
+        A['three'] = 3
