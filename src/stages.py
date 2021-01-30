@@ -91,6 +91,7 @@ class IDStage(Module):
 
         sign_ext = 0
 
+        imm = 0
         # Decode + sign-extend immediate
         if opcode in isa.INST_I:
             imm_11_0 = getBits(inst, 31, 20)
