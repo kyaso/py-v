@@ -2,6 +2,7 @@ from module import *
 from port import *
 from reg import *
 import isa
+from instructions import *
 from util import *
 
 # class Stage:
@@ -154,3 +155,113 @@ class IDStage(Module):
 
         # TODO: Return some exception type
         return False
+
+class EXStage(Module):
+    def __init__(self):
+        self.IDEX_i = PortX('rs1',
+                            'rs2',
+                            'imm',
+                            'pc',
+                            'rd',
+                            'we',
+                            'wb_sel',
+                            'opcode',
+                            'funct3',
+                            'funct7')
+        
+        self.EXMEM_o = PortX('rd',
+                             'we',
+                             'wb_sel',
+                             'take_branch',
+                             'alu_res',
+                             'pc4',
+                             'rs2')
+
+        # Pass throughs
+        self.EXMEM_o['rd'] = self.IDEX_i['rd']
+        self.EXMEM_o['we'] = self.IDEX_i['we']
+        self.EXMEM_o['wb_sel'] = self.IDEX_i['wb_sel']
+        self.EXMEM_o['rs2'] = self.IDEX_i['rs2']
+    
+    def process(self):
+        # Read inputs
+        opcode, rs1, rs2, imm, pc, f3, f7 = self.IDEX_i.read('opcode', 'rs1', 'rs2', 'imm', 'pc', 'funct3', 'funct7')
+
+        take_branch = self.branch(opcode) # TODO
+        pc4 = pc+4
+
+        # ALU
+        alu_res = self.alu(opcode, rs1, rs2, imm, pc, f3, f7)
+
+        # Outputs
+        self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
+
+    def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
+        alu_res = 0
+        if opcode==isa.OPCODES['LUI']:
+            alu_res = imm
+        
+        elif opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
+            alu_res = pc + imm
+        
+        elif opcode==isa.OPCODES['JALR']:
+            alu_res = 0xfffffffe & (rs1 + imm)
+
+        elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']:
+            alu_res = rs1 + imm
+        
+        elif opcode==isa.OPCODES['OP-IMM']:
+            if f3==0b000: # ADDI
+                alu_res = rs1 + imm
+            elif f3==0b010: # SLTI
+                alu_res = i_SLT(rs1, imm)
+            elif f3==0b011: # SLTIU
+                alu_res = i_SLTU(rs1, imm)
+            elif f3==0b100: # XORI
+                alu_res = rs1 ^ imm
+            elif f3==0b110: # ORI
+                alu_res = rs1 | imm
+            elif f3==0b111: # ANDI
+                alu_res = rs1 & imm
+            elif f3==0b001: # SLLI
+                if f7==0: # TODO: We could remove this check if IDStage catches f7!=0 case
+                    alu_res = i_SLL(rs1, imm)
+            elif f3==0b101:
+                if f7==0: # SRLI
+                    alu_res = i_SRL(rs1, imm)
+                elif f7==0b0100000: # SRAI
+                    alu_res = i_SRA(rs1, imm)
+        
+        elif opcode==isa.OPCODES['OP']:
+            if f7==0:
+                if f3==0b000: # ADD
+                    alu_res = rs1 + rs2
+                elif f3==0b001: # SLL
+                    alu_res = i_SLL(rs1, rs2)
+                elif f3==0b010: # SLT
+                    alu_res = i_SLT(rs1, rs2)
+                elif f3==0b011: # SLTU
+                    alu_res = i_SLTU(rs1, rs2)
+                elif f3==0b100: # XOR
+                    alu_res = rs1 ^ rs2
+                elif f3==0b101: # SRL
+                    alu_res = i_SRL(rs1, rs2)
+                elif f3==0b110: # OR
+                    alu_res = rs1 | rs2
+                elif f3==0b111: # AND
+                    alu_res = rs1 & rs2
+
+            elif f7==0b0100000:
+                if f3==0b000: # SUB
+                    alu_res = rs1 - rs2
+                elif f3==0b101: # SRA
+                    alu_res = i_SRA(rs1, rs2)
+   
+        return MASK_32 & alu_res
+
+    # TODO
+    def branch(self, opcode):
+        if opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
+            return True
+        else:
+            return False

@@ -159,6 +159,383 @@ class TestIDStage:
 # ---------------------------------------
 # Test EXECUTE
 # ---------------------------------------
+class TestEXStage:
+    def test_alu(self):
+        ex = EXStage()
+
+        # LUI
+        res = ex.alu(0b01101, 0, 0, 0x41AF3000, 0, 0, 0)
+        assert res == 0x41AF3000
+
+        # AUIPC
+        res = ex.alu(0b00101, 0, 0, 0x41AF3000, 0x10000000, 0, 0)
+        assert res == 0x51AF3000
+
+        # JAL
+        res = ex.alu(0b11011, 0, 0, 0xB5E64, 0x80000000, 0, 0)
+        assert res == 0x800B5E64
+
+        # JALR
+        res = ex.alu(0b11001, 0x40000000, 0, 0x401, 0, 0, 0)
+        assert res == 0x40000400
+
+        # BRANCH
+        res = ex.alu(0b11000, 0, 0, 0xD58, 0x80000000, 0, 0)
+        assert res == 0x80000D58
+
+        # LOAD
+        res = ex.alu(0b00000, 0x60000000, 0, 0x7D2, 0, 0, 0)
+        assert res == 0x600007D2
+
+        # STORE
+        res = ex.alu(0b01000, 0x60000000, 0, 0x7D2, 0, 0, 0)
+        assert res == 0x600007D2
+
+        # ADDI
+        res = ex.alu(0b00100, 0x42, 0, 0x4593, 0, 0b000, 0)
+        assert res == 0x45D5
+
+        # SLTI
+        res = ex.alu(opcode=0b00100, rs1=0, rs2=0, imm=0, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=1, rs2=0, imm=1, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=3, rs2=0, imm=7, pc=0, f3=0b010, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b00100, rs1=0x80000000, rs2=0, imm=0, pc=0, f3=0b010, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b00100, rs1=0x7fffffff, rs2=0, imm=0xfffff800, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=0x80000000, rs2=0, imm=0xfffff800, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        # SLTIU
+        res = ex.alu(opcode=0b00100, rs1=0, rs2=0, imm=0, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=1, rs2=0, imm=1, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=3, rs2=0, imm=7, pc=0, f3=0b011, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b00100, rs1=7, rs2=0, imm=3, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b00100, rs1=0, rs2=0, imm=0xfffff800, pc=0, f3=0b011, f7=0)
+        res = i_SLTU(0x00000000, 0xfffff800)
+        assert res == 1
+
+        res = ex.alu(opcode=0b00100, rs1=0x80000000, rs2=0, imm=0xfffff800, pc=0, f3=0b011, f7=0)
+        assert res == 1
+
+        # XORI
+        res = ex.alu(opcode=0b00100, rs1=0x00ff0f00, rs2=0, imm=0xffffff0f, pc=0, f3=0b100, f7=0)
+        assert res == 0xff00f00f
+
+        res = ex.alu(opcode=0b00100, rs1=0x00ff08ff, rs2=0, imm=0x0000070f, pc=0, f3=0b100, f7=0)
+        assert res == 0x00ff0ff0
+
+        # ORI
+        res = ex.alu(opcode=0b00100, rs1=0xff00ff00, rs2=0, imm=0xffffff0f, pc=0, f3=0b110, f7=0)
+        assert res == 0xffffff0f
+
+        res = ex.alu(opcode=0b00100, rs1=0x00ff00ff, rs2=0, imm=0x0000070f, pc=0, f3=0b110, f7=0)
+        assert res == 0x00ff07ff
+
+        # ANDI
+        res = ex.alu(opcode=0b00100, rs1=0xff00ff00, rs2=0, imm=0xffffff0f, pc=0, f3=0b111, f7=0)
+        assert res == 0xff00ff00
+
+        res = ex.alu(opcode=0b00100, rs1=0x00ff00ff, rs2=0, imm=0x0000070f, pc=0, f3=0b111, f7=0)
+        assert res == 0x0000000f
+
+        # SLLI
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=0, pc=0, f3=0b001, f7=0)
+        assert res == 0x00000001
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=1, pc=0, f3=0b001, f7=0)
+        assert res == 0x00000002
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=7, pc=0, f3=0b001, f7=0)
+        assert res == 0x00000080
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=31, pc=0, f3=0b001, f7=0)
+        assert res == 0x80000000
+        
+        res = ex.alu(opcode=0b00100, rs1=0xffffffff, rs2=0, imm=7, pc=0, f3=0b001, f7=0)
+        assert res == 0xffffff80
+
+        res = ex.alu(opcode=0b00100, rs1=0x21212121, rs2=0, imm=14, pc=0, f3=0b001, f7=0)
+        assert res == 0x48484000
+
+        # SRLI
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=0, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000001
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=1, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=7, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=31, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+        
+        res = ex.alu(opcode=0b00100, rs1=0xffffffff, rs2=0, imm=7, pc=0, f3=0b101, f7=0)
+        assert res == 0x01ffffff
+
+        res = ex.alu(opcode=0b00100, rs1=0x21212121, rs2=0, imm=14, pc=0, f3=0b101, f7=0)
+        assert res == 0x00008484
+
+        # SRAI
+        res = ex.alu(opcode=0b00100, rs1=0x7fffffff, rs2=0, imm=0, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0x7fffffff
+
+        res = ex.alu(opcode=0b00100, rs1=0x7fffffff, rs2=0, imm=1, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0x3fffffff
+
+        res = ex.alu(opcode=0b00100, rs1=0x81818181, rs2=0, imm=1, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xc0c0c0c0
+
+        res = ex.alu(opcode=0b00100, rs1=0x81818181, rs2=0, imm=7, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xff030303
+
+        res = ex.alu(opcode=0b00100, rs1=0x81818181, rs2=0, imm=31, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xffffffff
+
+        # ADD
+        res = ex.alu(opcode=0b01100, rs1=0x42, rs2=0x4593, imm=0, pc=0, f3=0b000, f7=0)
+        assert res == 0x45D5
+
+        # SUB
+        res = ex.alu(opcode=0b01100, rs1=0, rs2=0, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b01100, rs1=1, rs2=1, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b01100, rs1=3, rs2=7, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0xfffffffc
+
+        res = ex.alu(opcode=0b01100, rs1=0, rs2=0xffff8000, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0x00008000
+
+        res = ex.alu(opcode=0b01100, rs1=0, rs2=0x00007fff, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0xffff8001
+
+        res = ex.alu(opcode=0b01100, rs1=0x7fffffff, rs2=0xffff8000, imm=0, pc=0, f3=0b000, f7=0b0100000)
+        assert res == 0x80007fff
+
+        # SLL
+        res = ex.alu(opcode=0b01100, rs1=1, rs2=0, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0x00000001
+
+        res = ex.alu(opcode=0b01100, rs1=1, rs2=1, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0x00000002
+
+        res = ex.alu(opcode=0b01100, rs1=1, rs2=7, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0x00000080
+
+        res = ex.alu(opcode=0b01100, rs1=1, rs2=31, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0x80000000
+        
+        res = ex.alu(opcode=0b01100, rs1=0xffffffff, rs2=7, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0xffffff80
+
+        res = ex.alu(opcode=0b01100, rs1=0x21212121, rs2=14, imm=0, pc=0, f3=0b001, f7=0b0000000)
+        assert res == 0x48484000
+
+        # SLT
+        res = ex.alu(opcode=0b01100, rs1=0, imm=0, rs2=0, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=1, imm=0, rs2=1, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=3, imm=0, rs2=7, pc=0, f3=0b010, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b01100, rs1=0x80000000, imm=0, rs2=0, pc=0, f3=0b010, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b01100, rs1=0x7fffffff, imm=0, rs2=0xfffff800, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=0x80000000, imm=0, rs2=0xfffff800, pc=0, f3=0b010, f7=0)
+        assert res == 0
+
+        # SLTU
+        res = ex.alu(opcode=0b01100, rs1=0, imm=0, rs2=0, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=1, imm=0, rs2=1, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=3, imm=0, rs2=7, pc=0, f3=0b011, f7=0)
+        assert res == 1
+
+        res = ex.alu(opcode=0b01100, rs1=7, imm=0, rs2=3, pc=0, f3=0b011, f7=0)
+        assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=0, imm=0, rs2=0xfffff800, pc=0, f3=0b011, f7=0)
+        res = i_SLTU(0x00000000, 0xfffff800)
+        assert res == 1
+
+        res = ex.alu(opcode=0b01100, rs1=0x80000000, imm=0, rs2=0xfffff800, pc=0, f3=0b011, f7=0)
+        assert res == 1
+
+        # XOR
+        res = ex.alu(opcode=0b01100, rs1=0x00ff0f00, rs2=0xffffff0f, imm=0, pc=0, f3=0b100, f7=0)
+        assert res == 0xff00f00f
+
+        res = ex.alu(opcode=0b01100, rs1=0x00ff08ff, rs2=0x0000070f, imm=0, pc=0, f3=0b100, f7=0)
+        assert res == 0x00ff0ff0
+
+        # SRL
+        res = ex.alu(opcode=0b01100, rs1=0x00000001, imm=0, rs2=0, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000001
+
+        res = ex.alu(opcode=0b01100, rs1=0x00000001, imm=0, rs2=1, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b01100, rs1=0x00000001, imm=0, rs2=7, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+
+        res = ex.alu(opcode=0b01100, rs1=0x00000001, imm=0, rs2=31, pc=0, f3=0b101, f7=0)
+        assert res == 0x00000000
+        
+        res = ex.alu(opcode=0b01100, rs1=0xffffffff, imm=0, rs2=7, pc=0, f3=0b101, f7=0)
+        assert res == 0x01ffffff
+
+        res = ex.alu(opcode=0b01100, rs1=0x21212121, imm=0, rs2=14, pc=0, f3=0b101, f7=0)
+        assert res == 0x00008484
+
+        # SRA
+        res = ex.alu(opcode=0b01100, rs1=0x7fffffff, imm=0, rs2=0, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0x7fffffff
+
+        res = ex.alu(opcode=0b01100, rs1=0x7fffffff, imm=0, rs2=1, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0x3fffffff
+
+        res = ex.alu(opcode=0b01100, rs1=0x81818181, imm=0, rs2=1, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xc0c0c0c0
+
+        res = ex.alu(opcode=0b01100, rs1=0x81818181, imm=0, rs2=7, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xff030303
+
+        res = ex.alu(opcode=0b01100, rs1=0x81818181, imm=0, rs2=31, pc=0, f3=0b101, f7=0b0100000)
+        assert res == 0xffffffff
+
+        # OR
+        res = ex.alu(opcode=0b01100, rs1=0xff00ff00, imm=0, rs2=0xffffff0f, pc=0, f3=0b110, f7=0)
+        assert res == 0xffffff0f
+
+        res = ex.alu(opcode=0b01100, rs1=0x00ff00ff, imm=0, rs2=0x0000070f, pc=0, f3=0b110, f7=0)
+        assert res == 0x00ff07ff
+
+        # AND
+        res = ex.alu(opcode=0b01100, rs1=0xff00ff00, imm=0, rs2=0xffffff0f, pc=0, f3=0b111, f7=0)
+        assert res == 0xff00ff00
+
+        res = ex.alu(opcode=0b01100, rs1=0x00ff00ff, imm=0, rs2=0x0000070f, pc=0, f3=0b111, f7=0)
+        assert res == 0x0000000f
+
+    def test_branch(self):
+        pass
+    
+    def test_EXStage(self):
+        ex = EXStage()
+
+        # Test pass throughs
+        ex.IDEX_i.write('rd', 24,
+                        'we', True,
+                        'wb_sel', 2,
+                        'rs2', 0xdeadbeef)
+        ex.process()
+        out = ex.EXMEM_o.read()
+        assert out['rd'] == 24
+        assert out['we'] == True
+        assert out['wb_sel'] == 2
+        assert out['rs2'] == 0xdeadbeef
+
+        # LUI x24, 0xaffe
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0xaffe<<12,
+                        'pc', 0,
+                        'rd', 24,
+                        'we', True,
+                        'wb_sel', 0,
+                        'opcode', 0b01101)
+        ex.process()
+        out = ex.EXMEM_o.read()
+        assert out['take_branch'] == False
+        assert out['alu_res'] == 0xaffe<<12
+        assert out['rd'] == 24
+        assert out['we'] == True
+        assert out['wb_sel'] == 0
+
+        # AUIPC x24, 0xaffe
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0xaffe<<12,
+                        'pc', 0x80000000,
+                        'rd', 24,
+                        'we', True,
+                        'wb_sel', 0,
+                        'opcode', 0b00101)
+        ex.process()
+        out = ex.EXMEM_o.read()
+        assert out['take_branch'] == False
+        assert out['alu_res'] == 0x8AFFE000
+        assert out['rd'] == 24
+        assert out['we'] == True
+        assert out['wb_sel'] == 0
+
+        # JAL x13, 0x2DA89
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0x2DA89<<1,
+                        'pc', 0x80004000,
+                        'rd', 13,
+                        'we', True,
+                        'wb_sel', 1,
+                        'opcode', 0b11011)
+        ex.process()
+        out = ex.EXMEM_o.read()
+        assert out['take_branch'] == True
+        assert out['alu_res'] == 0x8005F512
+        assert out['rd'] == 13
+        assert out['we'] == True
+        assert out['wb_sel'] == 1
+        assert out['pc4'] == 0x80004004
+
+        # JALR x13, x28, 0x401 (note: reg x28 not explictly needed; EXStage receives value of rs1)
+        ex.IDEX_i.write('rs1', 0x4200,
+                        'rs2', 0,
+                        'imm', 0x401,
+                        'pc', 0x80004000,
+                        'rd', 13,
+                        'we', True,
+                        'wb_sel', 1,
+                        'opcode', 0b11001)
+        ex.process()
+        out = ex.EXMEM_o.read()
+        assert out['take_branch'] == True
+        assert out['alu_res'] == 0x4600
+        assert out['rd'] == 13
+        assert out['we'] == True
+        assert out['wb_sel'] == 1
+        assert out['pc4'] == 0x80004004
+
+
+
 
 # ---------------------------------------
 # Test MEMORY
