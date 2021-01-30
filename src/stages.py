@@ -62,6 +62,9 @@ class IDStage(Module):
         funct3 = getBits(inst, 14, 12)
         funct7 = getBits(inst, 31, 25)
 
+        # TODO: Check for exception
+        # exc = self.check_exception(opcode, funct3, funct7)
+
         # Decode immediate
         imm = self.decImm(opcode, inst)
 
@@ -125,3 +128,28 @@ class IDStage(Module):
                 sign_ext = 0x7ff<<21
 
         return (sign_ext | imm)
+
+    # TODO
+    def check_exception(self, opcode, f3, f7):
+        if opcode not in isa.OPCODES:
+            # Illegal instruction
+            pass
+        
+        if opcode==isa.OPCODES['OP-IMM']:
+            if f3==0b001 and f7!=0: # SLLI
+                # Illegal instruction
+                pass
+            elif f3==0b101 and not(f7==0 or f7==0b0100000): # SRLI, SRAI
+                # Illegal instruction
+                pass
+        
+        if opcode==isa.OPCODES['OP']:
+            if not (f7==0 or f7==0b0100000):
+                # Illegal instruction
+                pass
+            elif f7==0b0100000 and not(f3==0b000 or f3==0b101):
+                # Illegal instruction
+                pass
+
+        # TODO: Return some exception type
+        return False

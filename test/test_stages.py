@@ -88,6 +88,10 @@ class TestIDStage:
     imm = dec.decImm(0b11011, inst)
     assert imm == 0xFFF1A7AC
 
+    # TODO
+    def test_check_exception(self):
+        pass
+
     def test_IDStage(self):
     regf = Regfile()
     decode = IDStage(regf)
