@@ -40,7 +40,7 @@ class IDStage(Module):
 
         self.IFID_i = PortX('inst', 'pc')
 
-        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we')
+        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7')
         
     def process(self):
         # Read inputs
@@ -63,13 +63,24 @@ class IDStage(Module):
         funct7 = getBits(inst, 31, 25)
 
         # Decode immediate
-        imm = self.decImm(opcode, inst) # TODO
+        imm = self.decImm(opcode, inst)
 
         # Determine register file write enable
-        we = opcode in isa.REG_OPS # TODO
+        we = opcode in isa.REG_OPS
+
+        # Determine what to write-back into regfile
+        wb_sel = self.wb_sel(opcode)
 
         # Outputs
-        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we)
+        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7)
+
+    def wb_sel(self, opcode):
+        if opcode == isa.OPCODES['JAL']:
+            return 1
+        elif opcode == isa.OPCODES['LOAD']:
+            return 2
+        else:
+            return 0
 
     def decImm(self, opcode, inst):
         # Save sign bit

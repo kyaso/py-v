@@ -25,7 +25,8 @@ def test_IFStage():
 # ---------------------------------------
 # Test DECODE
 # ---------------------------------------
-def test_decImm():
+class TestIDStage:
+    def test_decImm(self):
     dec = IDStage(None)
     # --- Test I-type -------------------------
     # 001100110000 10000 000 00001 0010011
@@ -87,7 +88,7 @@ def test_decImm():
     imm = dec.decImm(0b11011, inst)
     assert imm == 0xFFF1A7AC
 
-def test_IDStage():
+    def test_IDStage(self):
     regf = Regfile()
     decode = IDStage(regf)
 
@@ -108,6 +109,8 @@ def test_IDStage():
     assert out['pc'] == 0x80000004
     assert out['rd'] == 0x0C
     assert out['we'] == False
+        assert out['opcode'] == 0b01000
+        assert out['funct3'] == 2
 
     # Test instruction with register write
     # ADDI x0, x0, 0
@@ -120,6 +123,34 @@ def test_IDStage():
     assert out['pc'] == 0x80000004
     assert out['rd'] == 0
     assert out['we'] == True
+        assert out['wb_sel'] == 0
+        assert out['opcode'] == 0b00100
+        assert out['funct3'] == 0
+
+        # Test instruction with funct7 output
+        # SUB x14, x7, x5
+        regf.write(7, 43)
+        regf.write(5, 12)
+        decode.IFID_i.write('inst', 0x40538733)
+        decode.process()
+        out = decode.IDEX_o.read()
+        assert out['rs1'] == 43
+        assert out['rs2'] == 12
+        assert out['pc'] == 0x80000004
+        assert out['rd'] == 14
+        assert out['we'] == True
+        assert out['wb_sel'] == 0
+        assert out['opcode'] == 0b01100
+        assert out['funct3'] == 0
+        assert out['funct7'] == 0b0100000
+
+        # Test wb_sel
+        res = decode.wb_sel(0b11011)
+        assert res == 1
+        res = decode.wb_sel(0)
+        assert res == 2
+        res = decode.wb_sel(0b01100)
+        assert res == 0
 
 # ---------------------------------------
 # Test EXECUTE
