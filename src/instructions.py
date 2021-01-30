@@ -122,7 +122,7 @@ def i_SLL(val1, val2):
 
     Parameters:
         val1: Value of register rs1
-        val2: rs2 / Sign-extended immediate
+        val2: rs2 / Immediate
     
     Returns:
         Logical left shift of val1 by val2 (5 bits)
@@ -135,7 +135,7 @@ def i_SRL(val1, val2):
 
     Parameters:
         val1: Value of register rs1
-        val2: rs2 / Sign-extended immediate
+        val2: rs2 / Immediate
     
     Returns:
         Logical right shift of val1 by val2 (5 bits)
@@ -148,7 +148,7 @@ def i_SRA(val1, val2):
 
     Parameters:
         val1: Value of register rs1
-        val2: rs2 / Sign-extended immediate
+        val2: rs2 / Immediate
     
     Returns:
         Arithmetic right shift of val1 by val2 (5 bits)
