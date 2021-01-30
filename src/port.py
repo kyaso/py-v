@@ -1,12 +1,14 @@
+import copy
+
 class Port:
     def __init__(self, initVal = 0):
         self.val = initVal
     
     def read(self):
-        return self.val
+        return copy.deepcopy(self.val)
     
     def write(self, val):
-        self.val = val
+        self.val = copy.deepcopy(val)
     
 class PortX(Port):
     def __init__(self, *ports):
