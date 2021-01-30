@@ -25,7 +25,7 @@ class IFStage(Module):
         # Connect next pc with next value in of PC reg
         self.PC.next = self.npc_i
         # Connect current PC to output
-        self.IFID_o.val['pc'] = self.PC.cur
+        self.IFID_o['pc'] = self.PC.cur
     
     def process(self):
         # Read instruction
