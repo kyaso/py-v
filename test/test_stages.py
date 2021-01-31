@@ -194,13 +194,22 @@ class TestEXStage:
         res = ex.alu(0b11011, 0, 0, 0xB5E64, 0x80000000, 0, 0)
         assert res == 0x800B5E64
 
+        res = ex.alu(0b11011, 0, 0, 0xffffffec, 0x90000000, 0, 0)
+        assert res == 0x8FFFFFEC
+
         # JALR
         res = ex.alu(0b11001, 0x40000000, 0, 0x401, 0, 0, 0)
         assert res == 0x40000400
 
+        res = ex.alu(0b11001, 0x90000000, 0, 0xffffffec, 0, 0, 0)
+        assert res == 0x8FFFFFEC
+
         # BRANCH
         res = ex.alu(0b11000, 0, 0, 0xD58, 0x80000000, 0, 0)
         assert res == 0x80000D58
+
+        res = ex.alu(0b11000, 0, 0, 0xffffffec, 0x90000000, 0, 0)
+        assert res == 0x8FFFFFEC
 
         # LOAD
         res = ex.alu(0b00000, 0x60000000, 0, 0x7D2, 0, 0, 0)
@@ -466,7 +475,7 @@ class TestEXStage:
         assert res == 0x0000000f
 
     def test_branch(self):
-        pass
+        ex = EXStage()
     
     def test_EXStage(self):
         ex = EXStage()
