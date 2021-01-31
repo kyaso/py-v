@@ -476,7 +476,8 @@ class TestEXStage:
                         'we', True,
                         'wb_sel', 2,
                         'rs2', 0xdeadbeef,
-                        'mem', 2)
+                        'mem', 2,
+                        'funct3', 5)
         ex.process()
         out = ex.EXMEM_o.read()
         assert out['rd'] == 24
@@ -484,6 +485,7 @@ class TestEXStage:
         assert out['wb_sel'] == 2
         assert out['rs2'] == 0xdeadbeef
         assert out['mem'] == 2
+        assert out['funct3'] == 5
 
         # LUI x24, 0xaffe
         ex.IDEX_i.write('rs1', 0,

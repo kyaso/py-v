@@ -188,7 +188,8 @@ class EXStage(Module):
                              'alu_res',
                              'pc4',
                              'rs2',
-                             'mem')
+                             'mem',
+                             'funct3')
 
         # Pass throughs
         self.EXMEM_o['rd'] = self.IDEX_i['rd']
@@ -196,6 +197,7 @@ class EXStage(Module):
         self.EXMEM_o['wb_sel'] = self.IDEX_i['wb_sel']
         self.EXMEM_o['rs2'] = self.IDEX_i['rs2']
         self.EXMEM_o['mem'] = self.IDEX_i['mem']
+        self.EXMEM_o['funct3'] = self.IDEX_i['funct3']
     
     def process(self):
         # Read inputs
