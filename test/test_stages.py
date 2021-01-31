@@ -115,6 +115,7 @@ class TestIDStage:
         assert out['we'] == False
         assert out['opcode'] == 0b01000
         assert out['funct3'] == 2
+        assert out['mem'] == 2
 
         # Test instruction with register write
         # ADDI x0, x0, 0
@@ -130,6 +131,7 @@ class TestIDStage:
         assert out['wb_sel'] == 0
         assert out['opcode'] == 0b00100
         assert out['funct3'] == 0
+        assert out['mem'] == 0
 
         # Test instruction with funct7 output
         # SUB x14, x7, x5
@@ -147,6 +149,7 @@ class TestIDStage:
         assert out['opcode'] == 0b01100
         assert out['funct3'] == 0
         assert out['funct7'] == 0b0100000
+        assert out['mem'] == 0
 
         # Test wb_sel
         res = decode.wb_sel(0b11011)
@@ -155,6 +158,22 @@ class TestIDStage:
         assert res == 2
         res = decode.wb_sel(0b01100)
         assert res == 0
+
+        # Test LOAD
+        # LW x15, x8, 0x456
+        regf.write(8, 0x40000000)
+        decode.IFID_i.write('inst', 0x45642783)
+        decode.process()
+        out = decode.IDEX_o.read()
+        assert out['rs1'] == 0x40000000
+        assert out['imm'] == 0x456
+        assert out['pc'] == 0x80000004
+        assert out['rd'] == 15
+        assert out['we'] == True
+        assert out['wb_sel'] == 2
+        assert out['opcode'] == 0b00000
+        assert out['funct3'] == 0b010
+        assert out['mem'] == 1
 
 # ---------------------------------------
 # Test EXECUTE
@@ -456,13 +475,15 @@ class TestEXStage:
         ex.IDEX_i.write('rd', 24,
                         'we', True,
                         'wb_sel', 2,
-                        'rs2', 0xdeadbeef)
+                        'rs2', 0xdeadbeef,
+                        'mem', 2)
         ex.process()
         out = ex.EXMEM_o.read()
         assert out['rd'] == 24
         assert out['we'] == True
         assert out['wb_sel'] == 2
         assert out['rs2'] == 0xdeadbeef
+        assert out['mem'] == 2
 
         # LUI x24, 0xaffe
         ex.IDEX_i.write('rs1', 0,

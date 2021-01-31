@@ -41,7 +41,7 @@ class IDStage(Module):
 
         self.IFID_i = PortX('inst', 'pc')
 
-        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7')
+        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
         
     def process(self):
         # Read inputs
@@ -75,8 +75,19 @@ class IDStage(Module):
         # Determine what to write-back into regfile
         wb_sel = self.wb_sel(opcode)
 
+        # Determine none/load/store
+        mem = self.mem_sel(opcode)
+
         # Outputs
-        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7)
+        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
+
+    def mem_sel(self, opcode):
+        if opcode==isa.OPCODES['LOAD']:
+            return 1
+        elif opcode==isa.OPCODES['STORE']:
+            return 2
+        else:
+            return 0
 
     def wb_sel(self, opcode):
         if opcode == isa.OPCODES['JAL']:
@@ -167,7 +178,8 @@ class EXStage(Module):
                             'wb_sel',
                             'opcode',
                             'funct3',
-                            'funct7')
+                            'funct7',
+                            'mem')
         
         self.EXMEM_o = PortX('rd',
                              'we',
@@ -175,13 +187,15 @@ class EXStage(Module):
                              'take_branch',
                              'alu_res',
                              'pc4',
-                             'rs2')
+                             'rs2',
+                             'mem')
 
         # Pass throughs
         self.EXMEM_o['rd'] = self.IDEX_i['rd']
         self.EXMEM_o['we'] = self.IDEX_i['we']
         self.EXMEM_o['wb_sel'] = self.IDEX_i['wb_sel']
         self.EXMEM_o['rs2'] = self.IDEX_i['rs2']
+        self.EXMEM_o['mem'] = self.IDEX_i['mem']
     
     def process(self):
         # Read inputs
