@@ -197,65 +197,79 @@ class EXStage(Module):
         self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
+        # Select operands
+        op1 = op2 = 0
+        # op1
+        if opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
+            op1 = pc
+        else:
+            op1 = rs1
+        # op2
+        if opcode!=isa.OPCODES['OP']:
+            op2 = imm
+        else:
+            op2 = rs2
+
+        # Perform ALU op
         alu_res = 0
         if opcode==isa.OPCODES['LUI']:
-            alu_res = imm
+            alu_res = op2
         
         elif opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
-            alu_res = pc + imm
+            alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['JALR']:
-            alu_res = 0xfffffffe & (rs1 + imm)
+            alu_res = 0xfffffffe & (op1 + op2)
 
         elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']:
-            alu_res = rs1 + imm
+            alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['OP-IMM']:
             if f3==0b000: # ADDI
-                alu_res = rs1 + imm
+                alu_res = op1 + op2
             elif f3==0b010: # SLTI
-                alu_res = i_SLT(rs1, imm)
+                alu_res = i_SLT(op1, op2)
             elif f3==0b011: # SLTIU
-                alu_res = i_SLTU(rs1, imm)
+                alu_res = i_SLTU(op1, op2)
             elif f3==0b100: # XORI
-                alu_res = rs1 ^ imm
+                alu_res = op1 ^ op2
             elif f3==0b110: # ORI
-                alu_res = rs1 | imm
+                alu_res = op1 | op2
             elif f3==0b111: # ANDI
-                alu_res = rs1 & imm
+                alu_res = op1 & op2
             elif f3==0b001: # SLLI
                 if f7==0: # TODO: We could remove this check if IDStage catches f7!=0 case
-                    alu_res = i_SLL(rs1, imm)
+                    alu_res = i_SLL(op1, op2)
             elif f3==0b101:
                 if f7==0: # SRLI
-                    alu_res = i_SRL(rs1, imm)
+                    alu_res = i_SRL(op1, op2)
                 elif f7==0b0100000: # SRAI
-                    alu_res = i_SRA(rs1, imm)
+                    alu_res = i_SRA(op1, op2)
         
         elif opcode==isa.OPCODES['OP']:
             if f7==0:
                 if f3==0b000: # ADD
-                    alu_res = rs1 + rs2
+                    alu_res = op1 + op2
                 elif f3==0b001: # SLL
-                    alu_res = i_SLL(rs1, rs2)
+                    alu_res = i_SLL(op1, op2)
                 elif f3==0b010: # SLT
-                    alu_res = i_SLT(rs1, rs2)
+                    alu_res = i_SLT(op1, op2)
                 elif f3==0b011: # SLTU
-                    alu_res = i_SLTU(rs1, rs2)
+                    alu_res = i_SLTU(op1, op2)
                 elif f3==0b100: # XOR
-                    alu_res = rs1 ^ rs2
+                    alu_res = op1 ^ op2
                 elif f3==0b101: # SRL
-                    alu_res = i_SRL(rs1, rs2)
+                    alu_res = i_SRL(op1, op2)
                 elif f3==0b110: # OR
-                    alu_res = rs1 | rs2
+                    alu_res = op1 | op2
                 elif f3==0b111: # AND
-                    alu_res = rs1 & rs2
+                    alu_res = op1 & op2
 
             elif f7==0b0100000:
                 if f3==0b000: # SUB
-                    alu_res = rs1 - rs2
+                    alu_res = op1 - op2
                 elif f3==0b101: # SRA
-                    alu_res = i_SRA(rs1, rs2)
+                    alu_res = i_SRA(op1, op2)
    
         return MASK_32 & alu_res
 
