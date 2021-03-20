@@ -203,7 +203,12 @@ class EXStage(Module):
         # Read inputs
         opcode, rs1, rs2, imm, pc, f3, f7 = self.IDEX_i.read('opcode', 'rs1', 'rs2', 'imm', 'pc', 'funct3', 'funct7')
 
-        take_branch = self.branch(opcode) # TODO
+        take_branch = False
+        if opcode==isa.OPCODES['BRANCH']:
+            take_branch = self.branch(opcode, f3, rs1, rs2) # TODO
+        elif opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
+            take_branch = True
+        
         pc4 = pc+4
 
         # ALU
@@ -290,8 +295,24 @@ class EXStage(Module):
         return MASK_32 & alu_res
 
     # TODO
-    def branch(self, opcode):
-        if opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
-            return True
-        else:
-            return False
+    # opcode can be removed
+    def branch(self, opcode, f3, rs1, rs2):
+        """
+        Performs comparison of rs1 and rs2 using comp op given by f3.
+
+        Returns True if branch is taken.
+        """
+        if f3==0:               # BEQ
+            return rs1==rs2
+        elif f3==1:             # BNE
+            return rs1!=rs2
+        elif f3==4:             # BLT
+            return rs1<rs2
+        elif f3==5:             # BGE
+            return rs1>=rs2
+        elif f3==6:             # BLTU
+            # TODO
+            return rs1<rs2
+        elif f3==7:             # BGEU
+            # TODO
+            return rs1>=rs2
