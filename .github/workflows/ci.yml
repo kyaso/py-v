@@ -28,7 +28,7 @@ jobs:
       # Install pytest
       - name: Install pytest
         env:
-          PYTHONPATH: $(pwd)/src
+          PYTHONPATH: ${{ $(pwd)/src }}
         run: |
           pip3 install -U pytest
           pytest --version
