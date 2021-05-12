@@ -478,22 +478,22 @@ class TestEXStage:
         ex = EXStage()
 
         # BEQ
-        res = ex.branch(opcode=0b11000, f3=0, rs1=0, rs2=0)
+        res = ex.branch(f3=0, rs1=0, rs2=0)
         assert res == True
 
-        res = ex.branch(opcode=0b11000, f3=0, rs1=1, rs2=1)
+        res = ex.branch(f3=0, rs1=1, rs2=1)
         assert res == True
 
-        res = ex.branch(opcode=0b11000, f3=0, rs1=-1, rs2=-1)
+        res = ex.branch(f3=0, rs1=-1, rs2=-1)
         assert res == True
 
-        res = ex.branch(opcode=0b11000, f3=0, rs1=0, rs2=1)
+        res = ex.branch(f3=0, rs1=0, rs2=1)
         assert res == False
 
-        res = ex.branch(opcode=0b11000, f3=0, rs1=1, rs2=0)
+        res = ex.branch(f3=0, rs1=1, rs2=0)
         assert res == False
 
-        res = ex.branch(opcode=0b11000, f3=0, rs1=-1, rs2=1)
+        res = ex.branch(f3=0, rs1=-1, rs2=1)
         assert res == False
 
         # BNE
