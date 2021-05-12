@@ -27,7 +27,11 @@ jobs:
 
       # Install pytest
       - name: Install pytest
-        run: pip3 install -U pytest; pytest --version
+        run: |
+          pip3 install -U pytest
+          pytest --version
+          export PYTHONPATH=./src
+          echo $PYTHONPATH
       
       # Run tests
       - name: Run tests
