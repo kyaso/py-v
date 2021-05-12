@@ -27,13 +27,12 @@ jobs:
 
       # Install pytest
       - name: Install pytest
-        env:
-          PYTHONPATH: ${{ $(pwd)/src }}
         run: |
           pip3 install -U pytest
           pytest --version
-          echo $PYTHONPATH
       
       # Run tests
       - name: Run tests
-        run: echo $PYTHONPATH
+        run: |
+          export PYTHONPATH=$(pwd)/src
+          pytest
