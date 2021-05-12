@@ -30,7 +30,7 @@ jobs:
         run: |
           pip3 install -U pytest
           pytest --version
-          export PYTHONPATH=./src
+          export PYTHONPATH=$(pwd)/src
           echo $PYTHONPATH
       
       # Run tests
