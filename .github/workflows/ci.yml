@@ -32,4 +32,4 @@ jobs:
         run: echo Hello, world!
         
       - name: Print working dir
-        run: pwd
+        run: pwd; ls
