@@ -497,6 +497,23 @@ class TestEXStage:
         assert res == False
 
         # BNE
+        res = ex.branch(f3=1, rs1=0, rs2=0)
+        assert res == False
+
+        res = ex.branch(f3=1, rs1=1, rs2=1)
+        assert res == False
+
+        res = ex.branch(f3=1, rs1=-1, rs2=-1)
+        assert res == False
+
+        res = ex.branch(f3=1, rs1=0, rs2=1)
+        assert res == True
+
+        res = ex.branch(f3=1, rs1=1, rs2=0)
+        assert res == True
+
+        res = ex.branch(f3=1, rs1=-1, rs2=1)
+        assert res == True
 
         # BLT
 
