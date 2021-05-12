@@ -35,4 +35,4 @@ jobs:
       
       # Run tests
       - name: Run tests
-        run: pytest
+        run: echo $PYTHONPATH
