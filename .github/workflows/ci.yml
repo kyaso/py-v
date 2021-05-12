@@ -25,6 +25,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Steps: install pytest, run pytest
+      # Install pytest
       - name: Install pytest
         run: pip3 install -U pytest; pytest --version
+      
+      # Run tests
+      - name: Run tests
+        run: pytest
