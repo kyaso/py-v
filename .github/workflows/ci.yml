@@ -26,10 +26,5 @@ jobs:
       - uses: actions/checkout@v2
 
       # Steps: install pytest, run pytest
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-        
-      - name: Print working dir
-        run: pwd; ls
+      - name: Install pytest
+        run: pip3 install -U pytest; pytest --version
