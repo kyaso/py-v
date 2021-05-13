@@ -539,6 +539,35 @@ class TestEXStage:
         assert res == False
 
         # BGE
+        res = ex.branch(f3=5, rs1=0, rs2=0)
+        assert res == True
+    
+        res = ex.branch(f3=5, rs1=1, rs2=1)
+        assert res == True
+    
+        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=MASK_32&(-1))
+        assert res == True
+    
+        res = ex.branch(f3=5, rs1=1, rs2=0)
+        assert res == True
+    
+        res = ex.branch(f3=5, rs1=1, rs2=MASK_32&(-1))
+        assert res == True
+    
+        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=MASK_32&(-2))
+        assert res == True
+
+        res = ex.branch(f3=5, rs1=0, rs2=1)
+        assert res == False
+    
+        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=1)
+        assert res == False
+    
+        res = ex.branch(f3=5, rs1=MASK_32&(-2), rs2=MASK_32&(-1))
+        assert res == False
+
+        res = ex.branch(f3=5, rs1=MASK_32&(-2), rs2=1)
+        assert res == False
 
         # BLTU
 
