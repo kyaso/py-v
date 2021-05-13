@@ -592,6 +592,35 @@ class TestEXStage:
         assert res == False
 
         # BGEU
+        res = ex.branch(f3=7, rs1=0x00000000, rs2=0x00000000)
+        assert res == True
+        
+        res = ex.branch(f3=7, rs1=0x00000001, rs2=0x00000001)
+        assert res == True
+
+        res = ex.branch(f3=7, rs1=0xffffffff, rs2=0xffffffff)
+        assert res == True
+
+        res = ex.branch(f3=7, rs1=0x00000001, rs2=0x00000000)
+        assert res == True
+
+        res = ex.branch(f3=7, rs1=0xffffffff, rs2=0xfffffffe)
+        assert res == True
+
+        res = ex.branch(f3=7, rs1=0xffffffff, rs2=0x00000000)
+        assert res == True
+
+        res = ex.branch(f3=7, rs1=0x00000000, rs2=0x00000001)
+        assert res == False
+
+        res = ex.branch(f3=7, rs1=0xfffffffe, rs2=0xffffffff)
+        assert res == False
+
+        res = ex.branch(f3=7, rs1=0x00000000, rs2=0xffffffff)
+        assert res == False
+
+        res = ex.branch(f3=7, rs1=0x7fffffff, rs2=0x80000000)
+        assert res == False
     
     def test_EXStage(self):
         ex = EXStage()

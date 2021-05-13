@@ -323,5 +323,4 @@ class EXStage(Module):
         elif f3==6:             # BLTU
             return rs1<rs2
         elif f3==7:             # BGEU
-            # TODO
             return rs1>=rs2
