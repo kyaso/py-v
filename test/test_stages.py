@@ -1,6 +1,7 @@
 import pytest
 from stages import *
 from reg import *
+from util import MASK_32
 
 def test_sanity():
     assert True
@@ -516,6 +517,26 @@ class TestEXStage:
         assert res == True
 
         # BLT
+        res = ex.branch(f3=4, rs1=0, rs2=1)
+        assert res == True
+
+        res = ex.branch(f3=4, rs1=MASK_32&(-1), rs2=1)
+        assert res == True
+
+        res = ex.branch(f3=4, rs1=MASK_32&(-2), rs2=MASK_32&(-1))
+        assert res == True
+
+        res = ex.branch(f3=4, rs1=1, rs2=0)
+        assert res == False
+
+        res = ex.branch(f3=4, rs1=1, rs2=MASK_32&(-1))
+        assert res == False
+
+        res = ex.branch(f3=4, rs1=MASK_32&(-1), rs2=MASK_32&(-2))
+        assert res == False
+
+        res = ex.branch(f3=4, rs1=1, rs2=MASK_32&(-2))
+        assert res == False
 
         # BGE
 

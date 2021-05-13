@@ -308,7 +308,12 @@ class EXStage(Module):
         elif f3==1:             # BNE
             return rs1!=rs2
         elif f3==4:             # BLT
-            return rs1<rs2
+            if msb_32(rs1)==msb_32(rs2):
+                return rs1<rs2
+            elif msb_32(rs1)==1:
+                return True
+            else:
+                return False
         elif f3==5:             # BGE
             return rs1>=rs2
         elif f3==6:             # BLTU
