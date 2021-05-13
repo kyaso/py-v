@@ -570,6 +570,26 @@ class TestEXStage:
         assert res == False
 
         # BLTU
+        res = ex.branch(f3=6, rs1=0x00000000, rs2=0x00000001)
+        assert res == True
+
+        res = ex.branch(f3=6, rs1=0xfffffffe, rs2=0xffffffff)
+        assert res == True
+
+        res = ex.branch(f3=6, rs1=0x00000000, rs2=0xffffffff)
+        assert res == True
+
+        res = ex.branch(f3=6, rs1=0x00000001, rs2=0x00000000)
+        assert res == False
+
+        res = ex.branch(f3=6, rs1=0xffffffff, rs2=0xfffffffe)
+        assert res == False
+
+        res = ex.branch(f3=6, rs1=0xffffffff, rs2=0x00000000)
+        assert res == False
+
+        res = ex.branch(f3=6, rs1=0x80000000, rs2=0x7fffffff)
+        assert res == False
 
         # BGEU
     

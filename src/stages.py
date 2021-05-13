@@ -321,7 +321,6 @@ class EXStage(Module):
         elif f3==5:             # BGE
             return not _blt(rs1, rs2)
         elif f3==6:             # BLTU
-            # TODO
             return rs1<rs2
         elif f3==7:             # BGEU
             # TODO
