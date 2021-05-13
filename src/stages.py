@@ -206,7 +206,7 @@ class EXStage(Module):
         # Check for branch/jump
         take_branch = False
         if opcode==isa.OPCODES['BRANCH']:
-            take_branch = self.branch(f3, rs1, rs2) # TODO
+            take_branch = self.branch(f3, rs1, rs2)
         elif opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
             take_branch = True
         
@@ -219,6 +219,109 @@ class EXStage(Module):
         self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
+
+        # Helpers
+        def _slt(val1, val2):
+            """ SLT[I] instruction
+
+            Parameters:
+                val1: Value of register rs1
+                val2: rs2 / Sign-extended immediate
+            
+            Returns:
+                1 if val1 < val2 (signed comparison)
+                0 otherwise
+            """
+
+            msb_r = getBit(val1, 31)
+            msb_i = getBit(val2, 31)
+
+            # Check if both operands are positive
+            if (msb_r==0) and (msb_i==0):
+                if val1 < val2:
+                    return 1
+                else:
+                    return 0
+            # val1 negative; val2 positive
+            elif (msb_r==1) and (msb_i==0):
+                return 1
+            # val1 positive, val2 negative
+            elif (msb_r==0) and (msb_i==1):
+                return 0
+            # both negative
+            else:
+                if val2 < val1:
+                    return 1
+                else:
+                    return 0
+
+        def _sltu(val1, val2):
+            """ SLT[I]U instruction
+
+            Parameters:
+                val1: Value of register rs1
+                val2: rs2 / Sign-extended immediate
+            
+            Returns:
+                1 if val1 < val2 (unsigned comparison)
+                0 otherwise
+            """
+
+            if val1 < val2:
+                return 1
+            else:
+                return 0
+
+        def _sll(val1, val2):
+            """ SLL[I] instruction
+
+            Parameters:
+                val1: Value of register rs1
+                val2: rs2 / Immediate
+            
+            Returns:
+                Logical left shift of val1 by val2 (5 bits)
+            """
+
+            return (MASK_32 & (val1<<(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+
+        def _srl(val1, val2):
+            """ SRL[I] instruction
+
+            Parameters:
+                val1: Value of register rs1
+                val2: rs2 / Immediate
+            
+            Returns:
+                Logical right shift of val1 by val2 (5 bits)
+            """
+
+            return (MASK_32 & (val1>>(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+
+        def _sra(val1, val2):
+            """ SRA[I] instruction
+
+            Parameters:
+                val1: Value of register rs1
+                val2: rs2 / Immediate
+            
+            Returns:
+                Arithmetic right shift of val1 by val2 (5 bits)
+            """
+
+            msb_r = getBit(val1, 31)
+            shamt = 0x1f & val2
+            rshift = (MASK_32 & (val1>>shamt)) # Mask so that bits above bit 31 turn to zero (for Python)
+            if msb_r==0:
+                return rshift 
+            else:
+                # Fill upper bits with 1s
+                return (MASK_32 & (rshift | (0xffffffff<<(XLEN-shamt))))
+
+        # ------------------
+        # ALU start
+        # ------------------
+
         # Select operands
         op1 = op2 = 0
         # op1
@@ -241,18 +344,18 @@ class EXStage(Module):
             alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['JALR']:
-            alu_res = 0xfffffffe & (op1 + op2)
+            alu_res = 0xfffffffe & (op1 + op2) # TODO: Why do we need mask here?
 
-        elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']:
+        elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']: # TODO: Could be merged with the upper elif
             alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['OP-IMM']:
             if f3==0b000: # ADDI
                 alu_res = op1 + op2
             elif f3==0b010: # SLTI
-                alu_res = i_SLT(op1, op2)
+                alu_res = _slt(op1, op2)
             elif f3==0b011: # SLTIU
-                alu_res = i_SLTU(op1, op2)
+                alu_res = _sltu(op1, op2)
             elif f3==0b100: # XORI
                 alu_res = op1 ^ op2
             elif f3==0b110: # ORI
@@ -261,27 +364,27 @@ class EXStage(Module):
                 alu_res = op1 & op2
             elif f3==0b001: # SLLI
                 if f7==0: # TODO: We could remove this check if IDStage catches f7!=0 case
-                    alu_res = i_SLL(op1, op2)
+                    alu_res = _sll(op1, op2)
             elif f3==0b101:
                 if f7==0: # SRLI
-                    alu_res = i_SRL(op1, op2)
+                    alu_res = _srl(op1, op2)
                 elif f7==0b0100000: # SRAI
-                    alu_res = i_SRA(op1, op2)
+                    alu_res = _sra(op1, op2)
         
         elif opcode==isa.OPCODES['OP']:
             if f7==0:
                 if f3==0b000: # ADD
                     alu_res = op1 + op2
                 elif f3==0b001: # SLL
-                    alu_res = i_SLL(op1, op2)
+                    alu_res = _sll(op1, op2)
                 elif f3==0b010: # SLT
-                    alu_res = i_SLT(op1, op2)
+                    alu_res = _slt(op1, op2)
                 elif f3==0b011: # SLTU
-                    alu_res = i_SLTU(op1, op2)
+                    alu_res = _sltu(op1, op2)
                 elif f3==0b100: # XOR
                     alu_res = op1 ^ op2
                 elif f3==0b101: # SRL
-                    alu_res = i_SRL(op1, op2)
+                    alu_res = _srl(op1, op2)
                 elif f3==0b110: # OR
                     alu_res = op1 | op2
                 elif f3==0b111: # AND
@@ -291,7 +394,7 @@ class EXStage(Module):
                 if f3==0b000: # SUB
                     alu_res = op1 - op2
                 elif f3==0b101: # SRA
-                    alu_res = i_SRA(op1, op2)
+                    alu_res = _sra(op1, op2)
    
         return MASK_32 & alu_res
 
