@@ -15,3 +15,14 @@ def getBit(val, idx):
 
 def getBits(val, hiIdx, loIdx):
     return (~(MASK_32<<(hiIdx-loIdx+1)) & (val>>loIdx))
+
+def signext(val, width):
+    """
+    Sign-extend a value (val) of width `width` bits to 32-bits
+    """
+    msb = getBit(val, width-1)
+
+    if msb: #1
+        val = MASK_32&( (-1)<<width | val )
+
+    return val

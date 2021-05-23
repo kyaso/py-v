@@ -1,3 +1,4 @@
+from util import MASK_32
 class Memory:
     def __init__(self, size = 32):
         self.mem = [ 0 for i in range(0,size) ]
@@ -5,11 +6,11 @@ class Memory:
     def read(self, addr, w):
         # TODO: handle misaligned access
         if w == 1: # byte
-            return self.mem[addr]
+            return MASK_32 & self.mem[addr]
         elif w == 2: # half word
-            return (self.mem[addr+1]<<8 | self.mem[addr])
+            return MASK_32 & (self.mem[addr+1]<<8 | self.mem[addr])
         elif w == 4: # word
-            return (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
+            return MASK_32 & (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
         else:
             raise Exception('ERROR (Memory, read): Invalid width {}'.format(w))
     

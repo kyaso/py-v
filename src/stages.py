@@ -1,6 +1,7 @@
 from module import *
 from port import *
 from reg import *
+from mem import *
 import isa
 from instructions import *
 from util import *
@@ -16,6 +17,9 @@ from util import *
 #     def process(self):
 #         self.C_o.val = self.A_i.val + self.B_i.val
     
+LOAD = 1
+STORE = 2
+
 class IFStage(Module):
     def __init__(self):
         self.npc_i = Port()
@@ -83,9 +87,9 @@ class IDStage(Module):
 
     def mem_sel(self, opcode):
         if opcode==isa.OPCODES['LOAD']:
-            return 1
+            return LOAD
         elif opcode==isa.OPCODES['STORE']:
-            return 2
+            return STORE
         else:
             return 0
 
@@ -427,3 +431,65 @@ class EXStage(Module):
             return rs1<rs2
         elif f3==7:             # BGEU
             return rs1>=rs2
+
+class MEMStage(Module):
+    def __init__(self, mem_size = 8*1024):
+        self.EXMEM_i = PortX('rd',
+                             'we',
+                             'alu_res',
+                             'pc4',
+                             'rs2',
+                             'mem',
+                             'wb_sel',
+                             'funct3')
+        
+        self.MEMWB_o = PortX('rd',
+                             'we',
+                             'alu_res',
+                             'pc4',
+                             'mem_rdata',
+                             'wb_sel')
+        
+        # Pass throughs
+        self.MEMWB_o['rd'] = self.EXMEM_i['rd']
+        self.MEMWB_o['we'] = self.EXMEM_i['we']
+        self.MEMWB_o['wb_sel'] = self.EXMEM_i['wb_sel']
+        self.MEMWB_o['pc4'] = self.EXMEM_i['pc4']
+        self.MEMWB_o['alu_res'] = self.EXMEM_i['alu_res']
+
+        # Main memory
+        self.mem = Memory(mem_size)
+
+
+    def process(self):
+        # Read inputs
+        addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
+
+        load_val = 0
+        if op == LOAD:
+            if f3 == 0: # LB
+                load_val = signext(self.mem.read(addr, 1), 8)
+            elif f3 == 1: # LH
+                load_val = signext(self.mem.read(addr, 2), 16)
+            elif f3 == 2: # LW
+                load_val = self.mem.read(addr, 4)
+            elif f3 == 4: # LBU
+                load_val = self.mem.read(addr, 1)
+            elif f3 == 5: # LHU
+                load_val = self.mem.read(addr, 2)
+            else:
+                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+        elif op == STORE:
+            if f3 == 0: # SB
+                self.mem.write(addr, mem_wdata, 1)
+            elif f3 == 1: # SH
+                self.mem.write(addr, mem_wdata, 2)
+            elif f3 == 2: # SW
+                self.mem.write(addr, mem_wdata, 4)
+            else:
+                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+        else:
+            raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
+
+        # Outputs
+        self.MEMWB_o.write('mem_rdata', load_val)

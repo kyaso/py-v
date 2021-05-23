@@ -2,6 +2,7 @@ import pytest
 from stages import *
 from reg import *
 from util import MASK_32
+from mem import *
 
 def test_sanity():
     assert True
@@ -717,6 +718,99 @@ class TestEXStage:
 # ---------------------------------------
 # Test MEMORY
 # ---------------------------------------
+class TestMEMStage:
+    def test_constructor(self):
+        mem = MEMStage()
+
+        # Check inputs
+        in_ports = ['alu_res', 'pc4', 'we', 'wb_sel', 'rs2', 'mem', 'funct3', 'rd']
+        assert len(mem.EXMEM_i.val) == 8
+        for port in in_ports:
+            assert (port in mem.EXMEM_i.val)
+
+        # Check outputs
+        out_ports = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
+        assert len(mem.MEMWB_o.val) == 6
+        for port in out_ports:
+            assert (port in mem.MEMWB_o.val)
+
+    def test_load(self):
+        mem = MEMStage()
+        # Load memory
+        mem.mem.write(0, 0xdeadbeef, 4)
+
+        # LB
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 2) # addr
+        mem.EXMEM_i.write('funct3', 0) # lb
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0xffffffad
+
+        # LH
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 2) # addr
+        mem.EXMEM_i.write('funct3', 1) # lh
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0xffffdead
+
+        # LW
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 0) # addr
+        mem.EXMEM_i.write('funct3', 2) # lw
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0xdeadbeef
+
+        # LBU
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 2) # addr
+        mem.EXMEM_i.write('funct3', 4) # lbu
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0xad
+
+        # LHU
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 2) # addr
+        mem.EXMEM_i.write('funct3', 5) # lbu
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0xdead
+
+    def test_store(self):
+        mem = MEMStage()
+
+        # SB
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 3) # addr
+        mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
+        mem.EXMEM_i.write('funct3', 0) # sb
+        mem.process()
+        assert mem.mem.read(3, 1) == 0xbe
+
+        mem.mem.write(0, 0, 4)
+
+        # SH
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 0) # addr
+        mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
+        mem.EXMEM_i.write('funct3', 1) # sh
+        mem.process()
+        assert mem.mem.read(0, 2) == 0xbabe
+
+        # SW
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 0) # addr
+        mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
+        mem.EXMEM_i.write('funct3', 2) # sw
+        mem.process()
+        assert mem.mem.read(0, 4) == 0xabadbabe
+
+    def test_passThru(self):
+        mem = MEMStage()
+
+        assert mem.EXMEM_i['rd'] == mem.MEMWB_o['rd']
+        assert mem.EXMEM_i['we'] == mem.MEMWB_o['we']
+        assert mem.EXMEM_i['wb_sel'] == mem.MEMWB_o['wb_sel']
+        assert mem.EXMEM_i['pc4'] == mem.MEMWB_o['pc4']
+        assert mem.EXMEM_i['alu_res'] == mem.MEMWB_o['alu_res']
 
 # ---------------------------------------
 # Test WRITE-BACK
