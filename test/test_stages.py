@@ -181,6 +181,39 @@ class TestIDStage:
 # Test EXECUTE
 # ---------------------------------------
 class TestEXStage:
+    def test_constructor(self):
+        ex = EXStage()
+
+        in_ports = ['rd',
+                    'we',
+                    'imm',
+                    'pc',
+                    'rs1',
+                    'rs2',
+                    'mem',
+                    'wb_sel',
+                    'opcode',
+                    'funct3',
+                    'funct7'
+                   ]
+        assert len(ex.IDEX_i.val) == len(in_ports)
+        for port in in_ports:
+            assert (port in ex.IDEX_i.val)
+
+        out_ports = ['rd',
+                     'we',
+                     'wb_sel',
+                     'take_branch',
+                     'alu_res',
+                     'pc4',
+                     'rs2',
+                     'mem',
+                     'funct3'
+                     ]
+        assert len(ex.EXMEM_o.val) == len(out_ports)
+        for port in out_ports:
+            assert (port in ex.EXMEM_o.val)
+
     def test_alu(self):
         ex = EXStage()
 
@@ -724,13 +757,13 @@ class TestMEMStage:
 
         # Check inputs
         in_ports = ['alu_res', 'pc4', 'we', 'wb_sel', 'rs2', 'mem', 'funct3', 'rd']
-        assert len(mem.EXMEM_i.val) == 8
+        assert len(mem.EXMEM_i.val) == len(in_ports)
         for port in in_ports:
             assert (port in mem.EXMEM_i.val)
 
         # Check outputs
         out_ports = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
-        assert len(mem.MEMWB_o.val) == 6
+        assert len(mem.MEMWB_o.val) == len(out_ports)
         for port in out_ports:
             assert (port in mem.MEMWB_o.val)
 
