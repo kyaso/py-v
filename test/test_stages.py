@@ -28,6 +28,22 @@ def test_IFStage():
 # Test DECODE
 # ---------------------------------------
 class TestIDStage:
+    def test_constructor(self):
+        regf = Regfile()
+        dec = IDStage(regf)
+
+        assert regf == dec.regfile
+
+        in_ports = ['inst', 'pc']
+        assert len(dec.IFID_i.val) == len(in_ports)
+        for port in in_ports:
+            assert (port in dec.IFID_i.val)
+        
+        out_ports = ['rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem']
+        assert len(dec.IDEX_o.val) == len(out_ports)
+        for port in out_ports:
+            assert (port in dec.IDEX_o.val)
+
     def test_decImm(self):
         dec = IDStage(None)
         # --- Test I-type -------------------------
