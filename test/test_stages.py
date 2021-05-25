@@ -738,6 +738,7 @@ class TestMEMStage:
         mem = MEMStage()
         # Load memory
         mem.mem.write(0, 0xdeadbeef, 4)
+        mem.mem.write(4, 0xbade0123, 4)
 
         # LB
         mem.EXMEM_i.write('mem', 1) # load
@@ -746,12 +747,24 @@ class TestMEMStage:
         mem.process()
         assert mem.MEMWB_o['mem_rdata'].read() == 0xffffffad
 
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 5) # addr
+        mem.EXMEM_i.write('funct3', 0) # lb
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0x00000001 
+
         # LH
         mem.EXMEM_i.write('mem', 1) # load
         mem.EXMEM_i.write('alu_res', 2) # addr
         mem.EXMEM_i.write('funct3', 1) # lh
         mem.process()
         assert mem.MEMWB_o['mem_rdata'].read() == 0xffffdead
+
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 4) # addr
+        mem.EXMEM_i.write('funct3', 1) # lh
+        mem.process()
+        assert mem.MEMWB_o['mem_rdata'].read() == 0x00000123 
 
         # LW
         mem.EXMEM_i.write('mem', 1) # load
