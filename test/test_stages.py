@@ -861,3 +861,74 @@ class TestMEMStage:
 # ---------------------------------------
 # Test WRITE-BACK
 # ---------------------------------------
+class TestWBStage:
+    def test_constructor(self):
+        regf = Regfile()
+        wb = WBStage(regf)
+
+        in_ports = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
+        assert len(wb.MEMWB_i.val) == len(in_ports)
+        for port in in_ports:
+            assert (port in wb.MEMWB_i.val)
+
+    def test_wb(self):
+        wb = WBStage(Regfile())
+
+        # ALU op
+        wb.MEMWB_i.write('rd', 18,
+                         'we', 1,
+                         'alu_res', 42,
+                         'pc4', 87,
+                         'mem_rdata', 0xdeadbeef,
+                         'wb_sel', 0
+                        )
+        wb.process()
+        assert wb.regfile.read(18) == 42
+
+        # PC+4 (JAL)
+        wb.MEMWB_i.write('rd', 31,
+                         'we', 1,
+                         'alu_res', 42,
+                         'pc4', 87,
+                         'mem_rdata', 0xdeadbeef,
+                         'wb_sel', 1
+                        )
+        wb.process()
+        assert wb.regfile.read(31) == 87
+
+        # Memory load
+        wb.MEMWB_i.write('rd', 4,
+                         'we', 1,
+                         'alu_res', 42,
+                         'pc4', 87,
+                         'mem_rdata', 0xdeadbeef,
+                         'wb_sel', 2
+                        )
+        wb.process()
+        assert wb.regfile.read(4) == 0xdeadbeef
+
+    def test_no_wb(self):
+        wb = WBStage(Regfile())
+
+        wb.regfile.write(25, 1234)
+        wb.MEMWB_i.write('we', 0,
+                         'rd', 25,
+                         'alu_res', 24,
+                         'pc4', 25,
+                         'mem_rdata', 26
+                        )
+
+        # ALU op
+        wb.MEMWB_i.write('wb_sel', 0)
+        wb.process()
+        assert wb.regfile.read(25) == 1234
+
+        # PC+4 (JAL)
+        wb.MEMWB_i.write('wb_sel', 1)
+        wb.process()
+        assert wb.regfile.read(25) == 1234
+
+        # Memory load
+        wb.MEMWB_i.write('wb_sel', 2)
+        wb.process()
+        assert wb.regfile.read(25) == 1234

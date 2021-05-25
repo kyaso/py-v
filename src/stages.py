@@ -486,3 +486,26 @@ class MEMStage(Module):
 
         # Outputs
         self.MEMWB_o.write('mem_rdata', load_val)
+
+class WBStage(Module):
+    def __init__(self, regf: Regfile):
+        self.regfile = regf
+
+        self.MEMWB_i = PortX('rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
+
+    def process(self):
+        # Read inputs
+        rd, we, alu_res, pc4, mem_rdata, wb_sel = self.MEMWB_i.read('rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
+
+        wb_val = 0
+        if we:
+            if wb_sel==0: # ALU op
+                wb_val = alu_res
+            elif wb_sel==1: # PC+4 (JAL)
+                wb_val = pc4
+            elif wb_sel==2: # Load
+                wb_val = mem_rdata
+            else:
+                raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
+            
+            self.regfile.write(rd, wb_val)
