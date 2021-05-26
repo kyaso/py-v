@@ -30,13 +30,14 @@ class IFStage(Module):
         self.pc_reg = Reg()
 
         # Instruction register (IR)
-        self.ir_reg = Reg()
+        self.ir_reg = 0
 
         # Instruction memory
         self.imem = Memory(imem_size)
 
+        self.pc_reg.next = self.npc_i
+
         # Outputs
-        self.IFID_o['inst'] = self.ir_reg.cur
         self.IFID_o['pc'] = self.pc_reg.cur
     
     def process(self):
@@ -44,11 +45,10 @@ class IFStage(Module):
         npc = self.npc_i.read()
 
         # Read instruction
-        inst = self.imem.read(npc, 4)
-        self.ir_reg.next.write(inst)
-        
-        # Set current PC
-        self.pc_reg.next.write(npc)
+        self.ir_reg = self.imem.read(npc, 4)
+
+        # Outputs
+        self.IFID_o['inst'].write(self.ir_reg)
 
 class IDStage(Module):
     def __init__(self, regf):
