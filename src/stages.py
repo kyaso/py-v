@@ -520,3 +520,24 @@ class WBStage(Module):
                 raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
             
             self.regfile.write(rd, wb_val)
+
+class BranchUnit(Module):
+    def __init__(self):
+        self.pc_i = Port()
+        self.take_branch_i = Port()
+        self.target_i = Port()
+        self.npc_o = Port()
+    
+    def process(self):
+        # Read inputs
+        pc = self.pc_i.read()
+        take_branch = self.take_branch_i.read()
+        target = self.target_i.read()
+        
+        # Compute NPC
+        npc = pc+4
+        if take_branch:
+            npc = target
+
+        # Outputs
+        self.npc_o.write(npc)

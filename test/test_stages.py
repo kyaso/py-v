@@ -948,3 +948,27 @@ class TestWBStage:
         wb.MEMWB_i.write('wb_sel', 2)
         wb.process()
         assert wb.regfile.read(25) == 1234
+
+# ---------------------------------------
+# Test Branch Unit
+# ---------------------------------------
+def test_branch_unit():
+    bu = BranchUnit()
+
+    # Test constructor
+    in_ports = ['pc', 'take_branch', 'target']
+    out_ports = ['npc']
+
+    # Test regular PC increment
+    bu.pc_i.write(0x80000000)
+    bu.take_branch_i.write(0)
+    bu.target_i.write(0x40000000)
+    bu.process()
+    assert bu.npc_o.read() == 0x80000004 
+
+    # Test taken branch
+    bu.pc_i.write(0x80000000)
+    bu.take_branch_i.write(1)
+    bu.target_i.write(0x40000000)
+    bu.process()
+    assert bu.npc_o.read() == 0x40000000
