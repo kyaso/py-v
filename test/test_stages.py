@@ -14,15 +14,15 @@ def test_IFStage():
     fetch = IFStage()
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
-    fetch.inst_i.write(0xfea42623)
-    fetch.npc_i.write(0x80000004)
+    fetch.imem.write(0, 0xfea42623, 4)
+    fetch.npc_i.write(0x00000000)
 
-    RegBase.updateRegs()
     fetch.process()
+    RegBase.updateRegs()
 
     out = fetch.IFID_o.read()
     assert out['inst'] == 0xfea42623
-    assert out['pc'] == 0x80000004
+    assert out['pc'] == 0x00000000
 
 # ---------------------------------------
 # Test DECODE

@@ -21,23 +21,34 @@ LOAD = 1
 STORE = 2
 
 class IFStage(Module):
-    def __init__(self):
+    def __init__(self, imem_size=8*1024):
+        # Next PC
         self.npc_i = Port()
-        self.inst_i = Port()
         self.IFID_o = PortX('inst', 'pc')
 
-        self.PC = Reg()
-        # Connect next pc with next value in of PC reg
-        self.PC.next = self.npc_i
-        # Connect current PC to output
-        self.IFID_o['pc'] = self.PC.cur
-    
-    def process(self):
-        # Read instruction
-        ir = self.inst_i.read() # TODO: Read instruction mem
+        # Program counter (PC)
+        self.pc_reg = Reg()
+
+        # Instruction register (IR)
+        self.ir_reg = Reg()
+
+        # Instruction memory
+        self.imem = Memory(imem_size)
 
         # Outputs
-        self.IFID_o.write('inst', ir)
+        self.IFID_o['inst'] = self.ir_reg.cur
+        self.IFID_o['pc'] = self.pc_reg.cur
+    
+    def process(self):
+        # Read inputs
+        npc = self.npc_i.read()
+
+        # Read instruction
+        inst = self.imem.read(npc, 4)
+        self.ir_reg.next.write(inst)
+        
+        # Set current PC
+        self.pc_reg.next.write(npc)
 
 class IDStage(Module):
     def __init__(self, regf):
@@ -429,7 +440,7 @@ class EXStage(Module):
             return rs1>=rs2
 
 class MEMStage(Module):
-    def __init__(self, mem_size = 8*1024):
+    def __init__(self, dmem_size = 8*1024):
         self.EXMEM_i = PortX('rd',
                              'we',
                              'alu_res',
@@ -451,7 +462,7 @@ class MEMStage(Module):
             self.MEMWB_o[port] = self.EXMEM_i[port]
 
         # Main memory
-        self.mem = Memory(mem_size)
+        self.mem = Memory(dmem_size)
 
 
     def process(self):
