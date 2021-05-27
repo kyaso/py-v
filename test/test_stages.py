@@ -229,6 +229,24 @@ class TestEXStage:
         assert len(ex.EXMEM_o.val) == len(out_ports)
         for port in out_ports:
             assert (port in ex.EXMEM_o.val)
+        
+    def test_passThrough(self):
+        ex = EXStage()
+
+        ex.IDEX_i.write('rd', 1,
+                        'we', 1,
+                        'wb_sel', 2,
+                        'rs2', 23,
+                        'mem', 1,
+                        'funct3', 5
+                       )
+        ex.process()
+        assert ex.EXMEM_o['rd'].read() == 1
+        assert ex.EXMEM_o['we'].read() == 1
+        assert ex.EXMEM_o['wb_sel'].read() == 2
+        assert ex.EXMEM_o['rs2'].read() == 23
+        assert ex.EXMEM_o['mem'].read() == 1
+        assert ex.EXMEM_o['funct3'].read() == 5
 
     def test_alu(self):
         ex = EXStage()
@@ -782,6 +800,21 @@ class TestMEMStage:
         assert len(mem.MEMWB_o.val) == len(out_ports)
         for port in out_ports:
             assert (port in mem.MEMWB_o.val)
+        
+    def test_passThrough(self):
+        mem = MEMStage()
+        mem.EXMEM_i.write('rd', 1,
+                          'we', 1,
+                          'wb_sel', 2,
+                          'pc4', 0xdeadbeef,
+                          'alu_res', 0xaffeaffe
+                         )
+        mem. process()
+        assert mem.EXMEM_i['rd'].read() == 1
+        assert mem.EXMEM_i['we'].read() == 1
+        assert mem.EXMEM_i['wb_sel'].read() == 2
+        assert mem.EXMEM_i['pc4'].read() == 0xdeadbeef
+        assert mem.EXMEM_i['alu_res'].read() == 0xaffeaffe
 
     def test_load(self):
         mem = MEMStage()
@@ -864,15 +897,6 @@ class TestMEMStage:
         mem.EXMEM_i.write('funct3', 2) # sw
         mem.process()
         assert mem.mem.read(0, 4) == 0xabadbabe
-
-    def test_passThru(self):
-        mem = MEMStage()
-
-        assert mem.EXMEM_i['rd'] == mem.MEMWB_o['rd']
-        assert mem.EXMEM_i['we'] == mem.MEMWB_o['we']
-        assert mem.EXMEM_i['wb_sel'] == mem.MEMWB_o['wb_sel']
-        assert mem.EXMEM_i['pc4'] == mem.MEMWB_o['pc4']
-        assert mem.EXMEM_i['alu_res'] == mem.MEMWB_o['alu_res']
 
 # ---------------------------------------
 # Test WRITE-BACK

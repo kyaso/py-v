@@ -206,11 +206,11 @@ class EXStage(Module):
                              'mem',
                              'funct3')
 
+    def process(self):
         # Pass throughs
         for port in ['rd', 'we', 'wb_sel', 'rs2', 'mem', 'funct3']:
-            self.EXMEM_o[port] = self.IDEX_i[port]
-    
-    def process(self):
+            self.EXMEM_o[port].write ( self.IDEX_i[port].read() )
+
         # Read inputs
         opcode, rs1, rs2, imm, pc, f3, f7 = self.IDEX_i.read('opcode', 'rs1', 'rs2', 'imm', 'pc', 'funct3', 'funct7')
 
@@ -457,15 +457,15 @@ class MEMStage(Module):
                              'mem_rdata',
                              'wb_sel')
         
-        # Pass throughs
-        for port in ['rd', 'we', 'wb_sel', 'pc4', 'alu_res']:
-            self.MEMWB_o[port] = self.EXMEM_i[port]
 
         # Main memory
         self.mem = Memory(dmem_size)
 
-
     def process(self):
+        # Pass throughs
+        for port in ['rd', 'we', 'wb_sel', 'pc4', 'alu_res']:
+            self.MEMWB_o[port].write( self.EXMEM_i[port].read() )
+
         # Read inputs
         addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
 
