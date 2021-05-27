@@ -492,8 +492,8 @@ class MEMStage(Module):
                 self.mem.write(addr, mem_wdata, 4)
             else:
                 raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
-        else:
-            raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
+        # else:
+        #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
 
         # Outputs
         self.MEMWB_o.write('mem_rdata', load_val)
