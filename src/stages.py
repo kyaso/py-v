@@ -35,10 +35,10 @@ class IFStage(Module):
         # Instruction memory
         self.imem = Memory(imem_size)
 
-        self.pc_reg.next = self.npc_i
+        self.pc_reg.next.connect(self.npc_i)
 
         # Outputs
-        self.IFID_o['pc'] = self.pc_reg.cur
+        self.IFID_o['pc'].connect(self.pc_reg.cur)
     
     def process(self):
         # Read inputs
@@ -205,12 +205,16 @@ class EXStage(Module):
                              'rs2',
                              'mem',
                              'funct3')
+        
+        # Pass throughs
+        self.EXMEM_o['rd'].connect(self.IDEX_i['rd'])
+        self.EXMEM_o['we'].connect(self.IDEX_i['we'])
+        self.EXMEM_o['wb_sel'].connect(self.IDEX_i['wb_sel'])
+        self.EXMEM_o['rs2'].connect(self.IDEX_i['rs2'])
+        self.EXMEM_o['mem'].connect(self.IDEX_i['mem'])
+        self.EXMEM_o['funct3'].connect(self.IDEX_i['funct3'])
 
     def process(self):
-        # Pass throughs
-        for port in ['rd', 'we', 'wb_sel', 'rs2', 'mem', 'funct3']:
-            self.EXMEM_o[port].write ( self.IDEX_i[port].read() )
-
         # Read inputs
         opcode, rs1, rs2, imm, pc, f3, f7 = self.IDEX_i.read('opcode', 'rs1', 'rs2', 'imm', 'pc', 'funct3', 'funct7')
 
@@ -456,16 +460,18 @@ class MEMStage(Module):
                              'pc4',
                              'mem_rdata',
                              'wb_sel')
-        
+
+        # Pass throughs
+        self.MEMWB_o['rd'].connect(self.EXMEM_i['rd'])        
+        self.MEMWB_o['we'].connect(self.EXMEM_i['we'])        
+        self.MEMWB_o['wb_sel'].connect(self.EXMEM_i['wb_sel'])        
+        self.MEMWB_o['pc4'].connect(self.EXMEM_i['pc4'])        
+        self.MEMWB_o['alu_res'].connect(self.EXMEM_i['alu_res'])        
 
         # Main memory
         self.mem = Memory(dmem_size)
 
     def process(self):
-        # Pass throughs
-        for port in ['rd', 'we', 'wb_sel', 'pc4', 'alu_res']:
-            self.MEMWB_o[port].write( self.EXMEM_i[port].read() )
-
         # Read inputs
         addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
 

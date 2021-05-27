@@ -3,12 +3,27 @@ import copy
 class Port:
     def __init__(self, initVal = 0):
         self.val = initVal
+        self._driver = self
     
     def read(self):
-        return copy.deepcopy(self.val)
+        if self._driver == self:
+            return copy.deepcopy(self.val)
+        return self._driver.read()
     
     def write(self, val):
-        self.val = copy.deepcopy(val)
+        if self._driver == self:
+            self.val = copy.deepcopy(val)
+        else:
+            raise Exception("ERROR (Port): Only driver port allowed to write!")
+    
+    def connect(self, driver):
+        if driver == self:
+            raise Exception("ERROR (Port): Cannot connect port to itself!")
+        if not isinstance(driver, Port):
+            raise TypeError("{} is not a Port!".format(driver))
+
+        self._driver = driver
+        del self.val
     
 class PortX(Port):
     def __init__(self, *ports):
@@ -44,6 +59,14 @@ class PortX(Port):
         for i in range(0, len(args), 2):
             self.val[args[i]].write(args[i+1])
     
+    def connect(self, driver):
+        if not isinstance(driver, PortX):
+            raise TypeError("{} is not a PortX!".format(driver))
+        
+        # Iterate over port names (keys)
+        for port in self.val:
+            self.val[port].connect(driver.val[port])
+
     # These two overrides are necessary when we want to connect two subports
     # directly by applying [] to the PortX object, instead of PortX.val[..].
     def __getitem__(self, key):
