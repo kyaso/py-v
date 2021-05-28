@@ -3,7 +3,6 @@ from port import *
 from reg import *
 from mem import *
 import isa
-from instructions import *
 from util import *
 
 # class Stage:

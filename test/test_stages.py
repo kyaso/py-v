@@ -325,7 +325,6 @@ class TestEXStage:
         assert res == 0
 
         res = ex.alu(opcode=0b00100, rs1=0, rs2=0, imm=0xfffff800, pc=0, f3=0b011, f7=0)
-        res = i_SLTU(0x00000000, 0xfffff800)
         assert res == 1
 
         res = ex.alu(opcode=0b00100, rs1=0x80000000, rs2=0, imm=0xfffff800, pc=0, f3=0b011, f7=0)
@@ -481,7 +480,6 @@ class TestEXStage:
         assert res == 0
 
         res = ex.alu(opcode=0b01100, rs1=0, imm=0, rs2=0xfffff800, pc=0, f3=0b011, f7=0)
-        res = i_SLTU(0x00000000, 0xfffff800)
         assert res == 1
 
         res = ex.alu(opcode=0b01100, rs1=0x80000000, imm=0, rs2=0xfffff800, pc=0, f3=0b011, f7=0)
