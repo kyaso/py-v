@@ -50,12 +50,12 @@ class Regfile():
     def __init__(self):
         self.regs = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-    def read(self, reg):
+    def read(self, reg: int) -> int:
         if reg == 0:
             return 0
         else:
             return self.regs[reg]
 
-    def write(self, reg, val):
+    def write(self, reg: int, val: int):
         if reg != 0:
             self.regs[reg] = val

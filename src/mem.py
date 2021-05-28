@@ -16,7 +16,7 @@ class Memory:
 
         self.mem = [ 0xff for i in range(0,size) ]
 
-    def read(self, addr: int, w: int):
+    def read(self, addr: int, w: int) -> int:
         """Reads data from memory.
 
         Args:

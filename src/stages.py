@@ -414,9 +414,7 @@ class EXStage(Module):
 
     # TODO
     # opcode can be removed
-    def branch(self, f3, rs1, rs2):
-        """
-        Performs comparison of rs1 and rs2 using comp op given by f3.
+    def branch(self, f3, rs1, rs2) -> bool:
 
         Returns True if branch is taken.
         """
