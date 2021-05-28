@@ -8,6 +8,6 @@ class Module:
     """
 
     def process(self):
-        """Gnerates module's outputs for current cycle based on inputs."""
+        """Generates module's outputs for current cycle based on inputs."""
 
         raise Exception('Please implement process() for this module')

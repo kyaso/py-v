@@ -20,6 +20,15 @@ LOAD = 1
 STORE = 2
 
 class IFStage(Module):
+    """Instruction Fetch Stage.
+
+    Inputs:
+        npc_i: Next program counter (PC).
+
+    Outputs:
+        IFID_o: Interface to IDStage.
+    """
+
     def __init__(self, imem: Memory):
         # Next PC
         self.npc_i = Port()
@@ -29,11 +38,13 @@ class IFStage(Module):
         self.pc_reg = Reg()
 
         # Instruction register (IR)
+        # TODO: explain why ir_reg is not an actual Reg.
         self.ir_reg = 0
 
         # Instruction memory
         self.imem = imem
 
+        # Connect next PC to input of PC reg
         self.pc_reg.next.connect(self.npc_i)
 
         # Outputs
@@ -50,11 +61,22 @@ class IFStage(Module):
         self.IFID_o['inst'].write(self.ir_reg)
 
 class IDStage(Module):
+    """Instruction decode stage.
+
+    Inputs:
+        IFID_i: Interface from IFStage
+
+    Outputs:
+        IDEX_o: Interface to EXStage
+    """
+
     def __init__(self, regf):
         self.regfile = regf
 
+        # Inputs
         self.IFID_i = PortX('inst', 'pc')
 
+        # Outputs
         self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
         
     def process(self):
@@ -96,6 +118,15 @@ class IDStage(Module):
         self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
 
     def mem_sel(self, opcode):
+        """Generates control signal for memory access.
+
+        Args:
+            opcode: Opcode of current instruction.
+
+        Returns:
+            A special value when the instruction is LOAD/STORE.
+            0 otherwise.
+        """
         if opcode==isa.OPCODES['LOAD']:
             return LOAD
         elif opcode==isa.OPCODES['STORE']:
@@ -104,6 +135,16 @@ class IDStage(Module):
             return 0
 
     def wb_sel(self, opcode):
+        """Generates control signal for write-back.
+
+        Args:
+            opcode: Opcode of current instruction.
+
+        Returns:
+            * 1: JAL instruction
+            * 2: LOAD instruction
+            * 0: otherwise
+        """
         if opcode == isa.OPCODES['JAL']:
             return 1
         elif opcode == isa.OPCODES['LOAD']:
@@ -112,6 +153,16 @@ class IDStage(Module):
             return 0
 
     def decImm(self, opcode, inst):
+        """Decodes the immediate from the instruction word.
+
+        Args:
+            opcode: Opcode of current instruction.
+            inst: Current instruction word.
+
+        Returns:
+            The decoded immediate.
+        """
+
         # Save sign bit
         sign = getBit(inst, 31)
 
@@ -158,6 +209,16 @@ class IDStage(Module):
 
     # TODO
     def check_exception(self, opcode, f3, f7):
+        """[summary]
+
+        Args:
+            opcode ([type]): [description]
+            f3 ([type]): [description]
+            f7 ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """
         if opcode not in isa.OPCODES:
             # Illegal instruction
             pass
@@ -182,6 +243,14 @@ class IDStage(Module):
         return False
 
 class EXStage(Module):
+    """Execute stage.
+
+    Inputs:
+        IDEX_i: Interface from IDStage.
+
+    Outputs:
+        EXMEM_o: Interface to MEMStage.
+    """
     def __init__(self):
         self.IDEX_i = PortX('rs1',
                             'rs2',
@@ -233,12 +302,26 @@ class EXStage(Module):
         self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
+        """Implements arithmetic-logic unit (ALU)
+
+        Args: TODO
+            opcode ([type]): [description]
+            rs1 ([type]): [description]
+            rs2 ([type]): [description]
+            imm ([type]): [description]
+            pc ([type]): [description]
+            f3 ([type]): [description]
+            f7 ([type]): [description]
+
+        Returns:
+            ALU result.
+        """
 
         # Helpers
         def _slt(val1, val2):
             """ SLT[I] instruction
 
-            Parameters:
+            Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
             
@@ -272,7 +355,7 @@ class EXStage(Module):
         def _sltu(val1, val2):
             """ SLT[I]U instruction
 
-            Parameters:
+            Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
             
@@ -289,7 +372,7 @@ class EXStage(Module):
         def _sll(val1, val2):
             """ SLL[I] instruction
 
-            Parameters:
+            Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
             
@@ -302,7 +385,7 @@ class EXStage(Module):
         def _srl(val1, val2):
             """ SRL[I] instruction
 
-            Parameters:
+            Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
             
@@ -315,7 +398,7 @@ class EXStage(Module):
         def _sra(val1, val2):
             """ SRA[I] instruction
 
-            Parameters:
+            Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
             
@@ -415,10 +498,13 @@ class EXStage(Module):
     # TODO
     # opcode can be removed
     def branch(self, f3, rs1, rs2) -> bool:
+        """Performs comparison of rs1 and rs2 using comp op given by f3.
 
-        Returns True if branch is taken.
+        Returns:
+            True if branch is taken.
         """
 
+        # Branch less-than (BLT) logic
         def _blt(rs1, rs2):
            if msb_32(rs1)==msb_32(rs2):
                return rs1<rs2
@@ -441,6 +527,14 @@ class EXStage(Module):
             return rs1>=rs2
 
 class MEMStage(Module):
+    """Memory stage.
+
+    Inputs:
+        EXMEM_i: Interface from EXStage.
+
+    Outputs:
+        MEMWB_o: Interface to WBStage.
+    """
     def __init__(self, dmem: Memory):
         self.EXMEM_i = PortX('rd',
                              'we',
@@ -473,7 +567,7 @@ class MEMStage(Module):
         addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
 
         load_val = 0
-        if op == LOAD:
+        if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
                 load_val = signext(self.mem.read(addr, 1), 8)
             elif f3 == 1: # LH
@@ -486,7 +580,8 @@ class MEMStage(Module):
                 load_val = self.mem.read(addr, 2)
             else:
                 raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
-        elif op == STORE:
+
+        elif op == STORE:                                       # Store memory
             if f3 == 0: # SB
                 self.mem.write(addr, mem_wdata, 1)
             elif f3 == 1: # SH
@@ -502,6 +597,11 @@ class MEMStage(Module):
         self.MEMWB_o.write('mem_rdata', load_val)
 
 class WBStage(Module):
+    """Write-back stage.
+
+    Inputs:
+        MEMWB_i: Interface from MEMStage.
+    """
     def __init__(self, regf: Regfile):
         self.regfile = regf
 
@@ -525,6 +625,16 @@ class WBStage(Module):
             self.regfile.write(rd, wb_val)
 
 class BranchUnit(Module):
+    """Branch unit.
+
+    Inputs:
+        pc_i: Program counter (PC)
+        take_branch_i: Whether to take the branch or not
+        target_i: Branch target address
+    
+    Outputs:
+        npc_o: Next PC
+    """
     def __init__(self):
         self.pc_i = Port()
         self.take_branch_i = Port()
