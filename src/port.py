@@ -1,22 +1,62 @@
 import copy
 
 class Port:
+    """Represents a single port."""
+
     def __init__(self, initVal = 0):
+        """Create a new Port object.
+
+        Args:
+            initVal (int, optional): Value to initialize Port output with.
+                Defaults to 0.
+        """
         self.val = initVal
+
+        # How drives this port? Default: the port itself
         self._driver = self
     
     def read(self):
+        """Reads the current value of the port.
+
+        The current value is obtained by quering the `read()` method of the
+        driving port. These recursive calls will eventually reach the root
+        driver port; its `val` is then returned.
+
+        Returns:
+            The current value of the port.
+        """
+
         if self._driver == self:
             return copy.deepcopy(self.val)
         return self._driver.read()
     
     def write(self, val):
+        """Writes a new value to the port.
+
+        Args:
+            val: The new value.
+
+        Raises:
+            Exception: A port that is driven by another port has called
+            `write()`.
+        """
+
         if self._driver == self:
             self.val = copy.deepcopy(val)
         else:
             raise Exception("ERROR (Port): Only driver port allowed to write!")
     
     def connect(self, driver):
+        """Connects two ports.
+
+        Args:
+            driver (Port): The new driving port for this port.
+
+        Raises:
+            Exception: The port attempted to connect to itself.
+            TypeError: The `driver` was not of type `Port`.
+        """
+
         if driver == self:
             raise Exception("ERROR (Port): Cannot connect port to itself!")
         if not isinstance(driver, Port):
@@ -26,11 +66,36 @@ class Port:
         del self.val
     
 class PortX(Port):
+    """Represents a collection of Ports."""
+
     def __init__(self, *ports):
+        """Creates a new PortX object.
+
+        A dictionary of `Port` objects will be created.
+
+        Each port within that dict is considered a sub-port of the PortX
+        object.
+
+        Args:
+            *ports: The names of the sub-ports.
+        """
+
         # Build dict of ports
         self.val = { port: Port()  for port in ports }
 
     def read(self, *ports):
+        """Reads the current value(s) of one or more sub-ports.
+
+        Args:
+            *ports: The name(s) of the sub-port(s) to read values from.
+
+        Returns:
+            Depending on the number n of sub-port names given:
+            * n=0: Return values of all sub-ports as `dict`.
+            * n=1: Return value of the single sub-port.
+            * otherwise: Return values of the n provided sub-ports in a list.
+        """
+
         if len(ports) == 0:
             # If no specific port name is given, return values of all ports (as dict)
             return { port: p.read()  for port, p in self.val.items() }
@@ -44,6 +109,13 @@ class PortX(Port):
             return port_vals
     
     def write(self, *args):
+        """Writes new values to one or more sub-ports.
+
+        Args:
+            *args: A dict of Ports, OR a list of key-value pairs.
+                More details see below.
+        """
+
         # If a dict of ports is passed to this function,
         # this usually means that we want to copy the values
         # of some other PortX to this PortX (e.g. inside a RegX).
@@ -54,26 +126,38 @@ class PortX(Port):
                 self.val[port].write(ports[port])
             return
 
-        # Even indices: ports
-        # Odd indices: value
+        # Even indices: sub-port names
+        # Odd indices: values
         for i in range(0, len(args), 2):
             self.val[args[i]].write(args[i+1])
     
     def connect(self, driver):
+        """Connects two PortX ports.
+
+        Args:
+            driver (PortX): The new driver port for this port.
+
+        Raises:
+            TypeError: The `driver` was not a PortX object.
+        """
+
         if not isinstance(driver, PortX):
             raise TypeError("{} is not a PortX!".format(driver))
         
-        # Iterate over port names (keys)
+        # Iterate over port names (keys) and
+        # Connect each sub-port to their new drivers.
         for port in self.val:
             self.val[port].connect(driver.val[port])
 
-    # These two overrides are necessary when we want to connect two subports
+    # These two overrides are necessary when we want to connect two sub-ports
     # directly by applying [] to the PortX object, instead of PortX.val[..].
     def __getitem__(self, key):
         return self.val[key]
     
+    # TODO: Is this method necessary??
     def __setitem__(self, key, value):
         if not isinstance(value, Port):
             raise TypeError("{} is not of type Port!".format(value))
 
         self.val[key] = value
+        # self.val[key].connect(value)

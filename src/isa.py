@@ -1,3 +1,7 @@
+"""ISA definitions.
+
+"""
+
 # Note: Least-significant 2 bits of opcode ignored here, as they are always '11'
 OPCODES = {
     "LOAD"      : 0x00,
