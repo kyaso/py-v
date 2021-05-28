@@ -11,7 +11,7 @@ def test_sanity():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage():
-    fetch = IFStage()
+    fetch = IFStage(Memory(1024))
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
     fetch.imem.write(0, 0xfea42623, 4)
@@ -787,7 +787,7 @@ class TestEXStage:
 # ---------------------------------------
 class TestMEMStage:
     def test_constructor(self):
-        mem = MEMStage()
+        mem = MEMStage(Memory(1024))
 
         # Check inputs
         in_ports = ['alu_res', 'pc4', 'we', 'wb_sel', 'rs2', 'mem', 'funct3', 'rd']
@@ -802,7 +802,7 @@ class TestMEMStage:
             assert (port in mem.MEMWB_o.val)
         
     def test_passThrough(self):
-        mem = MEMStage()
+        mem = MEMStage(Memory(1024))
         mem.EXMEM_i.write('rd', 1,
                           'we', 1,
                           'wb_sel', 2,
@@ -817,7 +817,7 @@ class TestMEMStage:
         assert mem.EXMEM_i['alu_res'].read() == 0xaffeaffe
 
     def test_load(self):
-        mem = MEMStage()
+        mem = MEMStage(Memory(1024))
         # Load memory
         mem.mem.write(0, 0xdeadbeef, 4)
         mem.mem.write(4, 0xbade0123, 4)
@@ -870,7 +870,7 @@ class TestMEMStage:
         assert mem.MEMWB_o['mem_rdata'].read() == 0xdead
 
     def test_store(self):
-        mem = MEMStage()
+        mem = MEMStage(Memory(1024))
 
         # SB
         mem.EXMEM_i.write('mem', 2) # store

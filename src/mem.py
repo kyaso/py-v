@@ -1,7 +1,7 @@
 from util import MASK_32
 class Memory:
     def __init__(self, size = 32):
-        self.mem = [ 0 for i in range(0,size) ]
+        self.mem = [ 0xff for i in range(0,size) ]
 
     def read(self, addr, w):
         # TODO: handle misaligned access
