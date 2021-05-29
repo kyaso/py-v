@@ -19,32 +19,32 @@ OPCODES = {
 # Instruction formats
 # --------------------------------
 
-INST_R = [
+INST_R = {
     OPCODES["OP"]
-]
+}
 
-INST_I = [
+INST_I = {
     OPCODES["LOAD"],
     OPCODES["OP-IMM"],
     OPCODES["JALR"]
-]
+}
 
-INST_S = [
+INST_S = {
     OPCODES["STORE"]
-]
+}
 
-INST_B = [
+INST_B = {
     OPCODES["BRANCH"]
-]
+}
 
-INST_U = [
+INST_U = {
     OPCODES["AUIPC"],
     OPCODES["LUI"]
-]
+}
 
-INST_J = [
+INST_J = {
     OPCODES["JAL"]
-]
+}
 
 # Instructions that write back into the register file
 # REG_OPS = [
@@ -56,4 +56,4 @@ INST_J = [
 #     OPCODES["JALR"],
 #     OPCODES["JAL"]
 # ]
-REG_OPS = INST_R + INST_I + INST_U + INST_J
+REG_OPS = set.union(INST_R, INST_I, INST_U, INST_J)
