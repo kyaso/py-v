@@ -1,5 +1,5 @@
 import pytest
-from util import *
+from pyv.util import *
 
 def test_getBit():
     assert getBit(1, 0) == 1

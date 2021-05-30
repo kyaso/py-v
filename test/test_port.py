@@ -1,5 +1,5 @@
 import pytest
-from port import *
+from pyv.port import Port, PortX 
 
 class TestPort:
     def test_read(self):

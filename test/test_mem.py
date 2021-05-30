@@ -1,5 +1,5 @@
 import pytest
-from mem import *
+from pyv.mem import Memory
 
 def test_load():
     mem = Memory()

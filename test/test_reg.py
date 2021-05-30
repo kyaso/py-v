@@ -1,5 +1,5 @@
 import pytest
-from reg import *
+from pyv.reg import * 
 
 def test_reg():
     reg = Reg()

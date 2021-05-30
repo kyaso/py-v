@@ -1,8 +1,8 @@
 import pytest
-from stages import *
-from reg import *
-from util import MASK_32
-from mem import *
+from pyv.stages import *
+from pyv.reg import *
+from pyv.util import MASK_32
+from pyv.mem import Memory
 
 def test_sanity():
     assert True
