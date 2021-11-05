@@ -21,13 +21,26 @@ class TestPort:
 
         # Check drivers
         assert B._driver == A
-        assert C._driver == B
+        assert C._driver == A
         assert A._driver == A
 
         # Write to A
         A.write(410)
         assert B.read() == 410
         assert C.read() == 410
+
+        # Test reverse connect order
+        A = Port()
+        B = Port()
+        C = Port()
+        C.connect(B)
+        B.connect(A)
+        assert C._driver == B
+        assert B._driver == A
+        assert A._driver == A
+        A.write(420)
+        assert B.read() == 420
+        assert C.read() == 420 
 
         # Write to B (shouldn't be possible)
         with pytest.raises(Exception):

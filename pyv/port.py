@@ -12,7 +12,7 @@ class Port:
         """
         self.val = initVal
 
-        # How drives this port? Default: the port itself
+        # Who drives this port? Default: the port itself
         self._driver = self
     
     def read(self):
@@ -62,7 +62,7 @@ class Port:
         if not isinstance(driver, Port):
             raise TypeError("{} is not a Port!".format(driver))
 
-        self._driver = driver
+        self._driver = driver._driver
         del self.val
     
 class PortX(Port):
