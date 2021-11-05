@@ -61,9 +61,9 @@ def test_regChain():
     C = Reg()
     D = Reg()
 
-    B.next = A.cur
-    C.next = B.cur
-    D.next = C.cur
+    B.next.connect(A.cur)
+    C.next.connect(B.cur)
+    D.next.connect(C.cur)
 
     A.next.write(0x42)
 
@@ -99,9 +99,9 @@ def test_regChainX():
     C = RegX('A', 'B')
     D = RegX('A', 'B')
 
-    B.next = A.cur
-    C.next = B.cur
-    D.next = C.cur
+    B.next.connect(A.cur)
+    C.next.connect(B.cur)
+    D.next.connect(C.cur)
 
     A.next.write('A',45,'B',78)
 
