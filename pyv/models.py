@@ -5,6 +5,7 @@ from reg import Regfile, RegBase
 class Model:
     def __init__(self):
         self.stages = []
+        self.cycles = 0
 
     def run(self, num_cycles=1):
         for c in range(0, num_cycles):
@@ -13,8 +14,12 @@ class Model:
             
             RegBase.updateRegs()
 
+            self.cycles += 1
+
 class SingleCycle(Model):
     def __init__(self):
+        super().__init__()
+
         # Stages/modules
         self.regf = Regfile()
         self.mem = Memory(8*1024)
@@ -69,4 +74,7 @@ class SingleCycle(Model):
     
     def readInstMem(self, addr, nbytes):
         return [hex(self.if_stg.imem.read(addr+i, 1))  for i in range(0, nbytes)]
+
+    def getCycles(self):
+        return self.cycles
 
