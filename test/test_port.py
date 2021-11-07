@@ -1,5 +1,5 @@
 import pytest
-from pyv.port import Port, PortX 
+from pyv.port import Port, PortX, Wire
 
 class TestPort:
     def test_read(self):
@@ -49,6 +49,28 @@ class TestPort:
         # Write to C (same as B)
         with pytest.raises(Exception):
             C.write(38)
+    
+    def test_wire(self):
+        A = Port()
+        B = Port()
+        C = Port()
+        D = Port()
+        W = Wire()
+
+        # Connect wire W to port A
+        W.connect(A)
+
+        # The other ports are connected to wire W
+        B.connect(W)
+        C.connect(W)
+        D.connect(W)
+
+        # Write a value to A
+        A.write(42)
+        # Read the other ports
+        assert B.read() == 42
+        assert C.read() == 42
+        assert D.read() == 42
 
 class TestPortX:
     def test_portx(self):

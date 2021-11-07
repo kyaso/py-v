@@ -161,3 +161,10 @@ class PortX(Port):
 
         self.val[key] = value
         # self.val[key].connect(value)
+
+# A Wire has the same methods and attributes as a Port.
+class Wire(Port):
+    pass
+
+class WireX(PortX):
+    pass
