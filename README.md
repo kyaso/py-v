@@ -7,6 +7,7 @@ Why Py-V?
 - Yes, it won't be performant
 - But:
     - It's not just a binary simulator (like Spike or similar): Simulator and CPU model are the _same_
+        - (I will explain what "same" means here in the future!)
     - Cycle-accurate
     - Helps to learn about CPU architecture
         - Like a real hardware design, the CPUs are made from different modules that are connected with each other

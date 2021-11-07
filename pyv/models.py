@@ -3,11 +3,18 @@ from mem import Memory
 from reg import Regfile, RegBase
 
 class Model:
+    """Base class for all core models.
+    """
     def __init__(self):
         self.stages = []
         self.cycles = 0
 
     def run(self, num_cycles=1):
+        """Runs the simulation.
+
+        Args:
+            num_cycles (int, optional): Number of clock cycles to simulate. Defaults to 1.
+        """
         for c in range(0, num_cycles):
             for i in self.stages:
                 i.process()
@@ -17,6 +24,10 @@ class Model:
             self.cycles += 1
 
 class SingleCycle(Model):
+    """Implements a simple, 5-stage, single cylce RISC-V CPU.
+
+    Default memory size: 8 KiB
+    """
     def __init__(self):
         super().__init__()
 
