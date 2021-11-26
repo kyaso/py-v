@@ -1,4 +1,5 @@
 import pytest
+from test.fixtures import clear_reg_list
 from pyv.stages import *
 from pyv.reg import *
 from pyv.util import MASK_32
@@ -11,6 +12,8 @@ def test_sanity():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage():
+    clear_reg_list()
+
     fetch = IFStage(Memory(1024))
 
     # SW a0,-20(s0) = SW, x10, -20(x8)

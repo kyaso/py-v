@@ -1,7 +1,10 @@
 import pytest
+from test.fixtures import clear_reg_list
 from pyv.reg import * 
 
 def test_reg():
+    clear_reg_list()
+
     reg = Reg()
     assert reg.cur.read() == 0
 
@@ -20,6 +23,8 @@ def test_reg():
     assert reg.cur.read() == 0x69
 
 def test_regX():
+    clear_reg_list()
+
     reg = RegX('A', 'B')
 
     reg.next.write('A', 42, 'B', 69)
@@ -36,6 +41,8 @@ def test_regX():
 
 
 def test_regfile():
+    clear_reg_list()
+
     rf = Regfile()
 
     # Test read after initial state
@@ -56,6 +63,8 @@ def test_regfile():
     assert rf.regs[0] == 0
 
 def test_regChain():
+    clear_reg_list()
+
     A = Reg()
     B = Reg()
     C = Reg()
@@ -94,6 +103,8 @@ def test_regChain():
     assert D.cur.read() == 0x42
 
 def test_regChainX():
+    clear_reg_list()
+
     A = RegX('A', 'B')
     B = RegX('A', 'B')
     C = RegX('A', 'B')
