@@ -39,3 +39,24 @@ def signext(val, width: int):
         val = MASK_32&( (-1)<<width | val )
 
     return val
+
+def getBitVector(val: int):
+    """Convert a number into a list with its binary representation.
+
+    The list is assumed to be in "MSB-at-index-0" ordering.
+
+    Args:
+        val (int): The value that we want to express as a binary list.
+    """
+    return [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+
+def bitVector2num(bitVec: list):
+    """Convert a bit list to a number.
+
+    The list is assumed to be in "MSB-at-index-0" ordering.
+
+    Args:
+        bitVec (list): The bit list that we want to convert to a number.
+    """
+    bitStr = ''.join(str(b)  for b in bitVec)
+    return int(bitStr, 2)

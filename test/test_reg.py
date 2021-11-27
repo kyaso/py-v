@@ -141,3 +141,89 @@ def test_regChainX():
     assert B.cur.read() == {'A':0, 'B':0}
     assert C.cur.read() == {'A':0, 'B':0}
     assert D.cur.read() == {'A':45, 'B':78}
+
+def test_shiftReg():
+    clear_reg_list()
+
+    depth = 32
+    A = ShiftReg(depth)
+
+    assert len(A.regs) == depth
+    assert A.serOut.read() == 0
+
+    # Fill shift register
+    for i in range(0, depth):
+        A.serIn.write(i+1)
+        RegBase.updateRegs()
+        #print("i = {}, regs = {}".format(i, A.regs))
+
+    # Drain shift register
+    A.serIn.write(0)
+    for i in range(0, depth):
+        #print("i = {}, regs = {}".format(i, A.regs))
+        assert A.serOut.read() == i+1
+        RegBase.updateRegs()
+
+def test_shiftRegParallel():
+    clear_reg_list()
+
+    depth = 8
+    A = ShiftRegParallel(depth)
+
+    assert len(A.regs) == depth
+
+    # Test parallel load
+    A.parEnable.write(1)
+    A.parIn.write(0xAF)
+    RegBase.updateRegs()
+    assert A.regs == [1,0,1,0,1,1,1,1]
+
+    # Test parallel read
+    assert A.parOut.read() == 0xAF
+
+    # Shift some bits
+    A.parEnable.write(0)
+
+    A.serIn.write(1)
+    RegBase.updateRegs()
+    A.serIn.write(1)
+    RegBase.updateRegs()
+    A.serIn.write(0)
+    RegBase.updateRegs()
+
+    # Test parallel read again
+    print(A.regs)
+    assert A.parOut.read() == 0b01111110
+
+    # Test serial shift out
+    A.serIn.write(0)
+    for i in range(0, depth):
+        #print("i = {}, regs = {}".format(i, A.regs))
+        if i == 0:
+            assert A.serOut.read() == 0
+        elif i == 1:
+            assert A.serOut.read() == 1
+        elif i == 2:
+            assert A.serOut.read() == 1
+        elif i == 3:
+            assert A.serOut.read() == 1
+        elif i == 4:
+            assert A.serOut.read() == 1
+        elif i == 5:
+            assert A.serOut.read() == 1
+        elif i == 6:
+            assert A.serOut.read() == 1
+        elif i == 7:
+            assert A.serOut.read() == 0
+        
+        RegBase.updateRegs()
+
+    # Test parallel load with value wider than depth
+    # This should throw an exception.
+    A.parEnable.write(1)
+    A.parIn.write(0xAEADBEEF)
+    with pytest.raises(Exception):
+        RegBase.updateRegs()
+
+    # Test parallel load with value narrower than depth
+    # This should make sure that the length of the list remains the same.
