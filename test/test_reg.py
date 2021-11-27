@@ -1,4 +1,5 @@
 import pytest
+import random
 from test.fixtures import clear_reg_list
 from pyv.reg import * 
 
@@ -148,20 +149,27 @@ def test_shiftReg():
     depth = 32
     A = ShiftReg(depth)
 
+    inputs = [random.randint(0,1)  for _ in range(depth)]
+
     assert len(A.regs) == depth
     assert A.serOut.read() == 0
 
     # Fill shift register
-    for i in range(0, depth):
-        A.serIn.write(i+1)
+    for i in range(depth):
+        A.serIn.write(inputs[i])
         RegBase.updateRegs()
         #print("i = {}, regs = {}".format(i, A.regs))
 
     # Drain shift register
     A.serIn.write(0)
-    for i in range(0, depth):
+    for i in range(depth):
         #print("i = {}, regs = {}".format(i, A.regs))
-        assert A.serOut.read() == i+1
+        assert A.serOut.read() == inputs[i]
+        RegBase.updateRegs()
+    
+    # Test warning when input wider than 1 bit
+    A.serIn.write(4)
+    with pytest.warns(UserWarning):
         RegBase.updateRegs()
 
 def test_shiftRegParallel():
@@ -219,11 +227,15 @@ def test_shiftRegParallel():
         RegBase.updateRegs()
 
     # Test parallel load with value wider than depth
-    # This should throw an exception.
+    # This should issue a warning.
     A.parEnable.write(1)
     A.parIn.write(0xAEADBEEF)
-    with pytest.raises(Exception):
+    with pytest.warns(UserWarning):
         RegBase.updateRegs()
 
     # Test parallel load with value narrower than depth
     # This should make sure that the length of the list remains the same.
+    A.parEnable.write(1)
+    A.parIn.write(0x47)
+    RegBase.updateRegs()
+    assert len(A.regs) == depth

@@ -40,15 +40,25 @@ def signext(val, width: int):
 
     return val
 
-def getBitVector(val: int):
+def getBitVector(val: int, len: int = 0):
     """Convert a number into a list with its binary representation.
 
     The list is assumed to be in "MSB-at-index-0" ordering.
 
     Args:
         val (int): The value that we want to express as a binary list.
+        len (int): Use this to pass a fixed length which the output vector should have.
+            The bitlength of `val` must be less-than or equal to `len`, otherwise an exception is raised.
+
+            A  value of 0 (default) will result in the minimum length needed to hold the binary representation of `val`.
     """
-    return [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+    if len == 0:
+        return [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+    elif len >= val.bit_length():
+        leading_zeros = [0  for _ in range(len-val.bit_length())]
+        return leading_zeros + [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+    else:
+        raise Exception("ERROR (gitBitVector): input value has bit length greater than required fixed length!")
 
 def bitVector2num(bitVec: list):
     """Convert a bit list to a number.

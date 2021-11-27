@@ -1,4 +1,5 @@
 import copy
+import warnings
 from port import *
 from util import bitVector2num, getBitVector
 
@@ -97,6 +98,9 @@ class ShiftReg(RegBase):
 
     def prepareNextVal(self):
         self.nextv = self.serIn.read()
+        if self.nextv.bit_length() > 1:
+            warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self.nextv))
+            self.nextv = self.nextv & 1
 
     def tick(self):
         """Shift elements.
@@ -131,6 +135,7 @@ class ShiftRegParallel(ShiftReg):
         self.parOut = Port()
         self.depth = depth
         self.parInNext = 0
+        self.parMask = 2**self.depth - 1
     
     def prepareNextVal(self):
         super().prepareNextVal()
@@ -142,13 +147,11 @@ class ShiftRegParallel(ShiftReg):
             self.updateParOut()
         else:
             # Check whether the input is not wider as our depth
+            # If it is, we issue a warning and only take the lower `depth` bit
             if self.parInNext.bit_length() > self.depth:
-
-
-                # TODO: Fix exception raising in IFStage !?[[myycg8]] 
-
-                raise Exception("ERROR: attempted to parallel load wider value than shift register. Register has depth {}, value is {}".format(self.depth, self.parInNext))
-            self.regs = getBitVector(self.parInNext)
+                warnings.warn("ShiftRegParallel: Parallel input value is wider than register depth. Register has depth {}, value is {}".format(self.depth, self.parInNext))
+                self.parInNext = self.parInNext & self.parMask
+            self.regs = getBitVector(self.parInNext, self.depth)
             self.updateSerOut()
             self.updateParOut()
     
