@@ -1,6 +1,9 @@
 """Utility stuff."""
 
 # XLEN
+import warnings
+
+
 XLEN = 32
 
 # 32 bit mask
@@ -58,7 +61,9 @@ def getBitVector(val: int, len: int = 0):
         leading_zeros = [0  for _ in range(len-val.bit_length())]
         return leading_zeros + [1 if digit=='1' else 0 for digit in bin(val)[2:]]
     else:
-        raise Exception("ERROR (gitBitVector): input value has bit length greater than required fixed length!")
+        num_trunc_bits = val.bit_length() - len
+        warnings.warn("Util getBitVector(): Requested vector length ({}) shorter than bit_length of value ({}). Truncating upper {} bits.".format(len, val.bit_length(), num_trunc_bits))
+        return [1 if digit=='1' else 0 for digit in bin(val)[2+num_trunc_bits:]]
 
 def bitVector2num(bitVec: list):
     """Convert a bit list to a number.
