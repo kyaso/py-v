@@ -54,6 +54,9 @@ def getBitVector(val: int, len: int = 0):
             The bitlength of `val` must be less-than or equal to `len`, otherwise an exception is raised.
 
             A  value of 0 (default) will result in the minimum length needed to hold the binary representation of `val`.
+    
+    Returns:
+        A list containing the bits of `val`.
     """
     if len == 0:
         return [1 if digit=='1' else 0 for digit in bin(val)[2:]]
@@ -72,6 +75,9 @@ def bitVector2num(bitVec: list):
 
     Args:
         bitVec (list): The bit list that we want to convert to a number.
+    
+    Returns:
+        Integer value of input bit vector.
     """
     bitStr = ''.join(str(b)  for b in bitVec)
     return int(bitStr, 2)
