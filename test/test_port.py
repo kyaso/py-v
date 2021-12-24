@@ -16,18 +16,22 @@ class TestPort:
         A = Port()
         B = Port()
         C = Port()
+        D = Port()
         B.connect(A)
         C.connect(B)
+        D.connect(B)
 
-        # Check drivers
-        assert B._driver == A
-        assert C._driver == A
-        assert A._driver == A
+        # Check children
+        assert A._children == [B]
+        assert B._children == [C, D]
+        assert C._children == []
+        assert D._children == []
 
         # Write to A
         A.write(410)
         assert B.read() == 410
         assert C.read() == 410
+        assert D.read() == 410
 
         # Test reverse connect order
         A = Port()
@@ -35,21 +39,12 @@ class TestPort:
         C = Port()
         C.connect(B)
         B.connect(A)
-        assert C._driver == B
-        assert B._driver == A
-        assert A._driver == A
+        assert A._children == [B]
+        assert B._children == [C]
         A.write(420)
         assert B.read() == 420
         assert C.read() == 420 
 
-        # Write to B (shouldn't be possible)
-        with pytest.raises(Exception):
-            B.write(46)
-        
-        # Write to C (same as B)
-        with pytest.raises(Exception):
-            C.write(38)
-    
     def test_wire(self):
         A = Port()
         B = Port()
@@ -71,6 +66,19 @@ class TestPort:
         assert B.read() == 42
         assert C.read() == 42
         assert D.read() == 42
+
+    def test_errors(self):
+        A = Port()
+        # Connecting a port to two parents
+        B = Port()
+        C = Port()
+        A.connect(B)
+        with pytest.raises(Exception):
+            A.connect(C)
+        
+        # Non-root port calls write
+        with pytest.raises(Exception):
+            A.write(42)
 
 class TestPortX:
     def test_portx(self):

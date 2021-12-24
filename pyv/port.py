@@ -12,8 +12,13 @@ class Port:
         """
         self.val = initVal
 
-        # Who drives this port? Default: the port itself
-        self._driver = self
+        # Is this port the root driver?
+        self._is_root_driver = True
+
+        # Who drives this port?
+        self._parent = None
+        # Which ports does this ports drive?
+        self._children = []
     
     def read(self):
         """Reads the current value of the port.
@@ -26,9 +31,9 @@ class Port:
             The current value of the port.
         """
 
-        if self._driver == self:
-            return copy.deepcopy(self.val)
-        return self._driver.read()
+        return copy.deepcopy(self.val)
+
+        # return self._driver.read()
     
     def write(self, val):
         """Writes a new value to the port.
@@ -41,10 +46,18 @@ class Port:
             `write()`.
         """
 
-        if self._driver == self:
-            self.val = copy.deepcopy(val)
+        if self._is_root_driver:
+            self._propagate(val)
+
         else:
-            raise Exception("ERROR (Port): Only driver port allowed to write!")
+            raise Exception("ERROR (Port): Only root driver port allowed to write!")
+    
+    def _propagate(self, val):
+        # TODO: check if val is new -> add module to sim queue
+
+        self.val = copy.deepcopy(val)
+        for p in self._children:
+            p._propagate(val)
     
     def connect(self, driver):
         """Connects two ports.
@@ -62,8 +75,15 @@ class Port:
         if not isinstance(driver, Port):
             raise TypeError("{} is not a Port!".format(driver))
 
-        self._driver = driver._driver
-        del self.val
+        if self._parent is None:
+            self._parent = driver
+            driver._children.append(self)
+            self._is_root_driver = False
+        else:
+            raise Exception("ERROR (Port): Port already has a parent!")
+
+
+        # del self.val
     
 class PortX(Port):
     """Represents a collection of Ports."""
