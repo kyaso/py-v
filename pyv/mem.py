@@ -1,4 +1,4 @@
-from util import MASK_32
+from pyv.util import MASK_32
 class Memory:
     """Simple memory.
 

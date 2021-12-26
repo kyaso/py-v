@@ -1,6 +1,6 @@
-from stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
-from mem import Memory
-from reg import Regfile, RegBase
+from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
+from pyv.mem import Memory
+from pyv.reg import Regfile, RegBase
 
 class Model:
     """Base class for all core models.

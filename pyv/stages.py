@@ -1,9 +1,9 @@
-from module import *
-from port import *
-from reg import *
-from mem import *
-import isa
-from util import *
+from pyv.module import *
+from pyv.port import *
+from pyv.reg import *
+from pyv.mem import *
+import pyv.isa as isa
+from pyv.util import *
 
 # class Stage:
 #     def __init__(self):

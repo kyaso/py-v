@@ -1,7 +1,7 @@
 import copy
 import warnings
-from port import *
-from util import bitVector2num, getBitVector
+from pyv.port import *
+from pyv.util import bitVector2num, getBitVector
 
 # TODO: Maybe make abstract
 class RegBase:
