@@ -1,16 +1,26 @@
 import copy
+from pyv.defines import *
 
 class Port:
     """Represents a single port."""
 
-    def __init__(self, initVal = 0):
+    def __init__(self, isOutput: bool = IN, module = None, initVal = 0):
         """Create a new Port object.
 
         Args:
+            isOutput (bool): Whether this port is an output.
+                Defaults to False (=input).
+            module (Module): The module this port belongs to.
             initVal (int, optional): Value to initialize Port output with.
                 Defaults to 0.
         """
+        self.isOutput = isOutput
         self.val = initVal
+
+        if module is not None:
+            self._module = module
+        else:
+            self._module = None
 
         # Is this port the root driver?
         self._is_root_driver = True
@@ -47,7 +57,10 @@ class Port:
         """
 
         if self._is_root_driver:
-            self._propagate(val)
+            # If the value is different from the current value we have to
+            # propagate the change to all children ports.
+            if self.val != val:
+                self._propagate(val)
 
         else:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
@@ -56,6 +69,11 @@ class Port:
         # TODO: check if val is new -> add module to sim queue
 
         self.val = copy.deepcopy(val)
+
+        # Call the onChange handler of the parent module
+        if (not self.isOutput) and (not self._is_root_driver) and (self._module is not None):
+            self._module.onPortChange(self)
+
         for p in self._children:
             p._propagate(val)
     
@@ -88,7 +106,7 @@ class Port:
 class PortX(Port):
     """Represents a collection of Ports."""
 
-    def __init__(self, *ports):
+    def __init__(self, isOutput: bool = IN, module = None, *ports):
         """Creates a new PortX object.
 
         A dictionary of `Port` objects will be created.
@@ -97,11 +115,13 @@ class PortX(Port):
         object.
 
         Args:
+            isOutput: Whether this port is an output.
+            module: The parent module of this port.
             *ports: The names of the sub-ports.
         """
 
         # Build dict of ports
-        self.val = { port: Port()  for port in ports }
+        self.val = { port: Port(isOutput, module)  for port in ports }
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.

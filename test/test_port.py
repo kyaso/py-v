@@ -1,5 +1,6 @@
 import pytest
 from pyv.port import Port, PortX, Wire
+from pyv.defines import *
 
 class TestPort:
     def test_read(self):
@@ -83,7 +84,7 @@ class TestPort:
 class TestPortX:
     def test_portx(self):
         # Init
-        A = PortX('one', 'two', 'three')
+        A = PortX(IN, None, 'one', 'two', 'three')
 
         # Test write
         A.write('one', 42, 'two', 45)
@@ -128,7 +129,7 @@ class TestPortX:
         assert A.val['two'].read() == 5678
 
     def test_errors(self):
-        A = PortX('one', 'two', 'three') 
+        A = PortX(IN, None, 'one', 'two', 'three') 
 
         # Test invalid sq. brackets assignment
         with pytest.raises(TypeError):

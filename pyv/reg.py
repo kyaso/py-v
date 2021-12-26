@@ -2,6 +2,7 @@ import copy
 import warnings
 from pyv.port import *
 from pyv.util import bitVector2num, getBitVector
+from pyv.defines import IN, OUT
 
 # TODO: Maybe make abstract
 class RegBase:
@@ -59,8 +60,8 @@ class Reg(RegBase):
         # Add this register to the global register list
         super().__init__()
 
-        self.next = Port()          # Next value input
-        self.cur = Port()           # Current value output
+        self.next = Port(IN)          # Next value input
+        self.cur = Port(OUT)           # Current value output
         self.cur.write(initVal)
     
     def prepareNextVal(self):
@@ -75,8 +76,8 @@ class RegX(Reg):
     def __init__(self, *args):
         super().__init__()
 
-        self.next = PortX(*args)    # Next value input
-        self.cur = PortX(*args)     # Current value output
+        self.next = PortX(IN, None, *args)    # Next value input
+        self.cur = PortX(OUT, None, *args)     # Current value output
 class ShiftReg(RegBase):
     """Represents a single-valued shift register.
     
