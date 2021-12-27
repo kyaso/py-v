@@ -29,14 +29,6 @@ class B(Module):
 class C(Module):
     def __init__(self):
         self.inA = Port(IN, self)
-        self.outA = Port(OUT, self)
-    
-    def process(self):
-        self.outA.write(self.inA.read())
-
-class D(Module):
-    def __init__(self):
-        self.inA = Port(IN, self)
         self.inB = Port(IN, self)
         self.outA = Port(OUT, self)
     
@@ -50,16 +42,17 @@ class ExampleTop(Module):
         self.out = Port(OUT, self)
 
         self.A_i = A()
-        self.B_i = B()
+        self.B1_i = B()
+        self.B2_i = B()
         self.C_i = C()
         self.D_i = D()
 
-        self.B_i.inA.connect(self.A_i.outA)
-        self.C_i.inA.connect(self.A_i.outB)
-        self.D_i.inA.connect(self.B_i.outA)
-        self.D_i.inB.connect(self.C_i.outA)
+        self.B1_i.inA.connect(self.A_i.outA)
+        self.B2_i.inA.connect(self.A_i.outB)
+        self.C_i.inA.connect(self.B1_i.outA)
+        self.C_i.inB.connect(self.B2_i.outA)
 
-        self.out.connect(self.D_i.outA)
+        self.out.connect(self.C_i.outA)
         self.A_i.inA.connect(self.inA)
         self.A_i.inB.connect(self.inB) 
     
@@ -83,15 +76,15 @@ def test_queue():
 
     fn = sim._queue.popleft()
     fn()
-    assert sim._queue == deque([ dut.B_i.process, dut.C_i.process ])
+    assert sim._queue == deque([ dut.B1_i.process, dut.B2_i.process ])
 
     fn = sim._queue.popleft()
     fn()
-    assert sim._queue == deque([ dut.C_i.process, dut.D_i.process ])
+    assert sim._queue == deque([ dut.B2_i.process, dut.C_i.process ])
 
     fn = sim._queue.popleft()
     fn()
-    assert sim._queue == deque([ dut.D_i.process ])
+    assert sim._queue == deque([ dut.C_i.process ])
 
     fn = sim._queue.popleft()
     fn()
