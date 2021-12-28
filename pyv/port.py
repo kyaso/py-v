@@ -4,7 +4,7 @@ from pyv.defines import *
 class Port:
     """Represents a single port."""
 
-    def __init__(self, isOutput: bool = IN, module = None, initVal = 0):
+    def __init__(self, isOutput: bool = IN, module = None, initVal = None):
         """Create a new Port object.
 
         Args:
@@ -152,9 +152,19 @@ class PortX(Port):
         """Writes new values to one or more sub-ports.
 
         Args:
-            *args: A dict of Ports, OR a list of key-value pairs.
+            *args: A single interger value,
+                OR dict of Ports,
+                OR a list of key-value pairs.
+                
                 More details see below.
         """
+
+        # If a single integer value is passed to this function,
+        # all subports will get this value.
+        if type(args[0]) is int:
+            for port in self.val:
+                self.val[port].write(args[0])
+            return
 
         # If a dict of ports is passed to this function,
         # this usually means that we want to copy the values

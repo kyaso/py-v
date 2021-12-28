@@ -7,6 +7,7 @@ def test_reg():
     clear_reg_list()
 
     reg = Reg()
+    RegBase.reset()
     assert reg.cur.read() == 0
 
     reg.next.write(0x42)
@@ -27,6 +28,7 @@ def test_regX():
     clear_reg_list()
 
     reg = RegX('A', 'B')
+    RegBase.reset()
 
     reg.next.write('A', 42, 'B', 69)
     assert reg.cur.val['A'].val == 0
@@ -74,6 +76,7 @@ def test_regChain():
     B.next.connect(A.cur)
     C.next.connect(B.cur)
     D.next.connect(C.cur)
+    RegBase.reset()
 
     A.next.write(0x42)
 
@@ -114,6 +117,7 @@ def test_regChainX():
     B.next.connect(A.cur)
     C.next.connect(B.cur)
     D.next.connect(C.cur)
+    RegBase.reset()
 
     A.next.write('A',45,'B',78)
 
@@ -148,6 +152,7 @@ def test_shiftReg():
 
     depth = 32
     A = ShiftReg(depth)
+    RegBase.reset()
 
     inputs = [random.randint(0,1)  for _ in range(depth)]
 
@@ -177,6 +182,7 @@ def test_shiftRegParallel():
 
     depth = 8
     A = ShiftRegParallel(depth)
+    RegBase.reset()
 
     assert len(A.regs) == depth
 
@@ -239,3 +245,18 @@ def test_shiftRegParallel():
     A.parIn.write(0x47)
     RegBase.updateRegs()
     assert len(A.regs) == depth
+
+def test_reset():
+    reg1 = Reg()
+    reg2 = Reg(42)
+    reg3 = RegX('foo', 'bar')
+    reg4 = ShiftReg(8, 1)
+    reg5 = ShiftRegParallel(8, 2)
+
+    RegBase.reset()
+
+    assert reg1.cur.read() == 0
+    assert reg2.cur.read() == 42
+    assert reg3.cur.read() == {'foo': 0, 'bar': 0}
+    assert reg4.regs == [1  for _ in range(0,8)]
+    assert reg5.regs == [2  for _ in range(0,8)]

@@ -14,11 +14,12 @@ class RegBase:
     # The list of instantiated registers
     reg_list = []
 
-    def __init__(self):
+    def __init__(self, resetVal):
         # Add register to register list
         self.reg_list.append(self)
 
         self.nextv = 0
+        self.resetVal = resetVal
 
     def prepareNextVal(self):
         """Copies the next value to an internal variable.
@@ -37,6 +38,11 @@ class RegBase:
         """
 
         raise Exception('RegBase: Please implement tick().')
+    
+    def reset(self):
+        """Resets the register."""
+
+        raise Exception('RegBase: Please implement reset().')
 
     @staticmethod
     def updateRegs():
@@ -52,23 +58,32 @@ class RegBase:
         
         for r in RegBase.reg_list:
             r.tick()
+    
+    @staticmethod
+    def reset():
+        """Reset all registers."""
+
+        for r in RegBase.reg_list:
+            r.reset()
 
 class Reg(RegBase):
     """Represents a single value register."""
 
-    def __init__(self, initVal = 0):
+    def __init__(self, resetVal = 0):
         # Add this register to the global register list
-        super().__init__()
+        super().__init__(resetVal)
 
         self.next = Port(IN)          # Next value input
         self.cur = Port(OUT)           # Current value output
-        self.cur.write(initVal)
     
     def prepareNextVal(self):
         self.nextv = self.next.read()
 
     def tick(self):
         self.cur.write(self.nextv)
+    
+    def reset(self):
+        self.cur.write(self.resetVal)
 
 class RegX(Reg):
     """Represents a multivalue register."""
@@ -78,24 +93,41 @@ class RegX(Reg):
 
         self.next = PortX(IN, None, *args)    # Next value input
         self.cur = PortX(OUT, None, *args)     # Current value output
+    
+    def reset(self):
+        """Reset all subports.
+
+        For now: 0
+
+        Args:
+            resetVal: The reset value.
+        """
+        self.cur.write(0)
+
 class ShiftReg(RegBase):
     """Represents a single-valued shift register.
     
     For optimization reasons, the lists operate from right to left.
     """
 
-    def __init__(self, depth, initVal = 0):
+    def __init__(self, depth, resetVal = 0):
         # Add this register to the global register list
-        super().__init__()
+        super().__init__(resetVal)
+
+        self.depth = depth
 
         self.serIn = Port()          # Serial input
         self.serOut = Port()         # Serial output
 
         # Initialize shift register
-        self.regs = [initVal  for _ in range(0, depth)]
+        self.reset()
+        #self.regs = [initVal  for _ in range(0, depth)]
 
         # Write output
         self.updateSerOut()
+    
+    def reset(self):
+        self.regs = [self.resetVal  for _ in range(0, self.depth)] 
 
     def prepareNextVal(self):
         self.nextv = self.serIn.read()
@@ -128,8 +160,8 @@ class ShiftReg(RegBase):
         self.serOut.write(self.regs[0])
 
 class ShiftRegParallel(ShiftReg):
-    def __init__(self, depth, initVal = 0):
-        super().__init__(depth, initVal)
+    def __init__(self, depth, resetVal = 0):
+        super().__init__(depth, resetVal)
 
         self.parEnable = Port()
         self.parIn = Port()
@@ -139,8 +171,10 @@ class ShiftRegParallel(ShiftReg):
         self.parMask = 2**self.depth - 1
     
     def prepareNextVal(self):
-        super().prepareNextVal()
-        self.parInNext = self.parIn.read()
+        if not self.parEnable.read():
+            super().prepareNextVal()
+        else:
+            self.parInNext = self.parIn.read()
 
     def tick(self):
         if not self.parEnable.read():
@@ -161,10 +195,10 @@ class ShiftRegParallel(ShiftReg):
 
 
 class Regfile():
-    """Integer register file."""
+    """RISC-V: Integer register file."""
 
     def __init__(self):
-        self.regs = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        self.regs = [0  for _ in range(0, 32)]
 
     def read(self, reg: int) -> int:
         """Reads a register.
@@ -191,3 +225,8 @@ class Regfile():
 
         if reg != 0:
             self.regs[reg] = val
+    
+    def reset(self):
+        """Reset the register file."""
+
+        self.regs = [0  for _ in range(0, 32)]

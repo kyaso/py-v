@@ -243,7 +243,7 @@ class TestEXStage:
                         'mem', 1,
                         'funct3', 5
                        )
-        ex.process()
+        #ex.process()
         assert ex.EXMEM_o['rd'].read() == 1
         assert ex.EXMEM_o['we'].read() == 1
         assert ex.EXMEM_o['wb_sel'].read() == 2
@@ -701,7 +701,7 @@ class TestEXStage:
                         'rs2', 0xdeadbeef,
                         'mem', 2,
                         'funct3', 5)
-        ex.process()
+        #ex.process()
         out = ex.EXMEM_o.read()
         assert out['rd'] == 24
         assert out['we'] == True
