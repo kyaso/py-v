@@ -641,10 +641,10 @@ class BranchUnit(Module):
         npc_o: Next PC
     """
     def __init__(self):
-        self.pc_i = Port(IN)
-        self.take_branch_i = Port(IN)
-        self.target_i = Port(IN)
-        self.npc_o = Port(OUT)
+        self.pc_i = Port(IN, self)
+        self.take_branch_i = Port(IN, self)
+        self.target_i = Port(IN, self)
+        self.npc_o = Port(OUT, self)
     
     def process(self):
         # Read inputs
