@@ -1,4 +1,8 @@
 # Py-V: A Cycle-accurate RISC-V CPU Simulator written in Python
+
+![license](https://img.shields.io/github/license/kyaso/py-v)
+
+
 🚧 This README is still under construction 🚧
 
 Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Python.
