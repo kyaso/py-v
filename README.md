@@ -84,6 +84,9 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 - [ ] Logging capabilities
 - [ ] ...
 
+## API documentation
+➔ https://kyaso.github.io/py-v/. 
+
 ---
 
 ## Under the hood
