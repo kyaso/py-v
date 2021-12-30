@@ -1,10 +1,9 @@
 import pytest
 import random
-from test.fixtures import clear_reg_list
 from pyv.reg import * 
 
 def test_reg():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     reg = Reg()
     RegBase.reset()
@@ -25,7 +24,7 @@ def test_reg():
     assert reg.cur.read() == 0x69
 
 def test_regX():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     reg = RegX('A', 'B')
     RegBase.reset()
@@ -44,7 +43,7 @@ def test_regX():
 
 
 def test_regfile():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     rf = Regfile()
 
@@ -66,7 +65,7 @@ def test_regfile():
     assert rf.regs[0] == 0
 
 def test_regChain():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     A = Reg()
     B = Reg()
@@ -107,7 +106,7 @@ def test_regChain():
     assert D.cur.read() == 0x42
 
 def test_regChainX():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     A = RegX('A', 'B')
     B = RegX('A', 'B')
@@ -148,7 +147,7 @@ def test_regChainX():
     assert D.cur.read() == {'A':45, 'B':78}
 
 def test_shiftReg():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     depth = 32
     A = ShiftReg(depth)
@@ -178,7 +177,7 @@ def test_shiftReg():
         RegBase.updateRegs()
 
 def test_shiftRegParallel():
-    clear_reg_list()
+    RegBase.clearRegList()
 
     depth = 8
     A = ShiftRegParallel(depth)

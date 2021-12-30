@@ -5,7 +5,6 @@ from pyv.simulator import Simulator
 from pyv.defines import *
 from pyv.reg import Reg, RegBase
 from collections import deque
-from test.fixtures import clear_reg_list
 
 # Build a simple example circuit
 class A(Module):
@@ -114,7 +113,7 @@ def test_init():
     assert Simulator.globalSim == sim
 
 def test_queue():
-    clear_reg_list()
+    RegBase.clearRegList()
     dut = ExampleTop()
     sim = Simulator()
     RegBase.reset()
@@ -141,7 +140,7 @@ def test_queue():
     assert dut.out.read() == 42+43
 
 def test_run():
-    clear_reg_list()
+    RegBase.clearRegList()
     sim = Simulator()
     dut = ExampleTop2()
     RegBase.reset()

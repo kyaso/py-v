@@ -65,6 +65,12 @@ class RegBase:
 
         for r in RegBase.reg_list:
             r.reset()
+    
+    @staticmethod
+    def clearRegList():
+        """Clear the list of registers."""
+
+        RegBase.reg_list = []
 
 class Reg(RegBase):
     """Represents a single value register."""
