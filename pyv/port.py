@@ -9,7 +9,7 @@ class Port:
         """Create a new Port object.
 
         Args:
-            direction (bool): Whether this port is an output.
+            direction (bool): Direction of this Port.
                 Defaults to Input.
             module (Module): The module this port belongs to.
             initVal (int, optional): Value to initialize Port output with.
@@ -65,6 +65,11 @@ class Port:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
     
     def _propagate(self, val):
+        """Propagate a new value to all children ports.
+
+        Args:
+            val (int): The new value.
+        """
         self._val = copy.deepcopy(val)
 
         # Call the onChange handler of the parent module
@@ -72,11 +77,12 @@ class Port:
         if (self._direction == IN) and (not self._is_root_driver) and (self._module is not None):
             self._module.onPortChange(self)
 
+        # Now call propagate change to children as well.
         for p in self._children:
             p._propagate(val)
     
     def connect(self, driver):
-        """Connects two ports.
+        """Connects the current port to a driver port. 
 
         Args:
             driver (Port): The new driving port for this port.
@@ -86,6 +92,7 @@ class Port:
             TypeError: The `driver` was not of type `Port`.
         """
 
+        # Check whether an illegal self-connection was attempted.
         if driver == self:
             raise Exception("ERROR (Port): Cannot connect port to itself!")
         if not isinstance(driver, Port):
@@ -112,7 +119,8 @@ class PortX(Port):
         object.
 
         Args:
-            direction: Whether this port is an output. Default: Input
+            direction: Port direction. Default: Input
+                
                 All sub-ports will have the same direction.
             module: The parent module of this port.
             *ports: The names of the sub-ports.
@@ -150,11 +158,21 @@ class PortX(Port):
         """Writes new values to one or more sub-ports.
 
         Args:
-            *args: A single interger value,
+            *args: A single integer value,
                 OR dict of Ports,
                 OR a list of key-value pairs.
                 
-                More details see below.
+        If a single integer value is passed, all sub-ports will receive that value.
+
+        A `dict` of ports is usually passed as part of some automatic write
+        (e.g. in a `RegX`).
+
+        For writing values to a subset of the sub-ports, use a *key-value* pair list.
+        For example:
+        ```
+        p.write('foo', 42, 'bar', 99)
+        ```
+        will write 42 to the sub-port named "foo", and 99 to the sub-port named "bar".
         """
 
         # If a single integer value is passed to this function,
@@ -180,7 +198,7 @@ class PortX(Port):
             self._val[args[i]].write(args[i+1])
     
     def connect(self, driver):
-        """Connects two PortX ports.
+        """Connects the current PortX to a driver PortX.
 
         Args:
             driver (PortX): The new driver port for this port.
@@ -212,7 +230,17 @@ class PortX(Port):
 
 # A Wire has the same methods and attributes as a Port.
 class Wire(Port):
+    """Represents a single-valued wire.
+
+    A wire can be written to and read from just like a regular `Port`.
+
+    A wire can be connected to other wires or ports.
+    """
     pass
 
 class WireX(PortX):
+    """Represents a multi-valued wire.
+
+    Can be connected to PortX ports.
+    """
     pass
