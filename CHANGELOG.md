@@ -19,3 +19,5 @@
 	- serial register
     - serial adder
     - ⚠️ These components might be unstable!
+
+- Added API documentation (created using [pdoc](https://pdoc3.github.io/pdoc/)!
