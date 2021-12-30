@@ -1,5 +1,5 @@
 import time
-from models import Model, SingleCycle
+from pyv.models import Model, SingleCycleModel
 
 def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles: int) -> Model:
   print("===== "+program_name+" =====")
@@ -7,7 +7,7 @@ def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles:
   # Create core instance
   print("* Creating core instance...")
   if core_type == 'single':
-    core = SingleCycle() 
+    core = SingleCycleModel() 
   
   # Load binary into memory
   print("* Loading binary...")
@@ -26,7 +26,7 @@ def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles:
 def loop_acc():
   core_type = 'single'
   program_name = 'LOOP_ACC'
-  path_to_bin = '../programs/loop_acc/loop_acc.bin'
+  path_to_bin = 'programs/loop_acc/loop_acc.bin'
   num_cycles = 3000
 
   core = execute_bin(core_type, program_name, path_to_bin, num_cycles) # TODO: continue here
@@ -42,7 +42,7 @@ def loop_acc():
 def fibonacci():
   core_type = 'single'
   program_name = 'FIBONACCI'
-  path_to_bin = '../programs/fibonacci/fibonacci.bin'
+  path_to_bin = 'programs/fibonacci/fibonacci.bin'
   num_cycles = 3000
 
   core = execute_bin(core_type, program_name, path_to_bin, num_cycles)

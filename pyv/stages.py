@@ -32,15 +32,14 @@ class IFStage(Module):
 
     def __init__(self, imem: Memory):
         # Next PC
-        self.npc_i = Port(IN)
+        self.npc_i = Port(IN, self)
         self.IFID_o = PortX(OUT, self, 'inst', 'pc')
 
         # Program counter (PC)
-        self.pc_reg = Reg()
+        self.pc_reg = Reg(-4)
 
         # Instruction register (IR)
-        # TODO: explain why ir_reg is not an actual Reg.
-        self.ir_reg = 0
+        self.ir_reg = Reg(0x00000013)
 
         # Instruction memory
         self.imem = imem
@@ -49,6 +48,7 @@ class IFStage(Module):
         self.pc_reg.next.connect(self.npc_i)
 
         # Outputs
+        self.IFID_o['inst'].connect(self.ir_reg.cur)
         self.IFID_o['pc'].connect(self.pc_reg.cur)
     
     def process(self):
@@ -56,10 +56,8 @@ class IFStage(Module):
         npc = self.npc_i.read()
 
         # Read instruction
-        self.ir_reg = self.imem.read(npc, 4)
+        self.ir_reg.next.write(self.imem.read(npc, 4))
 
-        # Outputs
-        self.IFID_o['inst'].write(self.ir_reg)
 
 class IDStage(Module):
     """Instruction decode stage.

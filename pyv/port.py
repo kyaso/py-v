@@ -1,5 +1,6 @@
 import copy
 from pyv.defines import *
+import warnings
 
 class Port:
     """Represents a single port."""
@@ -29,22 +30,20 @@ class Port:
         self._parent = None
         # Which ports does this ports drive?
         self._children = []
-    
+
     def read(self):
         """Reads the current value of the port.
-
-        The current value is obtained by quering the `read()` method of the
-        driving port. These recursive calls will eventually reach the root
-        driver port; its `val` is then returned.
 
         Returns:
             The current value of the port.
         """
 
+        if self.val is None:
+            #raise Exception("Port: Attempt to read a None port value.")
+            warnings.warn("Attempt to read a None port value.")
+
         return copy.deepcopy(self.val)
 
-        # return self._driver.read()
-    
     def write(self, val):
         """Writes a new value to the port.
 
@@ -66,8 +65,6 @@ class Port:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
     
     def _propagate(self, val):
-        # TODO: check if val is new -> add module to sim queue
-
         self.val = copy.deepcopy(val)
 
         # Call the onChange handler of the parent module
@@ -94,6 +91,8 @@ class Port:
         if not isinstance(driver, Port):
             raise TypeError("{} is not a Port!".format(driver))
 
+        # Make the driver this port's parent.
+        # Add this port to the list of the driver's children.
         if self._parent is None:
             self._parent = driver
             driver._children.append(self)
@@ -101,9 +100,6 @@ class Port:
         else:
             raise Exception("ERROR (Port): Port already has a parent!")
 
-
-        # del self.val
-    
 class PortX(Port):
     """Represents a collection of Ports."""
 
