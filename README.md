@@ -19,10 +19,10 @@ Why Py-V?
     - Python makes writing core models faster
 - I am doing this more as an experiment, to design an easy to use _hardware description language_ (HDL) with an integrated simulator
     - A CPU was an obvious choice to test this idea
-    - However, my goal is totally different from existing solutions, such as [MyHDL](https://www.myhdl.org/)
-        - Py-V is intended for _rapid prototyping_: High-level design flexibility, with the possibility to go low-level as Verilog/VHDL
-        - I have not even planned yet on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
-        - Once the hardware modelling "language" behind Py-V is mature enough, I will put it into a separate library, and Py-V will just use the new library.
+    - Py-V is intended for _rapid prototyping_: High-level design flexibility by leveraging the language features of Python, with the possibility to go as low-level as Verilog/VHDL
+        - Similar projects are [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen) and [PyMTL](https://github.com/pymtl/pymtl3)
+    - I have not yet planned on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
+    - Once the hardware modelling framework behind Py-V is mature enough, I will put it into a separate library, and Py-V will just use the new library.
 
 ## Core models
 As of now, there are the following core models:
