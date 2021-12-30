@@ -29,9 +29,9 @@ class Simulator:
             RegBase.reset()
 
         for i in range(0, num_cycles):
-            print("")
-            print("**** Cycle {} ****".format(self._cycles))
-            print("")
+            # print("")
+            # print("**** Cycle {} ****".format(self._cycles))
+            # print("")
 
             # While queue not empty
             while len(self._queue) > 0:
