@@ -70,6 +70,7 @@ class TestPort:
 
     def test_errors(self):
         A = Port()
+
         # Connecting a port to two parents
         B = Port()
         C = Port()
@@ -87,16 +88,16 @@ class TestPortX:
         A = PortX(IN, None, 'one', 'two', 'three')
 
         # Test write
-        A.write('one', 42, 'two', 45)
+        A.write('one', 42, 'two', 45, 'three', 1)
         assert A.val['one'].val == 42
         assert A.val['two'].val == 45
-        assert A.val['three'].val == 0
+        assert A.val['three'].val == 1
 
         # Test reading all subports
         ret = A.read()
         assert ret['one'] == 42
         assert ret['two'] == 45
-        assert ret['three'] == 0
+        assert ret['three'] == 1
 
         # Test reading one subport
         ret = A.read('one')
@@ -112,11 +113,12 @@ class TestPortX:
         assert val2 == 42
 
         # Test writing to all subports using dict
+        B = PortX(IN, None, 'one', 'two', 'three')
         new = {'one':89, 'two':12, 'three':90}
-        A.write(new)
-        assert A.val['one'].val == 89
-        assert A.val['two'].val == 12
-        assert A.val['three'].val == 90
+        B.write(new)
+        assert B.val['one'].val == 89
+        assert B.val['two'].val == 12
+        assert B.val['three'].val == 90
 
         # Test reading with square brackets operator
         for key, val in A.val.items():
