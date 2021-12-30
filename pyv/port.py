@@ -4,17 +4,17 @@ from pyv.defines import *
 class Port:
     """Represents a single port."""
 
-    def __init__(self, isOutput: bool = IN, module = None, initVal = None):
+    def __init__(self, direction: bool = IN, module = None, initVal = None):
         """Create a new Port object.
 
         Args:
-            isOutput (bool): Whether this port is an output.
+            direction (bool): Whether this port is an output.
                 Defaults to False (=input).
             module (Module): The module this port belongs to.
             initVal (int, optional): Value to initialize Port output with.
                 Defaults to 0.
         """
-        self.isOutput = isOutput
+        self.direction = direction
         self.val = initVal
 
         if module is not None:
@@ -71,7 +71,8 @@ class Port:
         self.val = copy.deepcopy(val)
 
         # Call the onChange handler of the parent module
-        if (not self.isOutput) and (not self._is_root_driver) and (self._module is not None):
+        # Only for input ports
+        if (self.direction == IN) and (not self._is_root_driver) and (self._module is not None):
             self._module.onPortChange(self)
 
         for p in self._children:
@@ -106,7 +107,7 @@ class Port:
 class PortX(Port):
     """Represents a collection of Ports."""
 
-    def __init__(self, isOutput: bool = IN, module = None, *ports):
+    def __init__(self, direction: bool = IN, module = None, *ports):
         """Creates a new PortX object.
 
         A dictionary of `Port` objects will be created.
@@ -115,13 +116,13 @@ class PortX(Port):
         object.
 
         Args:
-            isOutput: Whether this port is an output.
+            direction: Whether this port is an output.
             module: The parent module of this port.
             *ports: The names of the sub-ports.
         """
 
         # Build dict of ports
-        self.val = { port: Port(isOutput, module)  for port in ports }
+        self.val = { port: Port(direction, module)  for port in ports }
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.
