@@ -21,32 +21,27 @@ class RegBase:
         self.nextv = 0
         self.resetVal = resetVal
 
-    def prepareNextVal(self):
+    def _prepareNextVal(self):
         """Copies the next value to an internal variable.
 
         This method is required to prevent the next val input from being
-        overridden after the tick() of a potentially preceding register
+        overridden after the _tick() of a potentially preceding register
         has been called.
         """
 
-        raise Exception('RegBase: Please implement prepareNextVal().')
+        raise Exception('RegBase: Please implement _prepareNextVal().')
 
-    def tick(self):
-        """Simulates a clock tick (rising edge).
+    def _tick(self):
+        """Simulates a clock _tick (rising edge).
 
         The next val of the register becomes the new current val.
         """
 
-        raise Exception('RegBase: Please implement tick().')
+        raise Exception('RegBase: Please implement _tick().')
     
-    def reset(self):
-        """Resets the register."""
-
-        raise Exception('RegBase: Please implement reset().')
-
     @staticmethod
-    def updateRegs():
-        """Ticks all registers.
+    def _updateRegs():
+        """_ticks all registers.
 
         First, their next values are saved.
 
@@ -54,10 +49,10 @@ class RegBase:
         """
 
         for r in RegBase.reg_list:
-            r.prepareNextVal()
+            r._prepareNextVal()
         
         for r in RegBase.reg_list:
-            r.tick()
+            r._tick()
     
     @staticmethod
     def reset():
@@ -67,7 +62,7 @@ class RegBase:
             r.reset()
     
     @staticmethod
-    def clearRegList():
+    def _clearRegList():
         """Clear the list of registers."""
 
         RegBase.reg_list = []
@@ -82,10 +77,10 @@ class Reg(RegBase):
         self.next = Port(IN)          # Next value input
         self.cur = Port(OUT)           # Current value output
     
-    def prepareNextVal(self):
+    def _prepareNextVal(self):
         self.nextv = self.next.read()
 
-    def tick(self):
+    def _tick(self):
         self.cur.write(self.nextv)
     
     def reset(self):
@@ -135,13 +130,13 @@ class ShiftReg(RegBase):
     def reset(self):
         self.regs = [self.resetVal  for _ in range(0, self.depth)] 
 
-    def prepareNextVal(self):
+    def _prepareNextVal(self):
         self.nextv = self.serIn.read()
         if self.nextv.bit_length() > 1:
             warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self.nextv))
             self.nextv = self.nextv & 1
 
-    def tick(self):
+    def _tick(self):
         """Shift elements.
 
         TODO: formulate this better
@@ -176,15 +171,15 @@ class ShiftRegParallel(ShiftReg):
         self.parInNext = 0
         self.parMask = 2**self.depth - 1
     
-    def prepareNextVal(self):
+    def _prepareNextVal(self):
         if not self.parEnable.read():
-            super().prepareNextVal()
+            super()._prepareNextVal()
         else:
             self.parInNext = self.parIn.read()
 
-    def tick(self):
+    def _tick(self):
         if not self.parEnable.read():
-            super().tick()
+            super()._tick()
             self.updateParOut()
         else:
             # Check whether the input is not wider as our depth

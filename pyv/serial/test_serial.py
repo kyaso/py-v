@@ -4,7 +4,7 @@ from pyv.serial.ser_adder import SerAdder
 from pyv.util import getBitVector
 
 def test_ser_adder():
-    RegBase.clearRegList()
+    RegBase._clearRegList()
 
     dut = SerAdder()
 

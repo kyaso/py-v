@@ -40,7 +40,7 @@ class Simulator:
         
             self._customLog() 
 
-            RegBase.updateRegs()
+            RegBase._updateRegs()
             self._customLog() 
             self._cycles += 1
     

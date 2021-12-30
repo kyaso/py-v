@@ -11,7 +11,7 @@ def test_sanity():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage():
-    RegBase.clearRegList()
+    RegBase._clearRegList()
 
     fetch = IFStage(Memory(1024))
 
@@ -20,7 +20,7 @@ def test_IFStage():
     fetch.npc_i.write(0x00000000)
 
     fetch.process()
-    RegBase.updateRegs()
+    RegBase._updateRegs()
 
     out = fetch.IFID_o.read()
     assert out['inst'] == 0xfea42623
