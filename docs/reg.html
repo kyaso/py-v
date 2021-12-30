@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pyv.reg API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyv.reg</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import copy
+import warnings
+from pyv.port import *
+from pyv.util import bitVector2num, getBitVector
+from pyv.defines import IN, OUT
+
+# TODO: Maybe make abstract
+class RegBase:
+    &#34;&#34;&#34;Base class for registers.
+
+    This class keeps track of all instantiated registers.
+    &#34;&#34;&#34;
+
+    # The list of instantiated registers
+    reg_list = []
+
+    def __init__(self, resetVal):
+        # Add register to register list
+        self.reg_list.append(self)
+
+        self.nextv = 0
+        self.resetVal = resetVal
+
+    def _prepareNextVal(self):
+        &#34;&#34;&#34;Copies the next value to an internal variable.
+
+        This method is required to prevent the next val input from being
+        overridden after the _tick() of a potentially preceding register
+        has been called.
+        &#34;&#34;&#34;
+
+        raise Exception(&#39;RegBase: Please implement _prepareNextVal().&#39;)
+
+    def _tick(self):
+        &#34;&#34;&#34;Simulates a clock _tick (rising edge).
+
+        The next val of the register becomes the new current val.
+        &#34;&#34;&#34;
+
+        raise Exception(&#39;RegBase: Please implement _tick().&#39;)
+    
+    @staticmethod
+    def _updateRegs():
+        &#34;&#34;&#34;_ticks all registers.
+
+        First, their next values are saved.
+
+        Then the next values are propagated to the current values.
+        &#34;&#34;&#34;
+
+        for r in RegBase.reg_list:
+            r._prepareNextVal()
+        
+        for r in RegBase.reg_list:
+            r._tick()
+    
+    @staticmethod
+    def reset():
+        &#34;&#34;&#34;Reset all registers.&#34;&#34;&#34;
+
+        for r in RegBase.reg_list:
+            r.reset()
+    
+    @staticmethod
+    def _clearRegList():
+        &#34;&#34;&#34;Clear the list of registers.&#34;&#34;&#34;
+
+        RegBase.reg_list = []
+
+class Reg(RegBase):
+    &#34;&#34;&#34;Represents a single value register.&#34;&#34;&#34;
+
+    def __init__(self, resetVal = 0):
+        # Add this register to the global register list
+        super().__init__(resetVal)
+
+        self.next = Port(IN)          # Next value input
+        self.cur = Port(OUT)           # Current value output
+    
+    def _prepareNextVal(self):
+        self.nextv = self.next.read()
+
+    def _tick(self):
+        self.cur.write(self.nextv)
+    
+    def reset(self):
+        self.cur.write(self.resetVal)
+
+class RegX(Reg):
+    &#34;&#34;&#34;Represents a multivalue register.&#34;&#34;&#34;
+
+    def __init__(self, *args):
+        super().__init__()
+
+        self.next = PortX(IN, None, *args)    # Next value input
+        self.cur = PortX(OUT, None, *args)     # Current value output
+    
+    def reset(self):
+        &#34;&#34;&#34;Reset all subports.
+
+        For now: 0
+
+        Args:
+            resetVal: The reset value.
+        &#34;&#34;&#34;
+        self.cur.write(0)
+
+class ShiftReg(RegBase):
+    &#34;&#34;&#34;Represents a single-valued shift register.
+    
+    For optimization reasons, the lists operate from right to left.
+    &#34;&#34;&#34;
+
+    def __init__(self, depth, resetVal = 0):
+        # Add this register to the global register list
+        super().__init__(resetVal)
+
+        self.depth = depth
+
+        self.serIn = Port()          # Serial input
+        self.serOut = Port()         # Serial output
+
+        # Initialize shift register
+        self.reset()
+        #self.regs = [initVal  for _ in range(0, depth)]
+
+        # Write output
+        self.updateSerOut()
+    
+    def reset(self):
+        self.regs = [self.resetVal  for _ in range(0, self.depth)] 
+
+    def _prepareNextVal(self):
+        self.nextv = self.serIn.read()
+        if self.nextv.bit_length() &gt; 1:
+            warnings.warn(&#34;ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.&#34;.format(self.nextv))
+            self.nextv = self.nextv &amp; 1
+
+    def _tick(self):
+        &#34;&#34;&#34;Shift elements.
+
+        TODO: formulate this better
+        For optimization reasons the list is right to left
+        &#34;&#34;&#34;
+
+        # Fetch the new value
+        self.regs.append(self.nextv)
+
+        # Perform shift
+        # We move the list elements left by one
+        self.regs = self.regs[1:]
+
+        # Update output
+        self.updateSerOut()
+
+    def updateSerOut(self):
+        &#34;&#34;&#34;Updates the output value of the shift register.&#34;&#34;&#34;
+
+        # Last register value is visible at the output.
+        # This is index 0 of the register list
+        self.serOut.write(self.regs[0])
+
+class ShiftRegParallel(ShiftReg):
+    def __init__(self, depth, resetVal = 0):
+        super().__init__(depth, resetVal)
+
+        self.parEnable = Port()
+        self.parIn = Port()
+        self.parOut = Port()
+        self.depth = depth
+        self.parInNext = 0
+        self.parMask = 2**self.depth - 1
+    
+    def _prepareNextVal(self):
+        if not self.parEnable.read():
+            super()._prepareNextVal()
+        else:
+            self.parInNext = self.parIn.read()
+
+    def _tick(self):
+        if not self.parEnable.read():
+            super()._tick()
+            self.updateParOut()
+        else:
+            # Check whether the input is not wider as our depth
+            # If it is, we issue a warning and only take the lower `depth` bit
+            if self.parInNext.bit_length() &gt; self.depth:
+                warnings.warn(&#34;ShiftRegParallel: Parallel input value is wider than register depth. Register has depth {}, value is {}&#34;.format(self.depth, self.parInNext))
+                self.parInNext = self.parInNext &amp; self.parMask
+            self.regs = getBitVector(self.parInNext, self.depth)
+            self.updateSerOut()
+            self.updateParOut()
+    
+    def updateParOut(self):
+        self.parOut.write(bitVector2num(self.regs))
+
+
+class Regfile():
+    &#34;&#34;&#34;RISC-V: Integer register file.&#34;&#34;&#34;
+
+    def __init__(self):
+        self.regs = [0  for _ in range(0, 32)]
+
+    def read(self, reg: int) -&gt; int:
+        &#34;&#34;&#34;Reads a register.
+
+        Args:
+            reg (int): Index of register to read.
+
+        Returns:
+            int: The value of the register.
+        &#34;&#34;&#34;
+
+        if reg == 0:
+            return 0
+        else:
+            return self.regs[reg]
+
+    def write(self, reg: int, val: int):
+        &#34;&#34;&#34;Writes a value to a register.
+
+        Args:
+            reg (int): Index of register to write.
+            val (int): Value to write.
+        &#34;&#34;&#34;
+
+        if reg != 0:
+            self.regs[reg] = val
+    
+    def reset(self):
+        &#34;&#34;&#34;Reset the register file.&#34;&#34;&#34;
+
+        self.regs = [0  for _ in range(0, 32)]</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pyv.reg.Reg"><code class="flex name class">
+<span>class <span class="ident">Reg</span></span>
+<span>(</span><span>resetVal=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a single value register.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Reg(RegBase):
+    &#34;&#34;&#34;Represents a single value register.&#34;&#34;&#34;
+
+    def __init__(self, resetVal = 0):
+        # Add this register to the global register list
+        super().__init__(resetVal)
+
+        self.next = Port(IN)          # Next value input
+        self.cur = Port(OUT)           # Current value output
+    
+    def _prepareNextVal(self):
+        self.nextv = self.next.read()
+
+    def _tick(self):
+        self.cur.write(self.nextv)
+    
+    def reset(self):
+        self.cur.write(self.resetVal)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.RegX" href="#pyv.reg.RegX">RegX</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pyv.reg.RegBase.reset" href="#pyv.reg.RegBase.reset">reset</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="pyv.reg.RegBase"><code class="flex name class">
+<span>class <span class="ident">RegBase</span></span>
+<span>(</span><span>resetVal)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for registers.</p>
+<p>This class keeps track of all instantiated registers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RegBase:
+    &#34;&#34;&#34;Base class for registers.
+
+    This class keeps track of all instantiated registers.
+    &#34;&#34;&#34;
+
+    # The list of instantiated registers
+    reg_list = []
+
+    def __init__(self, resetVal):
+        # Add register to register list
+        self.reg_list.append(self)
+
+        self.nextv = 0
+        self.resetVal = resetVal
+
+    def _prepareNextVal(self):
+        &#34;&#34;&#34;Copies the next value to an internal variable.
+
+        This method is required to prevent the next val input from being
+        overridden after the _tick() of a potentially preceding register
+        has been called.
+        &#34;&#34;&#34;
+
+        raise Exception(&#39;RegBase: Please implement _prepareNextVal().&#39;)
+
+    def _tick(self):
+        &#34;&#34;&#34;Simulates a clock _tick (rising edge).
+
+        The next val of the register becomes the new current val.
+        &#34;&#34;&#34;
+
+        raise Exception(&#39;RegBase: Please implement _tick().&#39;)
+    
+    @staticmethod
+    def _updateRegs():
+        &#34;&#34;&#34;_ticks all registers.
+
+        First, their next values are saved.
+
+        Then the next values are propagated to the current values.
+        &#34;&#34;&#34;
+
+        for r in RegBase.reg_list:
+            r._prepareNextVal()
+        
+        for r in RegBase.reg_list:
+            r._tick()
+    
+    @staticmethod
+    def reset():
+        &#34;&#34;&#34;Reset all registers.&#34;&#34;&#34;
+
+        for r in RegBase.reg_list:
+            r.reset()
+    
+    @staticmethod
+    def _clearRegList():
+        &#34;&#34;&#34;Clear the list of registers.&#34;&#34;&#34;
+
+        RegBase.reg_list = []</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.Reg" href="#pyv.reg.Reg">Reg</a></li>
+<li><a title="pyv.reg.ShiftReg" href="#pyv.reg.ShiftReg">ShiftReg</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pyv.reg.RegBase.reg_list"><code class="name">var <span class="ident">reg_list</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="pyv.reg.RegBase.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reset all registers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def reset():
+    &#34;&#34;&#34;Reset all registers.&#34;&#34;&#34;
+
+    for r in RegBase.reg_list:
+        r.reset()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyv.reg.RegX"><code class="flex name class">
+<span>class <span class="ident">RegX</span></span>
+<span>(</span><span>*args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a multivalue register.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RegX(Reg):
+    &#34;&#34;&#34;Represents a multivalue register.&#34;&#34;&#34;
+
+    def __init__(self, *args):
+        super().__init__()
+
+        self.next = PortX(IN, None, *args)    # Next value input
+        self.cur = PortX(OUT, None, *args)     # Current value output
+    
+    def reset(self):
+        &#34;&#34;&#34;Reset all subports.
+
+        For now: 0
+
+        Args:
+            resetVal: The reset value.
+        &#34;&#34;&#34;
+        self.cur.write(0)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.Reg" href="#pyv.reg.Reg">Reg</a></li>
+<li><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyv.reg.RegX.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reset all subports.</p>
+<p>For now: 0</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>resetVal</code></strong></dt>
+<dd>The reset value.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reset(self):
+    &#34;&#34;&#34;Reset all subports.
+
+    For now: 0
+
+    Args:
+        resetVal: The reset value.
+    &#34;&#34;&#34;
+    self.cur.write(0)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyv.reg.Regfile"><code class="flex name class">
+<span>class <span class="ident">Regfile</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>RISC-V: Integer register file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Regfile():
+    &#34;&#34;&#34;RISC-V: Integer register file.&#34;&#34;&#34;
+
+    def __init__(self):
+        self.regs = [0  for _ in range(0, 32)]
+
+    def read(self, reg: int) -&gt; int:
+        &#34;&#34;&#34;Reads a register.
+
+        Args:
+            reg (int): Index of register to read.
+
+        Returns:
+            int: The value of the register.
+        &#34;&#34;&#34;
+
+        if reg == 0:
+            return 0
+        else:
+            return self.regs[reg]
+
+    def write(self, reg: int, val: int):
+        &#34;&#34;&#34;Writes a value to a register.
+
+        Args:
+            reg (int): Index of register to write.
+            val (int): Value to write.
+        &#34;&#34;&#34;
+
+        if reg != 0:
+            self.regs[reg] = val
+    
+    def reset(self):
+        &#34;&#34;&#34;Reset the register file.&#34;&#34;&#34;
+
+        self.regs = [0  for _ in range(0, 32)]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pyv.reg.Regfile.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self, reg: int) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reads a register.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>reg</code></strong> :&ensp;<code>int</code></dt>
+<dd>Index of register to read.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>The value of the register.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read(self, reg: int) -&gt; int:
+    &#34;&#34;&#34;Reads a register.
+
+    Args:
+        reg (int): Index of register to read.
+
+    Returns:
+        int: The value of the register.
+    &#34;&#34;&#34;
+
+    if reg == 0:
+        return 0
+    else:
+        return self.regs[reg]</code></pre>
+</details>
+</dd>
+<dt id="pyv.reg.Regfile.reset"><code class="name flex">
+<span>def <span class="ident">reset</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reset the register file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reset(self):
+    &#34;&#34;&#34;Reset the register file.&#34;&#34;&#34;
+
+    self.regs = [0  for _ in range(0, 32)]</code></pre>
+</details>
+</dd>
+<dt id="pyv.reg.Regfile.write"><code class="name flex">
+<span>def <span class="ident">write</span></span>(<span>self, reg: int, val: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Writes a value to a register.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>reg</code></strong> :&ensp;<code>int</code></dt>
+<dd>Index of register to write.</dd>
+<dt><strong><code>val</code></strong> :&ensp;<code>int</code></dt>
+<dd>Value to write.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write(self, reg: int, val: int):
+    &#34;&#34;&#34;Writes a value to a register.
+
+    Args:
+        reg (int): Index of register to write.
+        val (int): Value to write.
+    &#34;&#34;&#34;
+
+    if reg != 0:
+        self.regs[reg] = val</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyv.reg.ShiftReg"><code class="flex name class">
+<span>class <span class="ident">ShiftReg</span></span>
+<span>(</span><span>depth, resetVal=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a single-valued shift register.</p>
+<p>For optimization reasons, the lists operate from right to left.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ShiftReg(RegBase):
+    &#34;&#34;&#34;Represents a single-valued shift register.
+    
+    For optimization reasons, the lists operate from right to left.
+    &#34;&#34;&#34;
+
+    def __init__(self, depth, resetVal = 0):
+        # Add this register to the global register list
+        super().__init__(resetVal)
+
+        self.depth = depth
+
+        self.serIn = Port()          # Serial input
+        self.serOut = Port()         # Serial output
+
+        # Initialize shift register
+        self.reset()
+        #self.regs = [initVal  for _ in range(0, depth)]
+
+        # Write output
+        self.updateSerOut()
+    
+    def reset(self):
+        self.regs = [self.resetVal  for _ in range(0, self.depth)] 
+
+    def _prepareNextVal(self):
+        self.nextv = self.serIn.read()
+        if self.nextv.bit_length() &gt; 1:
+            warnings.warn(&#34;ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.&#34;.format(self.nextv))
+            self.nextv = self.nextv &amp; 1
+
+    def _tick(self):
+        &#34;&#34;&#34;Shift elements.
+
+        TODO: formulate this better
+        For optimization reasons the list is right to left
+        &#34;&#34;&#34;
+
+        # Fetch the new value
+        self.regs.append(self.nextv)
+
+        # Perform shift
+        # We move the list elements left by one
+        self.regs = self.regs[1:]
+
+        # Update output
+        self.updateSerOut()
+
+    def updateSerOut(self):
+        &#34;&#34;&#34;Updates the output value of the shift register.&#34;&#34;&#34;
+
+        # Last register value is visible at the output.
+        # This is index 0 of the register list
+        self.serOut.write(self.regs[0])</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.ShiftRegParallel" href="#pyv.reg.ShiftRegParallel">ShiftRegParallel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyv.reg.ShiftReg.updateSerOut"><code class="name flex">
+<span>def <span class="ident">updateSerOut</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates the output value of the shift register.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateSerOut(self):
+    &#34;&#34;&#34;Updates the output value of the shift register.&#34;&#34;&#34;
+
+    # Last register value is visible at the output.
+    # This is index 0 of the register list
+    self.serOut.write(self.regs[0])</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pyv.reg.RegBase.reset" href="#pyv.reg.RegBase.reset">reset</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="pyv.reg.ShiftRegParallel"><code class="flex name class">
+<span>class <span class="ident">ShiftRegParallel</span></span>
+<span>(</span><span>depth, resetVal=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents a single-valued shift register.</p>
+<p>For optimization reasons, the lists operate from right to left.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ShiftRegParallel(ShiftReg):
+    def __init__(self, depth, resetVal = 0):
+        super().__init__(depth, resetVal)
+
+        self.parEnable = Port()
+        self.parIn = Port()
+        self.parOut = Port()
+        self.depth = depth
+        self.parInNext = 0
+        self.parMask = 2**self.depth - 1
+    
+    def _prepareNextVal(self):
+        if not self.parEnable.read():
+            super()._prepareNextVal()
+        else:
+            self.parInNext = self.parIn.read()
+
+    def _tick(self):
+        if not self.parEnable.read():
+            super()._tick()
+            self.updateParOut()
+        else:
+            # Check whether the input is not wider as our depth
+            # If it is, we issue a warning and only take the lower `depth` bit
+            if self.parInNext.bit_length() &gt; self.depth:
+                warnings.warn(&#34;ShiftRegParallel: Parallel input value is wider than register depth. Register has depth {}, value is {}&#34;.format(self.depth, self.parInNext))
+                self.parInNext = self.parInNext &amp; self.parMask
+            self.regs = getBitVector(self.parInNext, self.depth)
+            self.updateSerOut()
+            self.updateParOut()
+    
+    def updateParOut(self):
+        self.parOut.write(bitVector2num(self.regs))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyv.reg.ShiftReg" href="#pyv.reg.ShiftReg">ShiftReg</a></li>
+<li><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyv.reg.ShiftRegParallel.updateParOut"><code class="name flex">
+<span>def <span class="ident">updateParOut</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateParOut(self):
+    self.parOut.write(bitVector2num(self.regs))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="pyv.reg.ShiftReg" href="#pyv.reg.ShiftReg">ShiftReg</a></b></code>:
+<ul class="hlist">
+<li><code><a title="pyv.reg.ShiftReg.reset" href="#pyv.reg.RegBase.reset">reset</a></code></li>
+<li><code><a title="pyv.reg.ShiftReg.updateSerOut" href="#pyv.reg.ShiftReg.updateSerOut">updateSerOut</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pyv" href="index.html">pyv</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pyv.reg.Reg" href="#pyv.reg.Reg">Reg</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pyv.reg.RegBase" href="#pyv.reg.RegBase">RegBase</a></code></h4>
+<ul class="">
+<li><code><a title="pyv.reg.RegBase.reg_list" href="#pyv.reg.RegBase.reg_list">reg_list</a></code></li>
+<li><code><a title="pyv.reg.RegBase.reset" href="#pyv.reg.RegBase.reset">reset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyv.reg.RegX" href="#pyv.reg.RegX">RegX</a></code></h4>
+<ul class="">
+<li><code><a title="pyv.reg.RegX.reset" href="#pyv.reg.RegX.reset">reset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyv.reg.Regfile" href="#pyv.reg.Regfile">Regfile</a></code></h4>
+<ul class="">
+<li><code><a title="pyv.reg.Regfile.read" href="#pyv.reg.Regfile.read">read</a></code></li>
+<li><code><a title="pyv.reg.Regfile.reset" href="#pyv.reg.Regfile.reset">reset</a></code></li>
+<li><code><a title="pyv.reg.Regfile.write" href="#pyv.reg.Regfile.write">write</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyv.reg.ShiftReg" href="#pyv.reg.ShiftReg">ShiftReg</a></code></h4>
+<ul class="">
+<li><code><a title="pyv.reg.ShiftReg.updateSerOut" href="#pyv.reg.ShiftReg.updateSerOut">updateSerOut</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyv.reg.ShiftRegParallel" href="#pyv.reg.ShiftRegParallel">ShiftRegParallel</a></code></h4>
+<ul class="">
+<li><code><a title="pyv.reg.ShiftRegParallel.updateParOut" href="#pyv.reg.ShiftRegParallel.updateParOut">updateParOut</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,33 +1,67 @@
 import pytest
 from pyv.port import Port, PortX, Wire
+from pyv.defines import *
+from pyv.module import Module
 
 class TestPort:
+    def test_constructor(self):
+        class mod(Module):
+            pass
+
+        foo = mod()
+
+        A = Port(IN, foo)
+        assert A._direction == IN
+        assert A._module == foo
+        assert A._val is None
+
+        A = Port(OUT, initVal=42)
+        assert A._direction == OUT
+        assert A._val == 42
+        assert A._module is None
+
     def test_read(self):
         A = Port()
-        A.val = 42
+        A._val = 42
         assert A.read() == 42
     
     def test_write(self):
         A = Port()
         A.write(123)
-        assert A.val == 123
+        assert A._val == 123
     
     def test_connect(self):
         A = Port()
         B = Port()
         C = Port()
+        D = Port()
         B.connect(A)
         C.connect(B)
+        D.connect(B)
 
-        # Check drivers
-        assert B._driver == A
-        assert C._driver == A
-        assert A._driver == A
+        # Check children
+        assert A._children == [B]
+        assert B._children == [C, D]
+        assert C._children == []
+        assert D._children == []
+        
+        # Check parents
+        assert A._parent is None
+        assert B._parent == A
+        assert C._parent == B
+        assert D._parent == B
+
+        # Check root driver attribute
+        assert A._is_root_driver == True
+        assert B._is_root_driver == False
+        assert C._is_root_driver == False
+        assert D._is_root_driver == False
 
         # Write to A
         A.write(410)
         assert B.read() == 410
         assert C.read() == 410
+        assert D.read() == 410
 
         # Test reverse connect order
         A = Port()
@@ -35,21 +69,12 @@ class TestPort:
         C = Port()
         C.connect(B)
         B.connect(A)
-        assert C._driver == B
-        assert B._driver == A
-        assert A._driver == A
+        assert A._children == [B]
+        assert B._children == [C]
         A.write(420)
         assert B.read() == 420
         assert C.read() == 420 
 
-        # Write to B (shouldn't be possible)
-        with pytest.raises(Exception):
-            B.write(46)
-        
-        # Write to C (same as B)
-        with pytest.raises(Exception):
-            C.write(38)
-    
     def test_wire(self):
         A = Port()
         B = Port()
@@ -72,22 +97,36 @@ class TestPort:
         assert C.read() == 42
         assert D.read() == 42
 
+    def test_errors(self):
+        A = Port()
+
+        # Connecting a port to two parents
+        B = Port()
+        C = Port()
+        A.connect(B)
+        with pytest.raises(Exception):
+            A.connect(C)
+        
+        # Non-root port calls write
+        with pytest.raises(Exception):
+            A.write(42)
+
 class TestPortX:
     def test_portx(self):
         # Init
-        A = PortX('one', 'two', 'three')
+        A = PortX(IN, None, 'one', 'two', 'three')
 
         # Test write
-        A.write('one', 42, 'two', 45)
-        assert A.val['one'].val == 42
-        assert A.val['two'].val == 45
-        assert A.val['three'].val == 0
+        A.write('one', 42, 'two', 45, 'three', 1)
+        assert A._val['one']._val == 42
+        assert A._val['two']._val == 45
+        assert A._val['three']._val == 1
 
         # Test reading all subports
         ret = A.read()
         assert ret['one'] == 42
         assert ret['two'] == 45
-        assert ret['three'] == 0
+        assert ret['three'] == 1
 
         # Test reading one subport
         ret = A.read('one')
@@ -103,24 +142,25 @@ class TestPortX:
         assert val2 == 42
 
         # Test writing to all subports using dict
+        B = PortX(IN, None, 'one', 'two', 'three')
         new = {'one':89, 'two':12, 'three':90}
-        A.write(new)
-        assert A.val['one'].val == 89
-        assert A.val['two'].val == 12
-        assert A.val['three'].val == 90
+        B.write(new)
+        assert B._val['one']._val == 89
+        assert B._val['two']._val == 12
+        assert B._val['three']._val == 90
 
         # Test reading with square brackets operator
-        for key, val in A.val.items():
-            assert A[key] is A.val[key]
+        for key, val in A._val.items():
+            assert A[key] is A._val[key]
 
         # Test connecting other port to sub-port
         B = Port()
         A['two'].connect(B)
         B.write(5678)
-        assert A.val['two'].read() == 5678
+        assert A._val['two'].read() == 5678
 
     def test_errors(self):
-        A = PortX('one', 'two', 'three') 
+        A = PortX(IN, None, 'one', 'two', 'three') 
 
         # Test invalid sq. brackets assignment
         with pytest.raises(TypeError):

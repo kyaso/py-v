@@ -1,6 +1,9 @@
 """Utility stuff."""
 
 # XLEN
+import warnings
+
+
 XLEN = 32
 
 # 32 bit mask
@@ -39,3 +42,42 @@ def signext(val, width: int):
         val = MASK_32&( (-1)<<width | val )
 
     return val
+
+def getBitVector(val: int, len: int = 0):
+    """Convert a number into a list with its binary representation.
+
+    The list is assumed to be in "MSB-at-index-0" ordering.
+
+    Args:
+        val (int): The value that we want to express as a binary list.
+        len (int): Use this to pass a fixed length which the output vector should have.
+            The bitlength of `val` must be less-than or equal to `len`, otherwise an exception is raised.
+
+            A  value of 0 (default) will result in the minimum length needed to hold the binary representation of `val`.
+    
+    Returns:
+        A list containing the bits of `val`.
+    """
+    if len == 0:
+        return [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+    elif len >= val.bit_length():
+        leading_zeros = [0  for _ in range(len-val.bit_length())]
+        return leading_zeros + [1 if digit=='1' else 0 for digit in bin(val)[2:]]
+    else:
+        num_trunc_bits = val.bit_length() - len
+        warnings.warn("Util getBitVector(): Requested vector length ({}) shorter than bit_length of value ({}). Truncating upper {} bits.".format(len, val.bit_length(), num_trunc_bits))
+        return [1 if digit=='1' else 0 for digit in bin(val)[2+num_trunc_bits:]]
+
+def bitVector2num(bitVec: list):
+    """Convert a bit list to a number.
+
+    The list is assumed to be in "MSB-at-index-0" ordering.
+
+    Args:
+        bitVec (list): The bit list that we want to convert to a number.
+    
+    Returns:
+        Integer value of input bit vector.
+    """
+    bitStr = ''.join(str(b)  for b in bitVec)
+    return int(bitStr, 2)

@@ -1,5 +1,4 @@
 import pytest
-from test.fixtures import clear_reg_list
 from pyv.stages import *
 from pyv.reg import *
 from pyv.util import MASK_32
@@ -12,7 +11,7 @@ def test_sanity():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage():
-    clear_reg_list()
+    RegBase._clearRegList()
 
     fetch = IFStage(Memory(1024))
 
@@ -21,7 +20,7 @@ def test_IFStage():
     fetch.npc_i.write(0x00000000)
 
     fetch.process()
-    RegBase.updateRegs()
+    RegBase._updateRegs()
 
     out = fetch.IFID_o.read()
     assert out['inst'] == 0xfea42623
@@ -38,14 +37,14 @@ class TestIDStage:
         assert regf == dec.regfile
 
         in_ports = ['inst', 'pc']
-        assert len(dec.IFID_i.val) == len(in_ports)
+        assert len(dec.IFID_i._val) == len(in_ports)
         for port in in_ports:
-            assert (port in dec.IFID_i.val)
+            assert (port in dec.IFID_i._val)
         
         out_ports = ['rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem']
-        assert len(dec.IDEX_o.val) == len(out_ports)
+        assert len(dec.IDEX_o._val) == len(out_ports)
         for port in out_ports:
-            assert (port in dec.IDEX_o.val)
+            assert (port in dec.IDEX_o._val)
 
     def test_decImm(self):
         dec = IDStage(None)
@@ -215,9 +214,9 @@ class TestEXStage:
                     'funct3',
                     'funct7'
                    ]
-        assert len(ex.IDEX_i.val) == len(in_ports)
+        assert len(ex.IDEX_i._val) == len(in_ports)
         for port in in_ports:
-            assert (port in ex.IDEX_i.val)
+            assert (port in ex.IDEX_i._val)
 
         out_ports = ['rd',
                      'we',
@@ -229,9 +228,9 @@ class TestEXStage:
                      'mem',
                      'funct3'
                      ]
-        assert len(ex.EXMEM_o.val) == len(out_ports)
+        assert len(ex.EXMEM_o._val) == len(out_ports)
         for port in out_ports:
-            assert (port in ex.EXMEM_o.val)
+            assert (port in ex.EXMEM_o._val)
         
     def test_passThrough(self):
         ex = EXStage()
@@ -243,7 +242,7 @@ class TestEXStage:
                         'mem', 1,
                         'funct3', 5
                        )
-        ex.process()
+        #ex.process()
         assert ex.EXMEM_o['rd'].read() == 1
         assert ex.EXMEM_o['we'].read() == 1
         assert ex.EXMEM_o['wb_sel'].read() == 2
@@ -701,7 +700,7 @@ class TestEXStage:
                         'rs2', 0xdeadbeef,
                         'mem', 2,
                         'funct3', 5)
-        ex.process()
+        #ex.process()
         out = ex.EXMEM_o.read()
         assert out['rd'] == 24
         assert out['we'] == True
@@ -792,15 +791,15 @@ class TestMEMStage:
 
         # Check inputs
         in_ports = ['alu_res', 'pc4', 'we', 'wb_sel', 'rs2', 'mem', 'funct3', 'rd']
-        assert len(mem.EXMEM_i.val) == len(in_ports)
+        assert len(mem.EXMEM_i._val) == len(in_ports)
         for port in in_ports:
-            assert (port in mem.EXMEM_i.val)
+            assert (port in mem.EXMEM_i._val)
 
         # Check outputs
         out_ports = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
-        assert len(mem.MEMWB_o.val) == len(out_ports)
+        assert len(mem.MEMWB_o._val) == len(out_ports)
         for port in out_ports:
-            assert (port in mem.MEMWB_o.val)
+            assert (port in mem.MEMWB_o._val)
         
     def test_passThrough(self):
         mem = MEMStage(Memory(1024))
@@ -908,9 +907,9 @@ class TestWBStage:
         wb = WBStage(regf)
 
         in_ports = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
-        assert len(wb.MEMWB_i.val) == len(in_ports)
+        assert len(wb.MEMWB_i._val) == len(in_ports)
         for port in in_ports:
-            assert (port in wb.MEMWB_i.val)
+            assert (port in wb.MEMWB_i._val)
 
     def test_wb(self):
         wb = WBStage(Regfile())

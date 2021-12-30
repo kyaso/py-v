@@ -1,9 +1,10 @@
-from module import *
-from port import *
-from reg import *
-from mem import *
-import isa
-from util import *
+from pyv.module import *
+from pyv.port import *
+from pyv.reg import *
+from pyv.mem import *
+import pyv.isa as isa
+from pyv.util import *
+from pyv.defines import *
 
 # class Stage:
 #     def __init__(self):
@@ -31,15 +32,14 @@ class IFStage(Module):
 
     def __init__(self, imem: Memory):
         # Next PC
-        self.npc_i = Port()
-        self.IFID_o = PortX('inst', 'pc')
+        self.npc_i = Port(IN, self)
+        self.IFID_o = PortX(OUT, self, 'inst', 'pc')
 
         # Program counter (PC)
-        self.pc_reg = Reg()
+        self.pc_reg = Reg(-4)
 
         # Instruction register (IR)
-        # TODO: explain why ir_reg is not an actual Reg.
-        self.ir_reg = 0
+        self.ir_reg = Reg(0x00000013)
 
         # Instruction memory
         self.imem = imem
@@ -48,6 +48,7 @@ class IFStage(Module):
         self.pc_reg.next.connect(self.npc_i)
 
         # Outputs
+        self.IFID_o['inst'].connect(self.ir_reg.cur)
         self.IFID_o['pc'].connect(self.pc_reg.cur)
     
     def process(self):
@@ -55,10 +56,8 @@ class IFStage(Module):
         npc = self.npc_i.read()
 
         # Read instruction
-        self.ir_reg = self.imem.read(npc, 4)
+        self.ir_reg.next.write(self.imem.read(npc, 4))
 
-        # Outputs
-        self.IFID_o['inst'].write(self.ir_reg)
 
 class IDStage(Module):
     """Instruction decode stage.
@@ -74,10 +73,10 @@ class IDStage(Module):
         self.regfile = regf
 
         # Inputs
-        self.IFID_i = PortX('inst', 'pc')
+        self.IFID_i = PortX(IN, self, 'inst', 'pc')
 
         # Outputs
-        self.IDEX_o = PortX('rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
+        self.IDEX_o = PortX(OUT, self, 'rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
         
     def process(self):
         # Read inputs
@@ -252,7 +251,8 @@ class EXStage(Module):
         EXMEM_o: Interface to MEMStage.
     """
     def __init__(self):
-        self.IDEX_i = PortX('rs1',
+        self.IDEX_i = PortX(IN, self,
+                            'rs1',
                             'rs2',
                             'imm',
                             'pc',
@@ -264,7 +264,8 @@ class EXStage(Module):
                             'funct7',
                             'mem')
         
-        self.EXMEM_o = PortX('rd',
+        self.EXMEM_o = PortX(OUT, self,
+                             'rd',
                              'we',
                              'wb_sel',
                              'take_branch',
@@ -536,7 +537,8 @@ class MEMStage(Module):
         MEMWB_o: Interface to WBStage.
     """
     def __init__(self, dmem: Memory):
-        self.EXMEM_i = PortX('rd',
+        self.EXMEM_i = PortX(IN, self,
+                             'rd',
                              'we',
                              'alu_res',
                              'pc4',
@@ -545,7 +547,8 @@ class MEMStage(Module):
                              'wb_sel',
                              'funct3')
         
-        self.MEMWB_o = PortX('rd',
+        self.MEMWB_o = PortX(OUT, self,
+                             'rd',
                              'we',
                              'alu_res',
                              'pc4',
@@ -605,7 +608,7 @@ class WBStage(Module):
     def __init__(self, regf: Regfile):
         self.regfile = regf
 
-        self.MEMWB_i = PortX('rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
+        self.MEMWB_i = PortX(IN, self, 'rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
 
     def process(self):
         # Read inputs
@@ -636,10 +639,10 @@ class BranchUnit(Module):
         npc_o: Next PC
     """
     def __init__(self):
-        self.pc_i = Port()
-        self.take_branch_i = Port()
-        self.target_i = Port()
-        self.npc_o = Port()
+        self.pc_i = Port(IN, self)
+        self.take_branch_i = Port(IN, self)
+        self.target_i = Port(IN, self)
+        self.npc_o = Port(OUT, self)
     
     def process(self):
         # Read inputs
