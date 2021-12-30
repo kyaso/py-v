@@ -1,8 +1,25 @@
 import pytest
 from pyv.port import Port, PortX, Wire
 from pyv.defines import *
+from pyv.module import Module
 
 class TestPort:
+    def test_constructor(self):
+        class mod(Module):
+            pass
+
+        foo = mod()
+
+        A = Port(IN, foo)
+        assert A._direction == IN
+        assert A._module == foo
+        assert A._val is None
+
+        A = Port(OUT, initVal=42)
+        assert A._direction == OUT
+        assert A._val == 42
+        assert A._module is None
+
     def test_read(self):
         A = Port()
         A._val = 42
@@ -27,6 +44,18 @@ class TestPort:
         assert B._children == [C, D]
         assert C._children == []
         assert D._children == []
+        
+        # Check parents
+        assert A._parent is None
+        assert B._parent == A
+        assert C._parent == B
+        assert D._parent == B
+
+        # Check root driver attribute
+        assert A._is_root_driver == True
+        assert B._is_root_driver == False
+        assert C._is_root_driver == False
+        assert D._is_root_driver == False
 
         # Write to A
         A.write(410)
