@@ -5,13 +5,13 @@ from pyv.defines import *
 class TestPort:
     def test_read(self):
         A = Port()
-        A.val = 42
+        A._val = 42
         assert A.read() == 42
     
     def test_write(self):
         A = Port()
         A.write(123)
-        assert A.val == 123
+        assert A._val == 123
     
     def test_connect(self):
         A = Port()
@@ -89,9 +89,9 @@ class TestPortX:
 
         # Test write
         A.write('one', 42, 'two', 45, 'three', 1)
-        assert A.val['one'].val == 42
-        assert A.val['two'].val == 45
-        assert A.val['three'].val == 1
+        assert A._val['one']._val == 42
+        assert A._val['two']._val == 45
+        assert A._val['three']._val == 1
 
         # Test reading all subports
         ret = A.read()
@@ -116,19 +116,19 @@ class TestPortX:
         B = PortX(IN, None, 'one', 'two', 'three')
         new = {'one':89, 'two':12, 'three':90}
         B.write(new)
-        assert B.val['one'].val == 89
-        assert B.val['two'].val == 12
-        assert B.val['three'].val == 90
+        assert B._val['one']._val == 89
+        assert B._val['two']._val == 12
+        assert B._val['three']._val == 90
 
         # Test reading with square brackets operator
-        for key, val in A.val.items():
-            assert A[key] is A.val[key]
+        for key, val in A._val.items():
+            assert A[key] is A._val[key]
 
         # Test connecting other port to sub-port
         B = Port()
         A['two'].connect(B)
         B.write(5678)
-        assert A.val['two'].read() == 5678
+        assert A._val['two'].read() == 5678
 
     def test_errors(self):
         A = PortX(IN, None, 'one', 'two', 'three') 

@@ -15,8 +15,8 @@ class Port:
             initVal (int, optional): Value to initialize Port output with.
                 Defaults to None.
         """
-        self.direction = direction
-        self.val = initVal
+        self._direction = direction
+        self._val = initVal
 
         if module is not None:
             self._module = module
@@ -38,11 +38,11 @@ class Port:
             The current value of the port.
         """
 
-        if self.val is None:
+        if self._val is None:
             #raise Exception("Port: Attempt to read a None port value.")
             warnings.warn("Attempt to read a None port value.")
 
-        return copy.deepcopy(self.val)
+        return copy.deepcopy(self._val)
 
     def write(self, val):
         """Writes a new value to the port.
@@ -58,18 +58,18 @@ class Port:
         if self._is_root_driver:
             # If the value is different from the current value we have to
             # propagate the change to all children ports.
-            if self.val != val:
+            if self._val != val:
                 self._propagate(val)
 
         else:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
     
     def _propagate(self, val):
-        self.val = copy.deepcopy(val)
+        self._val = copy.deepcopy(val)
 
         # Call the onChange handler of the parent module
         # Only for input ports
-        if (self.direction == IN) and (not self._is_root_driver) and (self._module is not None):
+        if (self._direction == IN) and (not self._is_root_driver) and (self._module is not None):
             self._module.onPortChange(self)
 
         for p in self._children:
@@ -119,7 +119,7 @@ class PortX(Port):
         """
 
         # Build dict of ports
-        self.val = { port: Port(direction, module)  for port in ports }
+        self._val = { port: Port(direction, module)  for port in ports }
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.
@@ -136,13 +136,13 @@ class PortX(Port):
 
         if len(ports) == 0:
             # If no specific port name is given, return values of all ports (as dict)
-            return { port: p.read()  for port, p in self.val.items() }
+            return { port: p.read()  for port, p in self._val.items() }
         elif len(ports) == 1:
-            return self.val[ports[0]].read()
+            return self._val[ports[0]].read()
         else:
-            port_vals = (self.val[ports[0]].read(),)
+            port_vals = (self._val[ports[0]].read(),)
             for i in range(1, len(ports)):
-                port_vals = port_vals+(self.val[ports[i]].read(),)
+                port_vals = port_vals+(self._val[ports[i]].read(),)
             
             return port_vals
     
@@ -160,8 +160,8 @@ class PortX(Port):
         # If a single integer value is passed to this function,
         # all subports will get this value.
         if type(args[0]) is int:
-            for port in self.val:
-                self.val[port].write(args[0])
+            for port in self._val:
+                self._val[port].write(args[0])
             return
 
         # If a dict of ports is passed to this function,
@@ -169,15 +169,15 @@ class PortX(Port):
         # of some other PortX to this PortX (e.g. inside a RegX).
         if type(args[0]) is dict:
             ports = args[0]
-            # self.val.update(args[0])
+            # self._val.update(args[0])
             for port in ports.keys():
-                self.val[port].write(ports[port])
+                self._val[port].write(ports[port])
             return
 
         # Even indices: sub-port names
         # Odd indices: values
         for i in range(0, len(args), 2):
-            self.val[args[i]].write(args[i+1])
+            self._val[args[i]].write(args[i+1])
     
     def connect(self, driver):
         """Connects two PortX ports.
@@ -194,21 +194,21 @@ class PortX(Port):
         
         # Iterate over port names (keys) and
         # Connect each sub-port to their new drivers.
-        for port in self.val:
-            self.val[port].connect(driver.val[port])
+        for port in self._val:
+            self._val[port].connect(driver._val[port])
 
     # These two overrides are necessary when we want to connect two sub-ports
-    # directly by applying [] to the PortX object, instead of PortX.val[..].
+    # directly by applying [] to the PortX object, instead of PortX._val[..].
     def __getitem__(self, key):
-        return self.val[key]
+        return self._val[key]
     
     # TODO: Is this method necessary??
     def __setitem__(self, key, value):
         if not isinstance(value, Port):
             raise TypeError("{} is not of type Port!".format(value))
 
-        self.val[key] = value
-        # self.val[key].connect(value)
+        self._val[key] = value
+        # self._val[key].connect(value)
 
 # A Wire has the same methods and attributes as a Port.
 class Wire(Port):

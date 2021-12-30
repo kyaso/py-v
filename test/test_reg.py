@@ -31,12 +31,12 @@ def test_regX():
     RegBase.reset()
 
     reg.next.write('A', 42, 'B', 69)
-    assert reg.cur.val['A'].val == 0
-    assert reg.cur.val['B'].val == 0
+    assert reg.cur._val['A']._val == 0
+    assert reg.cur._val['B']._val == 0
     reg.prepareNextVal()
     reg.tick()
-    assert reg.cur.val['A'].val == 42
-    assert reg.cur.val['B'].val == 69
+    assert reg.cur._val['A']._val == 42
+    assert reg.cur._val['B']._val == 69
 
     ret = reg.cur.read()
     assert ret['A'] == 42
