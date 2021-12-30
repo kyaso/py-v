@@ -22,6 +22,7 @@ Why Py-V?
     - However, my goal is totally different from existing solutions, such as [MyHDL](https://www.myhdl.org/)
         - Py-V is intended for _rapid prototyping_: High-level design flexibility, with the possibility to go low-level as Verilog/VHDL
         - I have not even planned yet on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
+        - Once the hardware modelling "language" behind Py-V is mature enough, I will put it into a separate library, and Py-V will just use the new library.
 
 ## Core models
 As of now, there are the following core models:
