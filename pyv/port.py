@@ -10,10 +10,10 @@ class Port:
 
         Args:
             direction (bool): Whether this port is an output.
-                Defaults to False (=input).
+                Defaults to Input.
             module (Module): The module this port belongs to.
             initVal (int, optional): Value to initialize Port output with.
-                Defaults to 0.
+                Defaults to None.
         """
         self.direction = direction
         self.val = initVal
@@ -112,7 +112,8 @@ class PortX(Port):
         object.
 
         Args:
-            direction: Whether this port is an output.
+            direction: Whether this port is an output. Default: Input
+                All sub-ports will have the same direction.
             module: The parent module of this port.
             *ports: The names of the sub-ports.
         """
