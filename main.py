@@ -1,5 +1,6 @@
 import time
-from pyv.models import Model, SingleCycleModel
+from pyv.models.model import Model
+from pyv.models.singlecycle import SingleCycleModel
 
 def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles: int) -> Model:
   print("===== "+program_name+" =====")
