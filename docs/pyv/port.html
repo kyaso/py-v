@@ -100,6 +100,9 @@
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">pyv.defines</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">pyv.log</span> <span class="k">as</span> <span class="nn">log</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">Port</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Represents a single port.&quot;&quot;&quot;</span>
@@ -114,6 +117,7 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -150,8 +154,7 @@
 <span class="sd">            val: The new value.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            Exception: A port that is driven by another port has called</span>
-<span class="sd">            `write()`.</span>
+<span class="sd">            Exception: A port that is driven by another port has called `write()`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">:</span>
@@ -227,6 +230,9 @@
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
+        <span class="c1"># Set name variables</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ports</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reads the current value(s) of one or more sub-ports.</span>
@@ -317,6 +323,7 @@
     <span class="c1"># These two overrides are necessary when we want to connect two sub-ports</span>
     <span class="c1"># directly by applying [] to the PortX object, instead of PortX._val[..].</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># `key` is the name of a sub-port</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     
     <span class="c1"># TODO: Is this method necessary??</span>
@@ -372,6 +379,7 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -408,8 +416,7 @@
 <span class="sd">            val: The new value.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            Exception: A port that is driven by another port has called</span>
-<span class="sd">            `write()`.</span>
+<span class="sd">            Exception: A port that is driven by another port has called `write()`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">:</span>
@@ -490,6 +497,7 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -578,8 +586,7 @@ Defaults to None.</li>
 <span class="sd">            val: The new value.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            Exception: A port that is driven by another port has called</span>
-<span class="sd">            `write()`.</span>
+<span class="sd">            Exception: A port that is driven by another port has called `write()`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">:</span>
@@ -605,8 +612,7 @@ Defaults to None.</li>
 <h6 id="raises">Raises</h6>
 
 <ul>
-<li><strong>Exception:</strong>  A port that is driven by another port has called</li>
-<li><code><a href="#Port.write">write()</a></code>.</li>
+<li><strong>Exception:</strong>  A port that is driven by another port has called <code><a href="#Port.write">write()</a></code>.</li>
 </ul>
 </div>
 
@@ -702,6 +708,9 @@ Defaults to None.</li>
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
+        <span class="c1"># Set name variables</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ports</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reads the current value(s) of one or more sub-ports.</span>
@@ -792,6 +801,7 @@ Defaults to None.</li>
     <span class="c1"># These two overrides are necessary when we want to connect two sub-ports</span>
     <span class="c1"># directly by applying [] to the PortX object, instead of PortX._val[..].</span>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># `key` is the name of a sub-port</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     
     <span class="c1"># TODO: Is this method necessary??</span>
@@ -836,6 +846,9 @@ Defaults to None.</li>
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
+        <span class="c1"># Set name variables</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 </pre></div>
 
         </details>
