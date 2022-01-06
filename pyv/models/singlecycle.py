@@ -31,7 +31,7 @@ class SingleCycle(Module):
         self.bu.target_i         .connect(self.ex_stg.EXMEM_o['alu_res']) 
 
         # This is the top module
-        self.registerTop()
+        self.registerTop('SingleCycleTop')
 
 class SingleCycleModel(Model):
     """Model wrapper for SingleCycle."""

@@ -16,12 +16,18 @@ class Module:
     # Pointer to top module
     top = None
 
-    def registerTop(self):
-        """Declare this module as the top module."""
+    def registerTop(self, name: str):
+        """Declare this module as the top module.
+
+        Args:
+            name (str): Name of module
+        """
+
         if Module.top is not None:
             warnings.warn("There is already a top module!")
             return
         
+        self.name = name
         Module.top = self
     
     def init(self):

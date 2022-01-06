@@ -57,6 +57,8 @@ class ExampleTop(Module):
         self.out.connect(self.C_i.outA)
         self.A_i.inA.connect(self.inA)
         self.A_i.inB.connect(self.inB) 
+
+        self.registerTop('ExampleTop')
     
     def process(self):
         pass
@@ -100,6 +102,8 @@ class ExampleTop2(Module):
         self.D_i.inA.connect(self.C_i.outA)
 
         self.out.connect(self.D_i.outA)
+
+        self.registerTop('ExampleTop2')
 
     def process(self):
         pass
