@@ -15,6 +15,8 @@ class Port:
             initVal (int, optional): Value to initialize Port output with.
                 Defaults to None.
         """
+        self.name = 'noName'
+
         self._direction = direction
         self._val = initVal
 
