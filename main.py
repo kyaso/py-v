@@ -8,7 +8,7 @@ def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles:
   # Create core instance
   print("* Creating core instance...")
   if core_type == 'single':
-    core = SingleCycleModel() 
+    core = SingleCycleModel()
   
   # Load binary into memory
   print("* Loading binary...")
@@ -16,6 +16,11 @@ def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles:
 
   # Simulate
   print("* Starting simulation...\n")
+  start = time.perf_counter()
+  core.sim.init()
+  end = time.perf_counter()
+  print("Init done after {}s.".format(end-start))
+
   start = time.perf_counter()
   core.run(num_cycles)
   end = time.perf_counter()
@@ -28,7 +33,7 @@ def loop_acc():
   core_type = 'single'
   program_name = 'LOOP_ACC'
   path_to_bin = 'programs/loop_acc/loop_acc.bin'
-  num_cycles = 3000
+  num_cycles = 2010
 
   core = execute_bin(core_type, program_name, path_to_bin, num_cycles) # TODO: continue here
 
@@ -44,7 +49,7 @@ def fibonacci():
   core_type = 'single'
   program_name = 'FIBONACCI'
   path_to_bin = 'programs/fibonacci/fibonacci.bin'
-  num_cycles = 3000
+  num_cycles = 140
 
   core = execute_bin(core_type, program_name, path_to_bin, num_cycles)
 

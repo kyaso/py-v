@@ -128,6 +128,9 @@ class PortX(Port):
 
         # Build dict of ports
         self._val = { port: Port(direction, module)  for port in ports }
+        # Set name variables
+        for port in self._val:
+            self._val[port].name = port
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.
@@ -218,6 +221,7 @@ class PortX(Port):
     # These two overrides are necessary when we want to connect two sub-ports
     # directly by applying [] to the PortX object, instead of PortX._val[..].
     def __getitem__(self, key):
+        # `key` is the name of a sub-port
         return self._val[key]
     
     # TODO: Is this method necessary??

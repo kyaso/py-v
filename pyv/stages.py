@@ -50,7 +50,7 @@ class IFStage(Module):
         # Outputs
         self.IFID_o['inst'].connect(self.ir_reg.cur)
         self.IFID_o['pc'].connect(self.pc_reg.cur)
-    
+
     def process(self):
         # Read inputs
         npc = self.npc_i.read()

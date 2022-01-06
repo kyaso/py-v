@@ -1,4 +1,5 @@
 from pyv.reg import RegBase
+import pyv.module as module
 from collections import deque
 
 class Simulator:
@@ -17,6 +18,17 @@ class Simulator:
         # Custom log function
         self.customLog = customLog
         
+    def init(self):
+        """Initialize simulation."""
+        print("Intializing simulation...")
+
+        # Initialize modules
+        try:
+            module.Module.top.init()
+        except AttributeError:
+            print("Error: Missing top module. Please set top module using Module.registerTop().")
+            exit()
+
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
 
@@ -29,9 +41,9 @@ class Simulator:
             RegBase.reset()
 
         for i in range(0, num_cycles):
-            # print("")
-            # print("**** Cycle {} ****".format(self._cycles))
-            # print("")
+            print("")
+            print("**** Cycle {} ****".format(self._cycles))
+            print("")
 
             # While queue not empty
             while len(self._queue) > 0:
