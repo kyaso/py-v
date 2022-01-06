@@ -30,9 +30,6 @@ class SingleCycle(Module):
         self.bu.take_branch_i    .connect(self.ex_stg.EXMEM_o['take_branch'])
         self.bu.target_i         .connect(self.ex_stg.EXMEM_o['alu_res']) 
 
-        # This is the top module
-        self.registerTop('SingleCycleTop')
-
 class SingleCycleModel(Model):
     """Model wrapper for SingleCycle."""
 
@@ -41,6 +38,8 @@ class SingleCycleModel(Model):
         super().__init__()
 
         self.core = SingleCycle()
+        self.setTop(self.core, 'SingleCycleTop')
+        self.init()
     
     def log(self):
         """Custom log function.

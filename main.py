@@ -16,10 +16,6 @@ def execute_bin(core_type: str, program_name: str, path_to_bin: str, num_cycles:
 
   # Simulate
   print("* Starting simulation...\n")
-  start = time.perf_counter()
-  core.sim.init()
-  end = time.perf_counter()
-  print("Init done after {}s.".format(end-start))
 
   start = time.perf_counter()
   core.run(num_cycles)

@@ -58,8 +58,6 @@ class ExampleTop(Module):
         self.A_i.inA.connect(self.inA)
         self.A_i.inB.connect(self.inB) 
 
-        self.registerTop('ExampleTop')
-    
     def process(self):
         pass
 
@@ -103,8 +101,6 @@ class ExampleTop2(Module):
 
         self.out.connect(self.D_i.outA)
 
-        self.registerTop('ExampleTop2')
-
     def process(self):
         pass
 
@@ -117,12 +113,12 @@ def test_init():
     assert Simulator.globalSim == sim
 
 def test_queue():
-    Simulator.reset()
     RegBase._clearRegList()
 
     dut = ExampleTop()
+    dut.name = 'ExampleTop'
+    dut.init()
     sim = Simulator()
-    sim.init()
     RegBase.reset()
 
     dut.inA.write(42)
@@ -147,12 +143,12 @@ def test_queue():
     assert dut.out.read() == 42+43
 
 def test_run():
-    Simulator.reset()
     RegBase._clearRegList()
 
     sim = Simulator()
     dut = ExampleTop2()
-    sim.init()
+    dut.name = 'ExampleTop2'
+    dut.init()
     RegBase.reset()
 
     #sim.run(3)
