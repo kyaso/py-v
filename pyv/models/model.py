@@ -6,18 +6,18 @@ class Model:
     """Base class for all core models.
     """
     def __init__(self, customLog = None):
+        print("Initializing model...")
+
+        # TODO: unused
         self.cycles = 0
+
         self.sim = Simulator(customLog)
     
-    def init(self):
-        """Initialize model."""
-        print("Intitialing model...")
-
         # Initialize modules
         try:
-            module.Module.top.init()
+            self.top.init()
         except AttributeError:
-            print("Error: Missing top module. Please set top module using Module.registerTop().")
+            print("Error: Missing top module. Please set top module using Model.setTop().")
             exit()
     
     def setTop(self, mod: module.Module, name: str):
@@ -27,13 +27,11 @@ class Model:
             mod (module.Module): Designated top module.
             name (str): The name the top module should have.
         """
-        if module.Module.top is not None:
-            warnings.warn("There is already a top module!")
         
         # Set name of module
         mod.name = name
         # Register module as global top module
-        module.Module.top = mod
+        self.top = mod
     
     @staticmethod
     def reset():

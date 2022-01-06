@@ -14,9 +14,6 @@ class Module:
     All modules have to implement the `process()` method.
     """
 
-    # Pointer to top module
-    top = None
-
     def init(self):
         """Initializes the module.
 

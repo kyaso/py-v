@@ -34,12 +34,10 @@ class SingleCycleModel(Model):
     """Model wrapper for SingleCycle."""
 
     def __init__(self):
-        #super().__init__(self.log)
-        super().__init__()
-
         self.core = SingleCycle()
         self.setTop(self.core, 'SingleCycleTop')
-        self.init()
+
+        super().__init__()
     
     def log(self):
         """Custom log function.
