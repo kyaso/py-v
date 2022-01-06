@@ -117,9 +117,12 @@ def test_init():
     assert Simulator.globalSim == sim
 
 def test_queue():
+    Simulator.reset()
     RegBase._clearRegList()
+
     dut = ExampleTop()
     sim = Simulator()
+    sim.init()
     RegBase.reset()
 
     dut.inA.write(42)
@@ -144,9 +147,12 @@ def test_queue():
     assert dut.out.read() == 42+43
 
 def test_run():
+    Simulator.reset()
     RegBase._clearRegList()
+
     sim = Simulator()
     dut = ExampleTop2()
+    sim.init()
     RegBase.reset()
 
     #sim.run(3)

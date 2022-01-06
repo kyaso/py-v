@@ -28,6 +28,13 @@ class Simulator:
         except AttributeError:
             print("Error: Missing top module. Please set top module using Module.registerTop().")
             exit()
+    
+    @staticmethod
+    def reset():
+        """Reset the simulation."""
+
+        # Reset the top module pointer
+        module.Module.top = None
 
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
