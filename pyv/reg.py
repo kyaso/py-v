@@ -29,7 +29,7 @@ class RegBase:
         has been called.
         """
 
-        raise Exception('RegBase: Please implement _prepareNextVal().')
+        raise NotImplementedError
 
     def _tick(self):
         """Simulates a clock _tick (rising edge).
@@ -37,7 +37,7 @@ class RegBase:
         The next val of the register becomes the new current val.
         """
 
-        raise Exception('RegBase: Please implement _tick().')
+        raise NotImplementedError
     
     @staticmethod
     def _updateRegs():

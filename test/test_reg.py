@@ -23,6 +23,17 @@ def test_reg():
     reg._tick()
     assert reg.cur.read() == 0x69
 
+def test_regbase():
+    class myReg(RegBase):
+        pass
+
+    reg = myReg(0)
+    with pytest.raises(NotImplementedError):
+        reg._prepareNextVal()
+    
+    with pytest.raises(NotImplementedError):
+        reg._tick()
+
 def test_regX():
     RegBase._clearRegList()
 
