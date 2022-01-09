@@ -1,4 +1,9 @@
 from pyv.util import MASK_32
+import pyv.log as log
+
+logger = log.getLogger(__name__)
+
+# TODO: Check if addr is valid
 class Memory:
     """Simple memory.
 
@@ -32,13 +37,16 @@ class Memory:
         """
         # TODO: handle misaligned access
         if w == 1: # byte
-            return MASK_32 & self.mem[addr]
+            val = MASK_32 & self.mem[addr]
         elif w == 2: # half word
-            return MASK_32 & (self.mem[addr+1]<<8 | self.mem[addr])
+            val = MASK_32 & (self.mem[addr+1]<<8 | self.mem[addr])
         elif w == 4: # word
-            return MASK_32 & (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
+            val = MASK_32 & (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
         else:
             raise Exception('ERROR (Memory, read): Invalid width {}'.format(w))
+        
+        logger.debug("MEM: read value 0x{:08X} from address 0x{:08X}".format(val, addr))
+        return val
     
     def write(self, addr: int, val: int, w: int):
         """Writes data to memory.
@@ -53,6 +61,7 @@ class Memory:
             Exception: `w` is not from {1,2,4}.
         """
 
+        logger.debug("MEM: write 0x{:08X} to address 0x{:08X}".format(val, addr))
         # TODO: handle misaligned access
         if w == 1: # byte
             self.mem[addr] = 0xff & val

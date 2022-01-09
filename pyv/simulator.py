@@ -1,6 +1,9 @@
 from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 class Simulator:
 
@@ -30,13 +33,15 @@ class Simulator:
             RegBase.reset()
 
         for i in range(0, num_cycles):
-            print("")
-            print("**** Cycle {} ****".format(self._cycles))
-            print("")
+            #print("")
+            #print("**** Cycle {} ****".format(self._cycles))
+            logger.debug("**** Cycle {} ****".format(self._cycles))
+            #print("")
 
             # While queue not empty
             while len(self._queue) > 0:
                 nextFn = self._queue.popleft()
+                logger.debug("Running {}".format(nextFn.__qualname__))
                 nextFn()
         
             self._customLog() 
@@ -58,7 +63,10 @@ class Simulator:
         """
         if fn not in self._queue:
             #self._queue.append(fn)
+            logger.debug("Adding {} to queue.".format(fn.__qualname__))
             self._queue.append(fn)
+        else:
+            logger.debug("{} already in queue.".format(fn.__qualname__))
     
     def getCycles(self):
         """Returns the current number of cycles.

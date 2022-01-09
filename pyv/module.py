@@ -1,6 +1,9 @@
 import pyv.simulator as simulator
-from pyv.port import Port
-from pyv.reg import Reg
+from pyv.port import Port, PortX
+from pyv.reg import Reg, RegX
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 # TODO: Maybe make this abstract
 # TODO: Should process() really be mandatory for every module?
@@ -27,9 +30,18 @@ class Module:
         for key in self.__dict__:
             obj = self.__dict__[key]
             if isinstance(obj, (Port, Reg, Module)):
-                print(obj)
-                # print("Found obj named {}".format(key))
-                obj.name = key
+                obj.name = self.name+"."+key
+            
+                if isinstance(obj, PortX):
+                    obj._namePorts()
+                
+                if isinstance(obj, (Reg, RegX)):
+                    obj.next.name = obj.name+".next"
+                    obj.cur.name = obj.name+".cur"
+                
+                    if isinstance(obj, RegX):
+                        obj.next._namePorts()
+                        obj.cur._namePorts()
 
                 if isinstance(obj, Module):
                     obj.init()

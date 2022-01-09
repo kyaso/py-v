@@ -1,6 +1,9 @@
 import copy
 from pyv.defines import *
 import warnings
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 class Port:
     """Represents a single port."""
@@ -67,6 +70,7 @@ class Port:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
     
     def _propagate(self, val):
+        logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
         """Propagate a new value to all children ports.
 
         Args:
@@ -76,7 +80,7 @@ class Port:
 
         # Call the onChange handler of the parent module
         # Only for input ports
-        if (self._direction == IN) and (not self._is_root_driver) and (self._module is not None):
+        if (self._module is not None) and (self._direction == IN) and (not self._is_root_driver):
             self._module.onPortChange(self)
 
         # Now call propagate change to children as well.
@@ -130,9 +134,6 @@ class PortX(Port):
 
         # Build dict of ports
         self._val = { port: Port(direction, module)  for port in ports }
-        # Set name variables
-        for port in self._val:
-            self._val[port].name = port
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.
@@ -233,6 +234,14 @@ class PortX(Port):
 
         self._val[key] = value
         # self._val[key].connect(value)
+    
+    def _namePorts(self):
+        """Name all subports with portxName.subportName format.
+        
+        This requires a name to be set for the PortX (usually in Module.init()).
+        """
+        for port in self._val:
+            self._val[port].name = self.name+"."+port 
 
 # A Wire has the same methods and attributes as a Port.
 class Wire(Port):
