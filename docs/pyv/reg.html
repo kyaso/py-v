@@ -31,28 +31,10 @@
                     <h2>API Documentation</h2>
                         <ul class="memberlist">
             <li>
-                    <a class="class" href="#RegBase">RegBase</a>
-                            <ul class="memberlist">
-                        <li>
-                                <a class="function" href="#RegBase.__init__">RegBase</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#RegBase.reg_list">reg_list</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#RegBase.reset">reset</a>
-                        </li>
-                </ul>
-
-            </li>
-            <li>
                     <a class="class" href="#Reg">Reg</a>
                             <ul class="memberlist">
                         <li>
                                 <a class="function" href="#Reg.__init__">Reg</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Reg.reset">reset</a>
                         </li>
                 </ul>
 
@@ -63,9 +45,6 @@
                         <li>
                                 <a class="function" href="#RegX.__init__">RegX</a>
                         </li>
-                        <li>
-                                <a class="function" href="#RegX.reset">reset</a>
-                        </li>
                 </ul>
 
             </li>
@@ -74,9 +53,6 @@
                             <ul class="memberlist">
                         <li>
                                 <a class="function" href="#ShiftReg.__init__">ShiftReg</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#ShiftReg.reset">reset</a>
                         </li>
                         <li>
                                 <a class="function" href="#ShiftReg.updateSerOut">updateSerOut</a>
@@ -106,10 +82,7 @@
                                 <a class="function" href="#Regfile.read">read</a>
                         </li>
                         <li>
-                                <a class="function" href="#Regfile.write">write</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Regfile.reset">reset</a>
+                                <a class="function" href="#Regfile.writeRequest">writeRequest</a>
                         </li>
                 </ul>
 
@@ -138,69 +111,7 @@
 <span class="kn">from</span> <span class="nn">pyv.port</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pyv.util</span> <span class="kn">import</span> <span class="n">bitVector2num</span><span class="p">,</span> <span class="n">getBitVector</span>
 <span class="kn">from</span> <span class="nn">pyv.defines</span> <span class="kn">import</span> <span class="n">IN</span><span class="p">,</span> <span class="n">OUT</span>
-
-<span class="c1"># TODO: Maybe make abstract</span>
-<span class="k">class</span> <span class="nc">RegBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Base class for registers.</span>
-
-<span class="sd">    This class keeps track of all instantiated registers.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># The list of instantiated registers</span>
-    <span class="n">reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-        <span class="c1"># Add register to register list</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">nextv</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
-
-    <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the next value to an internal variable.</span>
-
-<span class="sd">        This method is required to prevent the next val input from being</span>
-<span class="sd">        overridden after the _tick() of a potentially preceding register</span>
-<span class="sd">        has been called.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;RegBase: Please implement _prepareNextVal().&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Simulates a clock _tick (rising edge).</span>
-
-<span class="sd">        The next val of the register becomes the new current val.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;RegBase: Please implement _tick().&#39;</span><span class="p">)</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_updateRegs</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;_ticks all registers.</span>
-
-<span class="sd">        First, their next values are saved.</span>
-
-<span class="sd">        Then the next values are propagated to the current values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
-        
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Reset all registers.&quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_clearRegList</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Clear the list of registers.&quot;&quot;&quot;</span>
-
-        <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="kn">from</span> <span class="nn">pyv.clocked</span> <span class="kn">import</span> <span class="n">MemBase</span><span class="p">,</span> <span class="n">RegBase</span>
 
 <span class="k">class</span> <span class="nc">Reg</span><span class="p">(</span><span class="n">RegBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represents a single value register.&quot;&quot;&quot;</span>
@@ -218,7 +129,7 @@
     <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nextv</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">RegX</span><span class="p">(</span><span class="n">Reg</span><span class="p">):</span>
@@ -230,7 +141,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">PortX</span><span class="p">(</span><span class="n">IN</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>    <span class="c1"># Next value input</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="n">PortX</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>     <span class="c1"># Current value output</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reset all subports.</span>
 
 <span class="sd">        For now: 0</span>
@@ -256,13 +167,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">serOut</span> <span class="o">=</span> <span class="n">Port</span><span class="p">()</span>         <span class="c1"># Serial output</span>
 
         <span class="c1"># Initialize shift register</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
         <span class="c1">#self.regs = [initVal  for _ in range(0, depth)]</span>
 
         <span class="c1"># Write output</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">updateSerOut</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span> 
 
     <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -330,11 +241,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parOut</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bitVector2num</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">))</span>
 
 
-<span class="k">class</span> <span class="nc">Regfile</span><span class="p">():</span>
+<span class="k">class</span> <span class="nc">Regfile</span><span class="p">(</span><span class="n">MemBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;RISC-V: Integer register file.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWIdx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Reads a register.</span>
@@ -345,179 +259,56 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            int: The value of the register.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Writes a value to a register.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reg (int): Index of register to write.</span>
 <span class="sd">            val (int): Value to write.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="c1"># self.regs[reg] = val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWidx</span> <span class="o">=</span> <span class="n">reg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset the register file.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register file tick.</span>
 
+<span class="sd">        Commits a write request (when `_we` is set). </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_we</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_nextWidx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span>
+
+        <span class="c1"># TODO: Technically, it shouldn&#39;t be the regfile&#39;s responsibility to reset</span>
+        <span class="c1"># the write enable after a write. But we leave it now for safety.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resets the register file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
 </pre></div>
 
         </details>
 
             </section>
-                <section id="RegBase">
-                                <div class="attr class">
-        <a class="headerlink" href="#RegBase">#&nbsp;&nbsp</a>
-
-        
-        <span class="def">class</span>
-        <span class="name">RegBase</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">RegBase</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Base class for registers.</span>
-
-<span class="sd">    This class keeps track of all instantiated registers.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># The list of instantiated registers</span>
-    <span class="n">reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-        <span class="c1"># Add register to register list</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">nextv</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
-
-    <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies the next value to an internal variable.</span>
-
-<span class="sd">        This method is required to prevent the next val input from being</span>
-<span class="sd">        overridden after the _tick() of a potentially preceding register</span>
-<span class="sd">        has been called.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;RegBase: Please implement _prepareNextVal().&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Simulates a clock _tick (rising edge).</span>
-
-<span class="sd">        The next val of the register becomes the new current val.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;RegBase: Please implement _tick().&#39;</span><span class="p">)</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_updateRegs</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;_ticks all registers.</span>
-
-<span class="sd">        First, their next values are saved.</span>
-
-<span class="sd">        Then the next values are propagated to the current values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
-        
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Reset all registers.&quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_clearRegList</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Clear the list of registers.&quot;&quot;&quot;</span>
-
-        <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Base class for registers.</p>
-
-<p>This class keeps track of all instantiated registers.</p>
-</div>
-
-
-                            <div id="RegBase.__init__" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#RegBase.__init__">#&nbsp;&nbsp</a>
-
-        
-            <span class="name">RegBase</span><span class="signature">(resetVal)</span>
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-        <span class="c1"># Add register to register list</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">nextv</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
-</pre></div>
-
-        </details>
-
-    
-
-                            </div>
-                            <div id="RegBase.reg_list" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#RegBase.reg_list">#&nbsp;&nbsp</a>
-
-        <span class="name">reg_list</span><span class="default_value"> = []</span>
-    </div>
-
-    
-
-                            </div>
-                            <div id="RegBase.reset" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#RegBase.reset">#&nbsp;&nbsp</a>
-
-                <div class="decorator">@staticmethod</div>
-
-            <span class="def">def</span>
-            <span class="name">reset</span><span class="signature">()</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-        <span class="sd">&quot;&quot;&quot;Reset all registers.&quot;&quot;&quot;</span>
-
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">reg_list</span><span class="p">:</span>
-            <span class="n">r</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Reset all registers.</p>
-</div>
-
-
-                            </div>
-                </section>
                 <section id="Reg">
                                 <div class="attr class">
         <a class="headerlink" href="#Reg">#&nbsp;&nbsp</a>
 
         
         <span class="def">class</span>
-        <span class="name">Reg</span><wbr>(<span class="base"><a href="#RegBase">RegBase</a></span>):
+        <span class="name">Reg</span><wbr>(<span class="base"><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></span>):
     </div>
 
                 <details>
@@ -538,7 +329,7 @@
     <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nextv</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span><span class="p">)</span>
 </pre></div>
 
@@ -570,32 +361,13 @@
     
 
                             </div>
-                            <div id="Reg.reset" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Reg.reset">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">reset</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span><span class="p">)</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Reset all registers.</p>
-</div>
-
-
-                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="#RegBase">RegBase</a></dt>
-                                <dd id="Reg.reg_list" class="variable"><a href="#RegBase.reg_list">reg_list</a></dd>
+                                    <div><dt><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></dt>
+                                <dd id="Reg.tick" class="function"><a href="clocked.html#RegBase.tick">tick</a></dd>
+                <dd id="Reg.reset" class="function"><a href="clocked.html#RegBase.reset">reset</a></dd>
+                <dd id="Reg.clear" class="function"><a href="clocked.html#RegBase.clear">clear</a></dd>
 
             </div>
                                 </dl>
@@ -621,7 +393,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">PortX</span><span class="p">(</span><span class="n">IN</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>    <span class="c1"># Next value input</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cur</span> <span class="o">=</span> <span class="n">PortX</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>     <span class="c1"># Current value output</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reset all subports.</span>
 
 <span class="sd">        For now: 0</span>
@@ -659,47 +431,13 @@
     
 
                             </div>
-                            <div id="RegX.reset" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#RegX.reset">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">reset</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset all subports.</span>
-
-<span class="sd">        For now: 0</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            resetVal: The reset value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Reset all subports.</p>
-
-<p>For now: 0</p>
-
-<h6 id="args">Args</h6>
-
-<ul>
-<li><strong>resetVal:</strong>  The reset value.</li>
-</ul>
-</div>
-
-
-                            </div>
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="#RegBase">RegBase</a></dt>
-                                <dd id="RegX.reg_list" class="variable"><a href="#RegBase.reg_list">reg_list</a></dd>
+                                    <div><dt><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></dt>
+                                <dd id="RegX.tick" class="function"><a href="clocked.html#RegBase.tick">tick</a></dd>
+                <dd id="RegX.reset" class="function"><a href="clocked.html#RegBase.reset">reset</a></dd>
+                <dd id="RegX.clear" class="function"><a href="clocked.html#RegBase.clear">clear</a></dd>
 
             </div>
                                 </dl>
@@ -711,7 +449,7 @@
 
         
         <span class="def">class</span>
-        <span class="name">ShiftReg</span><wbr>(<span class="base"><a href="#RegBase">RegBase</a></span>):
+        <span class="name">ShiftReg</span><wbr>(<span class="base"><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></span>):
     </div>
 
                 <details>
@@ -732,13 +470,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">serOut</span> <span class="o">=</span> <span class="n">Port</span><span class="p">()</span>         <span class="c1"># Serial output</span>
 
         <span class="c1"># Initialize shift register</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
         <span class="c1">#self.regs = [initVal  for _ in range(0, depth)]</span>
 
         <span class="c1"># Write output</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">updateSerOut</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span> 
 
     <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -799,7 +537,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">serOut</span> <span class="o">=</span> <span class="n">Port</span><span class="p">()</span>         <span class="c1"># Serial output</span>
 
         <span class="c1"># Initialize shift register</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
         <span class="c1">#self.regs = [initVal  for _ in range(0, depth)]</span>
 
         <span class="c1"># Write output</span>
@@ -809,27 +547,6 @@
         </details>
 
     
-
-                            </div>
-                            <div id="ShiftReg.reset" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#ShiftReg.reset">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">reset</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">resetVal</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span> 
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Reset all registers.</p>
-</div>
-
 
                             </div>
                             <div id="ShiftReg.updateSerOut" class="classattr">
@@ -860,8 +577,10 @@
                             <div class="inherited">
                                 <h5>Inherited Members</h5>
                                 <dl>
-                                    <div><dt><a href="#RegBase">RegBase</a></dt>
-                                <dd id="ShiftReg.reg_list" class="variable"><a href="#RegBase.reg_list">reg_list</a></dd>
+                                    <div><dt><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></dt>
+                                <dd id="ShiftReg.tick" class="function"><a href="clocked.html#RegBase.tick">tick</a></dd>
+                <dd id="ShiftReg.reset" class="function"><a href="clocked.html#RegBase.reset">reset</a></dd>
+                <dd id="ShiftReg.clear" class="function"><a href="clocked.html#RegBase.clear">clear</a></dd>
 
             </div>
                                 </dl>
@@ -969,12 +688,13 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="#ShiftReg">ShiftReg</a></dt>
-                                <dd id="ShiftRegParallel.reset" class="function"><a href="#ShiftReg.reset">reset</a></dd>
-                <dd id="ShiftRegParallel.updateSerOut" class="function"><a href="#ShiftReg.updateSerOut">updateSerOut</a></dd>
+                                <dd id="ShiftRegParallel.updateSerOut" class="function"><a href="#ShiftReg.updateSerOut">updateSerOut</a></dd>
 
             </div>
-            <div><dt><a href="#RegBase">RegBase</a></dt>
-                                <dd id="ShiftRegParallel.reg_list" class="variable"><a href="#RegBase.reg_list">reg_list</a></dd>
+            <div><dt><a href="clocked.html#RegBase">pyv.clocked.RegBase</a></dt>
+                                <dd id="ShiftRegParallel.tick" class="function"><a href="clocked.html#RegBase.tick">tick</a></dd>
+                <dd id="ShiftRegParallel.reset" class="function"><a href="clocked.html#RegBase.reset">reset</a></dd>
+                <dd id="ShiftRegParallel.clear" class="function"><a href="clocked.html#RegBase.clear">clear</a></dd>
 
             </div>
                                 </dl>
@@ -986,16 +706,19 @@
 
         
         <span class="def">class</span>
-        <span class="name">Regfile</span>:
+        <span class="name">Regfile</span><wbr>(<span class="base"><a href="clocked.html#MemBase">pyv.clocked.MemBase</a></span>):
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Regfile</span><span class="p">():</span>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Regfile</span><span class="p">(</span><span class="n">MemBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;RISC-V: Integer register file.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWIdx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Reads a register.</span>
@@ -1006,27 +729,44 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            int: The value of the register.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Writes a value to a register.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reg (int): Index of register to write.</span>
 <span class="sd">            val (int): Value to write.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="c1"># self.regs[reg] = val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWidx</span> <span class="o">=</span> <span class="n">reg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
     
-    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset the register file.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Register file tick.</span>
 
+<span class="sd">        Commits a write request (when `_we` is set). </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_we</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_nextWidx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span>
+
+        <span class="c1"># TODO: Technically, it shouldn&#39;t be the regfile&#39;s responsibility to reset</span>
+        <span class="c1"># the write enable after a write. But we leave it now for safety.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Resets the register file.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
 </pre></div>
 
         </details>
@@ -1045,7 +785,10 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWIdx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 
         </details>
@@ -1072,7 +815,6 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            int: The value of the register.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">0</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1098,31 +840,37 @@
 
 
                             </div>
-                            <div id="Regfile.write" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Regfile.write">#&nbsp;&nbsp</a>
+                            <div id="Regfile.writeRequest" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Regfile.writeRequest">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
-            <span class="name">write</span><span class="signature">(self, reg: int, val: int)</span>:
+            <span class="name">writeRequest</span><span class="signature">(self, reg: int, val: int)</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reg</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Writes a value to a register.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            reg (int): Index of register to write.</span>
 <span class="sd">            val (int): Value to write.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="n">reg</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">regs</span><span class="p">[</span><span class="n">reg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="c1"># self.regs[reg] = val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWidx</span> <span class="o">=</span> <span class="n">reg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
 </pre></div>
 
         </details>
 
             <div class="docstring"><p>Writes a value to a register.</p>
+
+<p>The write is committed with the next _tick().</p>
 
 <h6 id="args">Args</h6>
 
@@ -1134,28 +882,17 @@
 
 
                             </div>
-                            <div id="Regfile.reset" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Regfile.reset">#&nbsp;&nbsp</a>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="clocked.html#MemBase">pyv.clocked.MemBase</a></dt>
+                                <dd id="Regfile.tick" class="function"><a href="clocked.html#MemBase.tick">tick</a></dd>
+                <dd id="Regfile.reset" class="function"><a href="clocked.html#MemBase.reset">reset</a></dd>
+                <dd id="Regfile.clear" class="function"><a href="clocked.html#MemBase.clear">clear</a></dd>
+                <dd id="Regfile.setWe" class="function"><a href="clocked.html#MemBase.setWe">setWe</a></dd>
 
-        
-            <span class="def">def</span>
-            <span class="name">reset</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset the register file.&quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">regs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span>  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)]</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Reset the register file.</p>
-</div>
-
-
+            </div>
+                                </dl>
                             </div>
                 </section>
     </main>

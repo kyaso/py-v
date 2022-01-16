@@ -711,6 +711,9 @@
         <span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXMEM_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;rs2&#39;</span><span class="p">,</span> <span class="s1">&#39;mem&#39;</span><span class="p">,</span> <span class="s1">&#39;funct3&#39;</span><span class="p">)</span>
 
         <span class="n">load_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Don&#39;t write by default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">LOAD</span><span class="p">:</span>                                          <span class="c1"># Read memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># LB</span>
                 <span class="n">load_val</span> <span class="o">=</span> <span class="n">signext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
@@ -727,11 +730,11 @@
 
         <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="n">STORE</span><span class="p">:</span>                                       <span class="c1"># Store memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># SB</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># SH</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># SW</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (MEMStage, process): Illegal f3 </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f3</span><span class="p">))</span>
         <span class="c1"># else:</span>
@@ -756,6 +759,11 @@
         <span class="n">rd</span><span class="p">,</span> <span class="n">we</span><span class="p">,</span> <span class="n">alu_res</span><span class="p">,</span> <span class="n">pc4</span><span class="p">,</span> <span class="n">mem_rdata</span><span class="p">,</span> <span class="n">wb_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MEMWB_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;rd&#39;</span><span class="p">,</span> <span class="s1">&#39;we&#39;</span><span class="p">,</span> <span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;pc4&#39;</span><span class="p">,</span> <span class="s1">&#39;mem_rdata&#39;</span><span class="p">,</span> <span class="s1">&#39;wb_sel&#39;</span><span class="p">)</span>
 
         <span class="n">wb_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Default to no write.</span>
+        <span class="c1"># If write, then `write()` below will</span>
+        <span class="c1"># enable write in regfile.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">we</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">wb_sel</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c1"># ALU op</span>
                 <span class="n">wb_val</span> <span class="o">=</span> <span class="n">alu_res</span>
@@ -766,7 +774,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (WBStage, process): Invalid wb_sel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wb_sel</span><span class="p">))</span>
             
-            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
 
 <span class="k">class</span> <span class="nc">BranchUnit</span><span class="p">(</span><span class="n">Module</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Branch unit.</span>
@@ -936,9 +944,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="IFStage.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="IFStage.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="IFStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="IFStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="IFStage.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>
@@ -1493,9 +1499,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="IDStage.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="IDStage.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="IDStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="IDStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="IDStage.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>
@@ -2187,9 +2191,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="EXStage.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="EXStage.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="EXStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="EXStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="EXStage.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>
@@ -2250,6 +2252,9 @@
         <span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXMEM_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;rs2&#39;</span><span class="p">,</span> <span class="s1">&#39;mem&#39;</span><span class="p">,</span> <span class="s1">&#39;funct3&#39;</span><span class="p">)</span>
 
         <span class="n">load_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Don&#39;t write by default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">LOAD</span><span class="p">:</span>                                          <span class="c1"># Read memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># LB</span>
                 <span class="n">load_val</span> <span class="o">=</span> <span class="n">signext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
@@ -2266,11 +2271,11 @@
 
         <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="n">STORE</span><span class="p">:</span>                                       <span class="c1"># Store memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># SB</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># SH</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># SW</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (MEMStage, process): Illegal f3 </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f3</span><span class="p">))</span>
         <span class="c1"># else:</span>
@@ -2357,6 +2362,9 @@
         <span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">f3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXMEM_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;rs2&#39;</span><span class="p">,</span> <span class="s1">&#39;mem&#39;</span><span class="p">,</span> <span class="s1">&#39;funct3&#39;</span><span class="p">)</span>
 
         <span class="n">load_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Don&#39;t write by default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="n">LOAD</span><span class="p">:</span>                                          <span class="c1"># Read memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># LB</span>
                 <span class="n">load_val</span> <span class="o">=</span> <span class="n">signext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
@@ -2373,11 +2381,11 @@
 
         <span class="k">elif</span> <span class="n">op</span> <span class="o">==</span> <span class="n">STORE</span><span class="p">:</span>                                       <span class="c1"># Store memory</span>
             <span class="k">if</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># SB</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># SH</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">f3</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># SW</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">mem_wdata</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (MEMStage, process): Illegal f3 </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f3</span><span class="p">))</span>
         <span class="c1"># else:</span>
@@ -2398,9 +2406,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="MEMStage.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="MEMStage.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="MEMStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="MEMStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="MEMStage.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>
@@ -2434,6 +2440,11 @@
         <span class="n">rd</span><span class="p">,</span> <span class="n">we</span><span class="p">,</span> <span class="n">alu_res</span><span class="p">,</span> <span class="n">pc4</span><span class="p">,</span> <span class="n">mem_rdata</span><span class="p">,</span> <span class="n">wb_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MEMWB_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;rd&#39;</span><span class="p">,</span> <span class="s1">&#39;we&#39;</span><span class="p">,</span> <span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;pc4&#39;</span><span class="p">,</span> <span class="s1">&#39;mem_rdata&#39;</span><span class="p">,</span> <span class="s1">&#39;wb_sel&#39;</span><span class="p">)</span>
 
         <span class="n">wb_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Default to no write.</span>
+        <span class="c1"># If write, then `write()` below will</span>
+        <span class="c1"># enable write in regfile.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">we</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">wb_sel</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c1"># ALU op</span>
                 <span class="n">wb_val</span> <span class="o">=</span> <span class="n">alu_res</span>
@@ -2444,7 +2455,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (WBStage, process): Invalid wb_sel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wb_sel</span><span class="p">))</span>
             
-            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -2494,6 +2505,11 @@
         <span class="n">rd</span><span class="p">,</span> <span class="n">we</span><span class="p">,</span> <span class="n">alu_res</span><span class="p">,</span> <span class="n">pc4</span><span class="p">,</span> <span class="n">mem_rdata</span><span class="p">,</span> <span class="n">wb_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MEMWB_i</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;rd&#39;</span><span class="p">,</span> <span class="s1">&#39;we&#39;</span><span class="p">,</span> <span class="s1">&#39;alu_res&#39;</span><span class="p">,</span> <span class="s1">&#39;pc4&#39;</span><span class="p">,</span> <span class="s1">&#39;mem_rdata&#39;</span><span class="p">,</span> <span class="s1">&#39;wb_sel&#39;</span><span class="p">)</span>
 
         <span class="n">wb_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Default to no write.</span>
+        <span class="c1"># If write, then `write()` below will</span>
+        <span class="c1"># enable write in regfile.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">setWe</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">we</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">wb_sel</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c1"># ALU op</span>
                 <span class="n">wb_val</span> <span class="o">=</span> <span class="n">alu_res</span>
@@ -2504,7 +2520,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (WBStage, process): Invalid wb_sel </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wb_sel</span><span class="p">))</span>
             
-            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">regfile</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">rd</span><span class="p">,</span> <span class="n">wb_val</span><span class="p">)</span>
 </pre></div>
 
         </details>
@@ -2518,9 +2534,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="WBStage.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="WBStage.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="WBStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="WBStage.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="WBStage.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>
@@ -2647,9 +2661,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="BranchUnit.top" class="variable"><a href="module.html#Module.top">top</a></dd>
-                <dd id="BranchUnit.registerTop" class="function"><a href="module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="BranchUnit.init" class="function"><a href="module.html#Module.init">init</a></dd>
+                                <dd id="BranchUnit.init" class="function"><a href="module.html#Module.init">init</a></dd>
                 <dd id="BranchUnit.onPortChange" class="function"><a href="module.html#Module.onPortChange">onPortChange</a></dd>
 
             </div>

@@ -90,7 +90,7 @@
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">pyv.stages</span> <span class="kn">import</span> <span class="n">IFStage</span><span class="p">,</span> <span class="n">IDStage</span><span class="p">,</span> <span class="n">EXStage</span><span class="p">,</span> <span class="n">MEMStage</span><span class="p">,</span> <span class="n">WBStage</span><span class="p">,</span> <span class="n">BranchUnit</span>
 <span class="kn">from</span> <span class="nn">pyv.mem</span> <span class="kn">import</span> <span class="n">Memory</span>
-<span class="kn">from</span> <span class="nn">pyv.reg</span> <span class="kn">import</span> <span class="n">Regfile</span><span class="p">,</span> <span class="n">RegBase</span>
+<span class="kn">from</span> <span class="nn">pyv.reg</span> <span class="kn">import</span> <span class="n">Regfile</span>
 <span class="kn">from</span> <span class="nn">pyv.module</span> <span class="kn">import</span> <span class="n">Module</span>
 <span class="kn">from</span> <span class="nn">pyv.models.model</span> <span class="kn">import</span> <span class="n">Model</span>
 
@@ -120,17 +120,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">take_branch_i</span>    <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;take_branch&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">target_i</span>         <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;alu_res&#39;</span><span class="p">])</span> 
 
-        <span class="c1"># This is the top module</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">registerTop</span><span class="p">()</span>
-
 <span class="k">class</span> <span class="nc">SingleCycleModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Model wrapper for SingleCycle.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#super().__init__(self.log)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">SingleCycle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="s1">&#39;SingleCycleTop&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Custom log function.</span>
@@ -148,7 +145,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">addr</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">instructions</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
             <span class="n">addr</span><span class="o">+=</span><span class="mi">4</span>
     
     <span class="k">def</span> <span class="nf">load_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
@@ -247,9 +245,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">pc_i</span>             <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">IFID_o</span><span class="p">[</span><span class="s1">&#39;pc&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">take_branch_i</span>    <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;take_branch&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">target_i</span>         <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;alu_res&#39;</span><span class="p">])</span> 
-
-        <span class="c1"># This is the top module</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">registerTop</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -289,9 +284,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">pc_i</span>             <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">IFID_o</span><span class="p">[</span><span class="s1">&#39;pc&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">take_branch_i</span>    <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;take_branch&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bu</span><span class="o">.</span><span class="n">target_i</span>         <span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ex_stg</span><span class="o">.</span><span class="n">EXMEM_o</span><span class="p">[</span><span class="s1">&#39;alu_res&#39;</span><span class="p">])</span> 
-
-        <span class="c1"># This is the top module</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">registerTop</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -303,9 +295,7 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="../module.html#Module">pyv.module.Module</a></dt>
-                                <dd id="SingleCycle.top" class="variable"><a href="../module.html#Module.top">top</a></dd>
-                <dd id="SingleCycle.registerTop" class="function"><a href="../module.html#Module.registerTop">registerTop</a></dd>
-                <dd id="SingleCycle.init" class="function"><a href="../module.html#Module.init">init</a></dd>
+                                <dd id="SingleCycle.init" class="function"><a href="../module.html#Module.init">init</a></dd>
                 <dd id="SingleCycle.process" class="function"><a href="../module.html#Module.process">process</a></dd>
                 <dd id="SingleCycle.onPortChange" class="function"><a href="../module.html#Module.onPortChange">onPortChange</a></dd>
 
@@ -328,10 +318,10 @@
     <span class="sd">&quot;&quot;&quot;Model wrapper for SingleCycle.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#super().__init__(self.log)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">SingleCycle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="s1">&#39;SingleCycleTop&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Custom log function.</span>
@@ -349,7 +339,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">addr</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">instructions</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
             <span class="n">addr</span><span class="o">+=</span><span class="mi">4</span>
     
     <span class="k">def</span> <span class="nf">load_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
@@ -425,10 +416,10 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#super().__init__(self.log)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">SingleCycle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setTop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="s1">&#39;SingleCycleTop&#39;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 </pre></div>
 
         </details>
@@ -482,7 +473,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">addr</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">instructions</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">writeRequest</span><span class="p">(</span><span class="n">addr</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">if_stg</span><span class="o">.</span><span class="n">imem</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
             <span class="n">addr</span><span class="o">+=</span><span class="mi">4</span>
 </pre></div>
 
@@ -699,7 +691,9 @@
                                 <h5>Inherited Members</h5>
                                 <dl>
                                     <div><dt><a href="model.html#Model">pyv.models.model.Model</a></dt>
-                                <dd id="SingleCycleModel.run" class="function"><a href="model.html#Model.run">run</a></dd>
+                                <dd id="SingleCycleModel.setTop" class="function"><a href="model.html#Model.setTop">setTop</a></dd>
+                <dd id="SingleCycleModel.reset" class="function"><a href="model.html#Model.reset">reset</a></dd>
+                <dd id="SingleCycleModel.run" class="function"><a href="model.html#Model.run">run</a></dd>
                 <dd id="SingleCycleModel.getCycles" class="function"><a href="model.html#Model.getCycles">getCycles</a></dd>
 
             </div>

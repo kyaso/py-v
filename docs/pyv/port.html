@@ -117,7 +117,8 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -167,6 +168,8 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ERROR (Port): Only root driver port allowed to write!&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_propagate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="c1"># logger.debug(&quot;Port {} changed to {}.&quot;.format(self._module.name+&quot;.&quot;+self.name, val))</span>
+        <span class="c1"># logger.debug(&quot;Port {} changed from 0x{:08X} to 0x{:08X}.&quot;.format(self.name, self._val, val))</span>
         <span class="sd">&quot;&quot;&quot;Propagate a new value to all children ports.</span>
 
 <span class="sd">        Args:</span>
@@ -176,7 +179,7 @@
 
         <span class="c1"># Call the onChange handler of the parent module</span>
         <span class="c1"># Only for input ports</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="n">IN</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="n">IN</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">onPortChange</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># Now call propagate change to children as well.</span>
@@ -230,9 +233,6 @@
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
-        <span class="c1"># Set name variables</span>
-        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ports</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reads the current value(s) of one or more sub-ports.</span>
@@ -333,6 +333,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="c1"># self._val[key].connect(value)</span>
+    
+    <span class="k">def</span> <span class="nf">_namePorts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Name all subports with portxName.subportName format.</span>
+<span class="sd">        </span>
+<span class="sd">        This requires a name to be set for the PortX (usually in Module.init()).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">port</span> 
 
 <span class="c1"># A Wire has the same methods and attributes as a Port.</span>
 <span class="k">class</span> <span class="nc">Wire</span><span class="p">(</span><span class="n">Port</span><span class="p">):</span>
@@ -379,7 +387,8 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -429,6 +438,8 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ERROR (Port): Only root driver port allowed to write!&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_propagate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="c1"># logger.debug(&quot;Port {} changed to {}.&quot;.format(self._module.name+&quot;.&quot;+self.name, val))</span>
+        <span class="c1"># logger.debug(&quot;Port {} changed from 0x{:08X} to 0x{:08X}.&quot;.format(self.name, self._val, val))</span>
         <span class="sd">&quot;&quot;&quot;Propagate a new value to all children ports.</span>
 
 <span class="sd">        Args:</span>
@@ -438,7 +449,7 @@
 
         <span class="c1"># Call the onChange handler of the parent module</span>
         <span class="c1"># Only for input ports</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="n">IN</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">==</span> <span class="n">IN</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_root_driver</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">onPortChange</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="c1"># Now call propagate change to children as well.</span>
@@ -497,7 +508,8 @@
 <span class="sd">            initVal (int, optional): Value to initialize Port output with.</span>
 <span class="sd">                Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># logger.debug(&#39;Port constructor&#39;) </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="n">initVal</span>
 
@@ -708,9 +720,6 @@ Defaults to None.</li>
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
-        <span class="c1"># Set name variables</span>
-        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ports</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reads the current value(s) of one or more sub-ports.</span>
@@ -811,6 +820,14 @@ Defaults to None.</li>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
         <span class="c1"># self._val[key].connect(value)</span>
+    
+    <span class="k">def</span> <span class="nf">_namePorts</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Name all subports with portxName.subportName format.</span>
+<span class="sd">        </span>
+<span class="sd">        This requires a name to be set for the PortX (usually in Module.init()).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">port</span> 
 </pre></div>
 
         </details>
@@ -846,9 +863,6 @@ Defaults to None.</li>
 
         <span class="c1"># Build dict of ports</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_val</span> <span class="o">=</span> <span class="p">{</span> <span class="n">port</span><span class="p">:</span> <span class="n">Port</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>  <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="n">ports</span> <span class="p">}</span>
-        <span class="c1"># Set name variables</span>
-        <span class="k">for</span> <span class="n">port</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_val</span><span class="p">[</span><span class="n">port</span><span class="p">]</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">port</span>
 </pre></div>
 
         </details>

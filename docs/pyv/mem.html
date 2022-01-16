@@ -40,7 +40,7 @@
                                 <a class="function" href="#Memory.read">read</a>
                         </li>
                         <li>
-                                <a class="function" href="#Memory.write">write</a>
+                                <a class="function" href="#Memory.writeRequest">writeRequest</a>
                         </li>
                 </ul>
 
@@ -65,7 +65,13 @@
                         <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">pyv.util</span> <span class="kn">import</span> <span class="n">MASK_32</span>
-<span class="k">class</span> <span class="nc">Memory</span><span class="p">:</span>
+<span class="kn">import</span> <span class="nn">pyv.log</span> <span class="k">as</span> <span class="nn">log</span>
+<span class="kn">from</span> <span class="nn">pyv.clocked</span> <span class="kn">import</span> <span class="n">MemBase</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># TODO: Check if addr is valid</span>
+<span class="k">class</span> <span class="nc">Memory</span><span class="p">(</span><span class="n">MemBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Simple memory.</span>
 
 <span class="sd">    A memory is represented by a simple list of bytes.</span>
@@ -79,8 +85,13 @@
 <span class="sd">        Args:</span>
 <span class="sd">            size: Size of memory in bytes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mh">0xff</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
+        <span class="c1"># For tick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Reads data from memory.</span>
@@ -98,16 +109,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: handle misaligned access</span>
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, read): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MEM: read value 0x</span><span class="si">{:08X}</span><span class="s2"> from address 0x</span><span class="si">{:08X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">addr</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">val</span>
     
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Writes data to memory.</span>
+    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a write request to write data to memory.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            addr: Starting address for write operation.</span>
@@ -120,6 +136,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO: handle misaligned access</span>
+
+        <span class="c1"># Set write enable to True, so the write is committed</span>
+        <span class="c1"># in the next `_tick()`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+
+    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Memory tick.</span>
+
+<span class="sd">        Commits a write request (when `_we` is set).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_we</span><span class="p">:</span>
+            <span class="k">return</span>
+            
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span>
+        <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MEM: write 0x</span><span class="si">{:08X}</span><span class="s2"> to address 0x</span><span class="si">{:08X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">addr</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">&amp;</span> <span class="n">val</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
@@ -130,8 +172,21 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff00</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff0000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">16</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff000000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">24</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+
+        <span class="c1"># TODO: Technically, it shouldn&#39;t be the memory&#39;s responsibility to reset</span>
+        <span class="c1"># the write enable after a write. But we leave it now for safety.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1"># TODO: when memory gets loaded with program *before* simulation, simulation start</span>
+    <span class="c1"># will cause a reset. So for now, we skip the reset here.</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span>
+        <span class="sd">&quot;&quot;&quot;Reset memory.</span>
+
+<span class="sd">        All elements are set to 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 
         </details>
@@ -143,12 +198,12 @@
 
         
         <span class="def">class</span>
-        <span class="name">Memory</span>:
+        <span class="name">Memory</span><wbr>(<span class="base"><a href="clocked.html#MemBase">pyv.clocked.MemBase</a></span>):
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Memory</span><span class="p">:</span>
+            <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Memory</span><span class="p">(</span><span class="n">MemBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Simple memory.</span>
 
 <span class="sd">    A memory is represented by a simple list of bytes.</span>
@@ -162,8 +217,13 @@
 <span class="sd">        Args:</span>
 <span class="sd">            size: Size of memory in bytes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mh">0xff</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
+        <span class="c1"># For tick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Reads data from memory.</span>
@@ -181,16 +241,21 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: handle misaligned access</span>
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, read): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MEM: read value 0x</span><span class="si">{:08X}</span><span class="s2"> from address 0x</span><span class="si">{:08X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">addr</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">val</span>
     
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Writes data to memory.</span>
+    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a write request to write data to memory.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            addr: Starting address for write operation.</span>
@@ -203,6 +268,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO: handle misaligned access</span>
+
+        <span class="c1"># Set write enable to True, so the write is committed</span>
+        <span class="c1"># in the next `_tick()`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="n">w</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
+
+    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Memory tick.</span>
+
+<span class="sd">        Commits a write request (when `_we` is set).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_we</span><span class="p">:</span>
+            <span class="k">return</span>
+            
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span>
+        <span class="n">addr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MEM: write 0x</span><span class="si">{:08X}</span><span class="s2"> to address 0x</span><span class="si">{:08X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">addr</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">&amp;</span> <span class="n">val</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
@@ -213,8 +304,21 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff00</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff0000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">16</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff000000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">24</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+
+        <span class="c1"># TODO: Technically, it shouldn&#39;t be the memory&#39;s responsibility to reset</span>
+        <span class="c1"># the write enable after a write. But we leave it now for safety.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="c1"># TODO: when memory gets loaded with program *before* simulation, simulation start</span>
+    <span class="c1"># will cause a reset. So for now, we skip the reset here.</span>
+    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span>
+        <span class="sd">&quot;&quot;&quot;Reset memory.</span>
+
+<span class="sd">        All elements are set to 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 
         </details>
@@ -242,8 +346,13 @@
 <span class="sd">        Args:</span>
 <span class="sd">            size: Size of memory in bytes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">mem</span> <span class="o">=</span> <span class="p">[</span> <span class="mh">0xff</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">size</span><span class="p">)</span> <span class="p">]</span>
+        <span class="c1"># For tick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="mi">0</span>
 </pre></div>
 
         </details>
@@ -285,13 +394,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO: handle misaligned access</span>
         <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># word</span>
-            <span class="k">return</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">MASK_32</span> <span class="o">&amp;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">24</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">16</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;&lt;</span><span class="mi">8</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, read): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+        
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;MEM: read value 0x</span><span class="si">{:08X}</span><span class="s2"> from address 0x</span><span class="si">{:08X}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">addr</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">val</span>
 </pre></div>
 
         </details>
@@ -321,18 +433,20 @@ Accepted values: 1, 2, 4</li>
 
 
                             </div>
-                            <div id="Memory.write" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Memory.write">#&nbsp;&nbsp</a>
+                            <div id="Memory.writeRequest" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Memory.writeRequest">#&nbsp;&nbsp</a>
 
         
             <span class="def">def</span>
-            <span class="name">write</span><span class="signature">(self, addr: int, val: int, w: int)</span>:
+            <span class="name">writeRequest</span><span class="signature">(self, addr: int, val: int, w: int)</span>:
     </div>
 
                 <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Writes data to memory.</span>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a write request to write data to memory.</span>
+
+<span class="sd">        The write is committed with the next _tick().</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            addr: Starting address for write operation.</span>
@@ -345,23 +459,24 @@ Accepted values: 1, 2, 4</li>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># TODO: handle misaligned access</span>
-        <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># byte</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">&amp;</span> <span class="n">val</span>
-        <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># half word</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">&amp;</span> <span class="n">val</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff00</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span>
-        <span class="k">elif</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="c1"># word</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xff</span> <span class="o">&amp;</span> <span class="n">val</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff00</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">8</span> 
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff0000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">16</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mem</span><span class="p">[</span><span class="n">addr</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0xff000000</span> <span class="o">&amp;</span> <span class="n">val</span><span class="p">)</span><span class="o">&gt;&gt;</span><span class="mi">24</span>
+
+        <span class="c1"># Set write enable to True, so the write is committed</span>
+        <span class="c1"># in the next `_tick()`.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_we</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWaddr</span> <span class="o">=</span> <span class="n">addr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nextWval</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nextWwidth</span> <span class="o">=</span> <span class="n">w</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR (Memory, write): Invalid width </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">w</span><span class="p">))</span> 
 </pre></div>
 
         </details>
 
-            <div class="docstring"><p>Writes data to memory.</p>
+            <div class="docstring"><p>Generate a write request to write data to memory.</p>
+
+<p>The write is committed with the next _tick().</p>
 
 <h6 id="args">Args</h6>
 
@@ -380,6 +495,18 @@ Accepted values: 1, 2, 4</li>
 </div>
 
 
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="clocked.html#MemBase">pyv.clocked.MemBase</a></dt>
+                                <dd id="Memory.tick" class="function"><a href="clocked.html#MemBase.tick">tick</a></dd>
+                <dd id="Memory.reset" class="function"><a href="clocked.html#MemBase.reset">reset</a></dd>
+                <dd id="Memory.clear" class="function"><a href="clocked.html#MemBase.clear">clear</a></dd>
+                <dd id="Memory.setWe" class="function"><a href="clocked.html#MemBase.setWe">setWe</a></dd>
+
+            </div>
+                                </dl>
                             </div>
                 </section>
     </main>

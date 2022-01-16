@@ -37,6 +37,12 @@
                                 <a class="function" href="#Model.__init__">Model</a>
                         </li>
                         <li>
+                                <a class="function" href="#Model.setTop">setTop</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Model.reset">reset</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Model.run">run</a>
                         </li>
                         <li>
@@ -64,14 +70,45 @@
                 
                         <details>
             <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span><span class="kn">from</span> <span class="nn">pyv.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span>
+            <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">pyv.module</span> <span class="k">as</span> <span class="nn">module</span>
+<span class="kn">from</span> <span class="nn">pyv.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customLog</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: unused</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cycles</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">customLog</span><span class="p">)</span>
+    
+        <span class="c1"># Initialize modules</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set top module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mod (module.Module): Designated top module.</span>
+<span class="sd">            name (str): The name the top module should have.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Set name of module</span>
+        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="c1"># Register module as global top module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+        <span class="c1"># Reset the top module pointer</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
@@ -108,8 +145,37 @@
     <span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customLog</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: unused</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cycles</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">customLog</span><span class="p">)</span>
+    
+        <span class="c1"># Initialize modules</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set top module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mod (module.Module): Designated top module.</span>
+<span class="sd">            name (str): The name the top module should have.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Set name of module</span>
+        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="c1"># Register module as global top module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+    
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+        <span class="c1"># Reset the top module pointer</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
@@ -144,8 +210,79 @@
                 <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">customLog</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
+
+        <span class="c1"># TODO: unused</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cycles</span> <span class="o">=</span> <span class="mi">0</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">customLog</span><span class="p">)</span>
+    
+        <span class="c1"># Initialize modules</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">()</span>
+</pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="Model.setTop" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Model.setTop">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">setTop</span><span class="signature">(self, mod: <a href="../module.html#Module">pyv.module.Module</a>, name: str)</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set top module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mod (module.Module): Designated top module.</span>
+<span class="sd">            name (str): The name the top module should have.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="c1"># Set name of module</span>
+        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="c1"># Register module as global top module</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+</pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Set top module.</p>
+
+<h6 id="args">Args</h6>
+
+<ul>
+<li><strong>mod (module.Module):</strong>  Designated top module.</li>
+<li><strong>name (str):</strong>  The name the top module should have.</li>
+</ul>
+</div>
+
+
+                            </div>
+                            <div id="Model.reset" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Model.reset">#&nbsp;&nbsp</a>
+
+                <div class="decorator">@staticmethod</div>
+
+            <span class="def">def</span>
+            <span class="name">reset</span><span class="signature">()</span>:
+    </div>
+
+                <details>
+            <summary>View Source</summary>
+            <div class="codehilite"><pre><span></span>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+        <span class="c1"># Reset the top module pointer</span>
+        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 
         </details>

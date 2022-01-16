@@ -37,12 +37,6 @@
                                 <a class="function" href="#Module.__init__">Module</a>
                         </li>
                         <li>
-                                <a class="variable" href="#Module.top">top</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#Module.registerTop">registerTop</a>
-                        </li>
-                        <li>
                                 <a class="function" href="#Module.init">init</a>
                         </li>
                         <li>
@@ -74,10 +68,9 @@
                         <details>
             <summary>View Source</summary>
             <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">pyv.simulator</span> <span class="k">as</span> <span class="nn">simulator</span>
-<span class="kn">from</span> <span class="nn">pyv.port</span> <span class="kn">import</span> <span class="n">Port</span>
-<span class="kn">from</span> <span class="nn">pyv.reg</span> <span class="kn">import</span> <span class="n">Reg</span>
+<span class="kn">from</span> <span class="nn">pyv.port</span> <span class="kn">import</span> <span class="n">Port</span><span class="p">,</span> <span class="n">PortX</span>
+<span class="kn">from</span> <span class="nn">pyv.reg</span> <span class="kn">import</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">RegX</span>
 <span class="kn">import</span> <span class="nn">pyv.log</span> <span class="k">as</span> <span class="nn">log</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -92,17 +85,7 @@
 
 <span class="sd">    All modules have to implement the `process()` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Pointer to top module</span>
-    <span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">registerTop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Declare this module as the top module.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;There is already a top module!&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-        
-        <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="bp">self</span>
-    
     <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initializes the module.</span>
 
@@ -116,9 +99,18 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Port</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">Module</span><span class="p">)):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="c1"># print(&quot;Found obj named {}&quot;.format(key))</span>
-                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">key</span>
+            
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PortX</span><span class="p">):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Reg</span><span class="p">,</span> <span class="n">RegX</span><span class="p">)):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.next&quot;</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.cur&quot;</span>
+                
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">RegX</span><span class="p">):</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Module</span><span class="p">):</span>
                     <span class="n">obj</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
@@ -138,8 +130,6 @@
 <span class="sd">        Args:</span>
 <span class="sd">            port (Port): The port that changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#print(port)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">port</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">simulator</span><span class="o">.</span><span class="n">Simulator</span><span class="o">.</span><span class="n">globalSim</span><span class="o">.</span><span class="n">addToSimQ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">)</span>
 </pre></div>
 
@@ -164,17 +154,7 @@
 
 <span class="sd">    All modules have to implement the `process()` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Pointer to top module</span>
-    <span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">registerTop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Declare this module as the top module.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;There is already a top module!&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-        
-        <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="bp">self</span>
-    
     <span class="k">def</span> <span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initializes the module.</span>
 
@@ -188,9 +168,18 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Port</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">Module</span><span class="p">)):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="c1"># print(&quot;Found obj named {}&quot;.format(key))</span>
-                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">key</span>
+            
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PortX</span><span class="p">):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Reg</span><span class="p">,</span> <span class="n">RegX</span><span class="p">)):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.next&quot;</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.cur&quot;</span>
+                
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">RegX</span><span class="p">):</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Module</span><span class="p">):</span>
                     <span class="n">obj</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
@@ -210,8 +199,6 @@
 <span class="sd">        Args:</span>
 <span class="sd">            port (Port): The port that changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#print(port)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">port</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">simulator</span><span class="o">.</span><span class="n">Simulator</span><span class="o">.</span><span class="n">globalSim</span><span class="o">.</span><span class="n">addToSimQ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">)</span>
 </pre></div>
 
@@ -234,41 +221,6 @@
 
         
     
-
-                            </div>
-                            <div id="Module.top" class="classattr">
-                                            <div class="attr variable"><a class="headerlink" href="#Module.top">#&nbsp;&nbsp</a>
-
-        <span class="name">top</span><span class="default_value"> = None</span>
-    </div>
-
-    
-
-                            </div>
-                            <div id="Module.registerTop" class="classattr">
-                                        <div class="attr function"><a class="headerlink" href="#Module.registerTop">#&nbsp;&nbsp</a>
-
-        
-            <span class="def">def</span>
-            <span class="name">registerTop</span><span class="signature">(self)</span>:
-    </div>
-
-                <details>
-            <summary>View Source</summary>
-            <div class="codehilite"><pre><span></span>    <span class="k">def</span> <span class="nf">registerTop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Declare this module as the top module.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;There is already a top module!&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-        
-        <span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="bp">self</span>
-</pre></div>
-
-        </details>
-
-            <div class="docstring"><p>Declare this module as the top module.</p>
-</div>
-
 
                             </div>
                             <div id="Module.init" class="classattr">
@@ -294,9 +246,18 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Port</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">Module</span><span class="p">)):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-                <span class="c1"># print(&quot;Found obj named {}&quot;.format(key))</span>
-                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">key</span>
+            
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PortX</span><span class="p">):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Reg</span><span class="p">,</span> <span class="n">RegX</span><span class="p">)):</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.next&quot;</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.cur&quot;</span>
+                
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">RegX</span><span class="p">):</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">next</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
+                        <span class="n">obj</span><span class="o">.</span><span class="n">cur</span><span class="o">.</span><span class="n">_namePorts</span><span class="p">()</span>
 
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Module</span><span class="p">):</span>
                     <span class="n">obj</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
@@ -360,8 +321,6 @@ logging and waveforms.</li>
 <span class="sd">        Args:</span>
 <span class="sd">            port (Port): The port that changed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1">#print(port)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">port</span><span class="o">.</span><span class="n">_module</span><span class="o">.</span><span class="n">name</span><span class="o">+</span><span class="s2">&quot;.&quot;</span><span class="o">+</span><span class="n">port</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">simulator</span><span class="o">.</span><span class="n">Simulator</span><span class="o">.</span><span class="n">globalSim</span><span class="o">.</span><span class="n">addToSimQ</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">process</span><span class="p">)</span>
 </pre></div>
 
