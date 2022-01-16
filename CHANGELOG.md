@@ -3,6 +3,9 @@
     - Write operations on memories and register files will _not_ commit until the next clock tick
       anymore
         - This is to ensure data coherency throughout the current simulation cycle 
+- **New**: Added basic logging
+    - For logging purposes, the design will be scanned for submodules, ports and registers
+        - The instance names of these components is then added as an attribute to each component 
 
 # 0.1.0
 
