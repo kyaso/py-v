@@ -3,69 +3,7 @@ import warnings
 from pyv.port import *
 from pyv.util import bitVector2num, getBitVector
 from pyv.defines import IN, OUT
-
-# TODO: Maybe make abstract
-class RegBase:
-    """Base class for registers.
-
-    This class keeps track of all instantiated registers.
-    """
-
-    # The list of instantiated registers
-    reg_list = []
-
-    def __init__(self, resetVal):
-        # Add register to register list
-        self.reg_list.append(self)
-
-        self.nextv = 0
-        self.resetVal = resetVal
-
-    def _prepareNextVal(self):
-        """Copies the next value to an internal variable.
-
-        This method is required to prevent the next val input from being
-        overridden after the _tick() of a potentially preceding register
-        has been called.
-        """
-
-        raise NotImplementedError
-
-    def _tick(self):
-        """Simulates a clock _tick (rising edge).
-
-        The next val of the register becomes the new current val.
-        """
-
-        raise NotImplementedError
-    
-    @staticmethod
-    def _updateRegs():
-        """_ticks all registers.
-
-        First, their next values are saved.
-
-        Then the next values are propagated to the current values.
-        """
-
-        for r in RegBase.reg_list:
-            r._prepareNextVal()
-        
-        for r in RegBase.reg_list:
-            r._tick()
-    
-    @staticmethod
-    def reset():
-        """Reset all registers."""
-
-        for r in RegBase.reg_list:
-            r.reset()
-    
-    @staticmethod
-    def _clearRegList():
-        """Clear the list of registers."""
-
-        RegBase.reg_list = []
+from pyv.clocked import MemBase, RegBase
 
 class Reg(RegBase):
     """Represents a single value register."""
@@ -83,7 +21,7 @@ class Reg(RegBase):
     def _tick(self):
         self.cur.write(self.nextv)
     
-    def reset(self):
+    def _reset(self):
         self.cur.write(self.resetVal)
 
 class RegX(Reg):
@@ -95,7 +33,7 @@ class RegX(Reg):
         self.next = PortX(IN, None, *args)    # Next value input
         self.cur = PortX(OUT, None, *args)     # Current value output
     
-    def reset(self):
+    def _reset(self):
         """Reset all subports.
 
         For now: 0
@@ -121,13 +59,13 @@ class ShiftReg(RegBase):
         self.serOut = Port()         # Serial output
 
         # Initialize shift register
-        self.reset()
+        self._reset()
         #self.regs = [initVal  for _ in range(0, depth)]
 
         # Write output
         self.updateSerOut()
     
-    def reset(self):
+    def _reset(self):
         self.regs = [self.resetVal  for _ in range(0, self.depth)] 
 
     def _prepareNextVal(self):
@@ -195,11 +133,14 @@ class ShiftRegParallel(ShiftReg):
         self.parOut.write(bitVector2num(self.regs))
 
 
-class Regfile():
+class Regfile(MemBase):
     """RISC-V: Integer register file."""
 
     def __init__(self):
+        super().__init__()
         self.regs = [0  for _ in range(0, 32)]
+        self._nextWIdx = 0
+        self._nextWval = 0
 
     def read(self, reg: int) -> int:
         """Reads a register.
@@ -210,24 +151,41 @@ class Regfile():
         Returns:
             int: The value of the register.
         """
-
         if reg == 0:
             return 0
         else:
             return self.regs[reg]
 
-    def write(self, reg: int, val: int):
+    def writeRequest(self, reg: int, val: int):
         """Writes a value to a register.
+
+        The write is committed with the next _tick().
 
         Args:
             reg (int): Index of register to write.
             val (int): Value to write.
         """
-
         if reg != 0:
-            self.regs[reg] = val
+            # self.regs[reg] = val
+            self._nextWidx = reg
+            self._nextWval = val
+            self._we = True
     
-    def reset(self):
-        """Reset the register file."""
+    def _tick(self):
+        """Register file tick.
 
+        Commits a write request (when `_we` is set). 
+        """
+        if not self._we:
+            return
+
+        self.regs[self._nextWidx] = self._nextWval
+
+        # TODO: Technically, it shouldn't be the regfile's responsibility to reset
+        # the write enable after a write. But we leave it now for safety.
+        self._we = False
+
+    def _reset(self):
+        """Resets the register file."""
         self.regs = [0  for _ in range(0, 32)]
+        self._we = False

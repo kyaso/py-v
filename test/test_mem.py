@@ -29,16 +29,26 @@ def test_store():
     mem = Memory()
     
     # Store byte
-    mem.write(0, 0xaf, 1)
+    mem.writeRequest(0, 0xaf, 1)
+    assert mem.mem[0] == 0
+    mem._tick()
     assert mem.mem[0] == 0xaf
 
     # Store half word
-    mem.write(0, 0xbabe, 2)
+    mem.writeRequest(0, 0xbabe, 2)
+    assert mem.mem[0] == 0xaf
+    assert mem.mem[1] == 0
+    mem._tick()
     assert mem.mem[0] == 0xbe
     assert mem.mem[1] == 0xba
 
     # Store word
-    mem. write(0, 0xaffedead, 4)
+    mem. writeRequest(0, 0xaffedead, 4)
+    assert mem.mem[0] == 0xbe
+    assert mem.mem[1] == 0xba
+    assert mem.mem[2] == 0
+    assert mem.mem[3] == 0
+    mem._tick()
     assert mem.mem[0] == 0xad
     assert mem.mem[1] == 0xde
     assert mem.mem[2] == 0xfe
@@ -46,4 +56,4 @@ def test_store():
 
     # Test invalid width
     with pytest.raises(Exception):
-        mem.write(0, 6)
+        mem.writeRequest(0, 6)

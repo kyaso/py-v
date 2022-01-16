@@ -11,16 +11,17 @@ def test_sanity():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage():
-    RegBase._clearRegList()
+    RegBase.clear()
 
     fetch = IFStage(Memory(1024))
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
-    fetch.imem.write(0, 0xfea42623, 4)
+    fetch.imem.writeRequest(0, 0xfea42623, 4)
+    fetch.imem._tick()
     fetch.npc_i.write(0x00000000)
 
     fetch.process()
-    RegBase._updateRegs()
+    RegBase.tick()
 
     out = fetch.IFID_o.read()
     assert out['inst'] == 0xfea42623
@@ -118,8 +119,10 @@ class TestIDStage:
 
         # SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
         # Write some values into the relevant registers
-        regf.write(8, 0x80000000)
-        regf.write(10, 42)
+        regf.writeRequest(8, 0x80000000)
+        regf._tick()
+        regf.writeRequest(10, 42)
+        regf._tick()
 
         # Set inputs
         decode.IFID_i.write('inst', 0xfea42623, 'pc', 0x80000004)
@@ -155,8 +158,11 @@ class TestIDStage:
 
         # Test instruction with funct7 output
         # SUB x14, x7, x5
-        regf.write(7, 43)
-        regf.write(5, 12)
+        regf.writeRequest(7, 43)
+        regf._tick()
+        regf.writeRequest(5, 12)
+        regf._tick()
+
         decode.IFID_i.write('inst', 0x40538733)
         decode.process()
         out = decode.IDEX_o.read()
@@ -181,7 +187,8 @@ class TestIDStage:
 
         # Test LOAD
         # LW x15, x8, 0x456
-        regf.write(8, 0x40000000)
+        regf.writeRequest(8, 0x40000000)
+        regf._tick()
         decode.IFID_i.write('inst', 0x45642783)
         decode.process()
         out = decode.IDEX_o.read()
@@ -819,8 +826,10 @@ class TestMEMStage:
     def test_load(self):
         mem = MEMStage(Memory(1024))
         # Load memory
-        mem.mem.write(0, 0xdeadbeef, 4)
-        mem.mem.write(4, 0xbade0123, 4)
+        mem.mem.writeRequest(0, 0xdeadbeef, 4)
+        mem.mem._tick()
+        mem.mem.writeRequest(4, 0xbade0123, 4)
+        mem.mem._tick()
 
         # LB
         mem.EXMEM_i.write('mem', 1) # load
@@ -878,9 +887,11 @@ class TestMEMStage:
         mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
         mem.EXMEM_i.write('funct3', 0) # sb
         mem.process()
+        mem.mem._tick()
         assert mem.mem.read(3, 1) == 0xbe
 
-        mem.mem.write(0, 0, 4)
+        mem.mem.writeRequest(0, 0, 4)
+        mem.mem._tick()
 
         # SH
         mem.EXMEM_i.write('mem', 2) # store
@@ -888,6 +899,7 @@ class TestMEMStage:
         mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
         mem.EXMEM_i.write('funct3', 1) # sh
         mem.process()
+        mem.mem._tick()
         assert mem.mem.read(0, 2) == 0xbabe
 
         # SW
@@ -896,6 +908,7 @@ class TestMEMStage:
         mem.EXMEM_i.write('rs2', 0xabadbabe) # wdata
         mem.EXMEM_i.write('funct3', 2) # sw
         mem.process()
+        mem.mem._tick()
         assert mem.mem.read(0, 4) == 0xabadbabe
 
 # ---------------------------------------
@@ -923,6 +936,7 @@ class TestWBStage:
                          'wb_sel', 0
                         )
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(18) == 42
 
         # PC+4 (JAL)
@@ -934,6 +948,7 @@ class TestWBStage:
                          'wb_sel', 1
                         )
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(31) == 87
 
         # Memory load
@@ -945,12 +960,15 @@ class TestWBStage:
                          'wb_sel', 2
                         )
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(4) == 0xdeadbeef
 
     def test_no_wb(self):
         wb = WBStage(Regfile())
 
-        wb.regfile.write(25, 1234)
+        wb.regfile.writeRequest(25, 1234)
+        wb.regfile._tick()
+
         wb.MEMWB_i.write('we', 0,
                          'rd', 25,
                          'alu_res', 24,
@@ -961,16 +979,19 @@ class TestWBStage:
         # ALU op
         wb.MEMWB_i.write('wb_sel', 0)
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
         # PC+4 (JAL)
         wb.MEMWB_i.write('wb_sel', 1)
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
         # Memory load
         wb.MEMWB_i.write('wb_sel', 2)
         wb.process()
+        wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
 # ---------------------------------------

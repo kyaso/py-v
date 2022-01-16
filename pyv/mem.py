@@ -1,10 +1,11 @@
 from pyv.util import MASK_32
 import pyv.log as log
+from pyv.clocked import MemBase
 
 logger = log.getLogger(__name__)
 
 # TODO: Check if addr is valid
-class Memory:
+class Memory(MemBase):
     """Simple memory.
 
     A memory is represented by a simple list of bytes.
@@ -18,8 +19,13 @@ class Memory:
         Args:
             size: Size of memory in bytes.
         """
+        super().__init__()
+        self.mem = [ 0 for i in range(0,size) ]
 
-        self.mem = [ 0xff for i in range(0,size) ]
+        # For tick
+        self._nextWaddr = 0
+        self._nextWval = 0
+        self._nextWwidth = 0
 
     def read(self, addr: int, w: int) -> int:
         """Reads data from memory.
@@ -48,8 +54,10 @@ class Memory:
         logger.debug("MEM: read value 0x{:08X} from address 0x{:08X}".format(val, addr))
         return val
     
-    def write(self, addr: int, val: int, w: int):
-        """Writes data to memory.
+    def writeRequest(self, addr: int, val: int, w: int):
+        """Generate a write request to write data to memory.
+
+        The write is committed with the next _tick().
 
         Args:
             addr: Starting address for write operation.
@@ -61,8 +69,33 @@ class Memory:
             Exception: `w` is not from {1,2,4}.
         """
 
-        logger.debug("MEM: write 0x{:08X} to address 0x{:08X}".format(val, addr))
         # TODO: handle misaligned access
+
+        # Set write enable to True, so the write is committed
+        # in the next `_tick()`.
+        self._we = True
+        self._nextWaddr = addr
+        self._nextWval = val
+
+        if w == 1 or w == 2 or w == 4:
+            self._nextWwidth = w
+        else:
+            raise Exception('ERROR (Memory, write): Invalid width {}'.format(w)) 
+
+    def _tick(self):
+        """Memory tick.
+
+        Commits a write request (when `_we` is set).
+        """
+        if not self._we:
+            return
+            
+        val = self._nextWval
+        w = self._nextWwidth
+        addr = self._nextWaddr
+
+        logger.debug("MEM: write 0x{:08X} to address 0x{:08X}".format(val, addr))
+
         if w == 1: # byte
             self.mem[addr] = 0xff & val
         elif w == 2: # half word
@@ -73,5 +106,18 @@ class Memory:
             self.mem[addr+1] = (0xff00 & val)>>8 
             self.mem[addr+2] = (0xff0000 & val)>>16
             self.mem[addr+3] = (0xff000000 & val)>>24
-        else:
-            raise Exception('ERROR (Memory, write): Invalid width {}'.format(w))
+
+        # TODO: Technically, it shouldn't be the memory's responsibility to reset
+        # the write enable after a write. But we leave it now for safety.
+        self._we = False
+    
+    # TODO: when memory gets loaded with program *before* simulation, simulation start
+    # will cause a reset. So for now, we skip the reset here.
+    def _reset(self):
+        return
+        """Reset memory.
+
+        All elements are set to 0.
+        """
+        for i in range(0, len(self.mem)):
+            self.mem[i] = 0

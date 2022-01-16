@@ -570,6 +570,9 @@ class MEMStage(Module):
         addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
 
         load_val = 0
+        # Don't write by default
+        self.mem.setWe(False)
+
         if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
                 load_val = signext(self.mem.read(addr, 1), 8)
@@ -586,11 +589,11 @@ class MEMStage(Module):
 
         elif op == STORE:                                       # Store memory
             if f3 == 0: # SB
-                self.mem.write(addr, mem_wdata, 1)
+                self.mem.writeRequest(addr, mem_wdata, 1)
             elif f3 == 1: # SH
-                self.mem.write(addr, mem_wdata, 2)
+                self.mem.writeRequest(addr, mem_wdata, 2)
             elif f3 == 2: # SW
-                self.mem.write(addr, mem_wdata, 4)
+                self.mem.writeRequest(addr, mem_wdata, 4)
             else:
                 raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
         # else:
@@ -615,6 +618,11 @@ class WBStage(Module):
         rd, we, alu_res, pc4, mem_rdata, wb_sel = self.MEMWB_i.read('rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
 
         wb_val = 0
+        # Default to no write.
+        # If write, then `write()` below will
+        # enable write in regfile.
+        self.regfile.setWe(False)
+
         if we:
             if wb_sel==0: # ALU op
                 wb_val = alu_res
@@ -625,7 +633,7 @@ class WBStage(Module):
             else:
                 raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
             
-            self.regfile.write(rd, wb_val)
+            self.regfile.writeRequest(rd, wb_val)
 
 class BranchUnit(Module):
     """Branch unit.

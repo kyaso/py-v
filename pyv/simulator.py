@@ -2,6 +2,7 @@ from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
 import pyv.log as log
+from pyv.clocked import Clock
 
 logger = log.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Simulator:
                 simulation. Defaults to True.
         """
         if reset_regs:
-            RegBase.reset()
+            Clock.reset()
 
         for i in range(0, num_cycles):
             #print("")
@@ -46,7 +47,7 @@ class Simulator:
         
             self._customLog() 
 
-            RegBase._updateRegs()
+            Clock.tick()
             self._customLog() 
             self._cycles += 1
     

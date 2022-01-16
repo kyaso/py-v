@@ -1,6 +1,6 @@
 from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
 from pyv.mem import Memory
-from pyv.reg import Regfile, RegBase
+from pyv.reg import Regfile
 from pyv.module import Module
 from pyv.models.model import Model
 
@@ -55,7 +55,8 @@ class SingleCycleModel(Model):
         """
         addr = 0
         for i in instructions:
-            self.core.if_stg.imem.write(addr, i, 4)
+            self.core.if_stg.imem.writeRequest(addr, i, 4)
+            self.core.if_stg.imem._tick()
             addr+=4
     
     def load_binary(self, file):

@@ -4,6 +4,7 @@ from pyv.port import Port
 from pyv.simulator import Simulator
 from pyv.defines import *
 from pyv.reg import Reg, RegBase
+from pyv.clocked import Clock
 from collections import deque
 
 # Build a simple example circuit
@@ -113,13 +114,13 @@ def test_init():
     assert Simulator.globalSim == sim
 
 def test_queue():
-    RegBase._clearRegList()
+    Clock.clear()
 
     dut = ExampleTop()
     dut.name = 'ExampleTop'
     dut.init()
     sim = Simulator()
-    RegBase.reset()
+    Clock.reset()
 
     dut.inA.write(42)
     dut.inB.write(43)
@@ -143,13 +144,13 @@ def test_queue():
     assert dut.out.read() == 42+43
 
 def test_run():
-    RegBase._clearRegList()
+    Clock.clear()
 
     sim = Simulator()
     dut = ExampleTop2()
     dut.name = 'ExampleTop2'
     dut.init()
-    RegBase.reset()
+    Clock.reset()
 
     #sim.run(3)
     #assert dut.out.read() == -225
