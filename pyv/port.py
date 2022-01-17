@@ -8,7 +8,7 @@ logger = log.getLogger(__name__)
 class Port:
     """Represents a single port."""
 
-    def __init__(self, direction: bool = IN, module = None, initVal = None):
+    def __init__(self, direction: bool = IN, module = None, initVal = 0):
         """Create a new Port object.
 
         Args:
@@ -35,6 +35,11 @@ class Port:
         self._parent = None
         # Which ports does this ports drive?
         self._children = []
+
+        # Whether the port has not been written to in the entire simulation.
+        # For most (if not all) ports this will only be the case during the
+        # first cycle.
+        self._isUntouched = True
 
     def read(self):
         """Reads the current value of the port.
@@ -63,7 +68,15 @@ class Port:
         if self._is_root_driver:
             # If the value is different from the current value we have to
             # propagate the change to all children ports.
-            if self._val != val:
+
+            # When the port has not been written to yet, force a propagation
+            # even if the new value is the same as the default value
+            if self._isUntouched:
+                # Port has been written to
+                self._isUntouched = False
+                self._propagate(val)
+            # This is the default behavior: Only propagate when the new value is different
+            elif self._val != val:
                 self._propagate(val)
 
         else:
@@ -80,7 +93,7 @@ class Port:
 
         # Call the onChange handler of the parent module
         # Only for input ports
-        if (self._module is not None) and (self._direction == IN) and (not self._is_root_driver):
+        if (self._module is not None) and (self._direction == IN):
             self._module.onPortChange(self)
 
         # Now call propagate change to children as well.
@@ -110,6 +123,8 @@ class Port:
             self._parent = driver
             driver._children.append(self)
             self._is_root_driver = False
+            # This variable is only needed for the root driver
+            del self._isUntouched
         else:
             raise Exception("ERROR (Port): Port already has a parent!")
 

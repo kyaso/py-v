@@ -6,6 +6,10 @@
 - **New**: Added basic logging
     - For logging purposes, the design will be scanned for submodules, ports and registers
         - The instance names of these components is then added as an attribute to each component 
+- Changes to `Port`:
+    - Ports now have default value of 0 (instead of `None`)
+        - As suggested in #4, a forced propagation shall happen at the very first write of any port
+    - Calling of the onchange handler is not restricted to non-root ports anymore
 
 # 0.1.0
 

@@ -2,6 +2,7 @@ import pytest
 from pyv.port import Port, PortX, Wire
 from pyv.defines import *
 from pyv.module import Module
+from pyv.simulator import Simulator
 
 class TestPort:
     def test_constructor(self):
@@ -13,7 +14,7 @@ class TestPort:
         A = Port(IN, foo)
         assert A._direction == IN
         assert A._module == foo
-        assert A._val is None
+        assert A._val is 0
 
         A = Port(OUT, initVal=42)
         assert A._direction == OUT
@@ -110,6 +111,37 @@ class TestPort:
         # Non-root port calls write
         with pytest.raises(Exception):
             A.write(42)
+    
+    def test_defaultVal(self):
+        # This tests checks whether the forced propagation on the
+        # very first write works.
+        sim = Simulator()
+        class modA(Module):
+            def __init__(self):
+                self.pi = Port(IN, self) # Default value: 0
+                self.po = Port(OUT, self)
+            
+            def process(self):
+                # Simply add 3 to the input
+                self.po.write(self.pi.read()+3)
+        
+        # Initialize module
+        A_i = modA()
+        A_i.name = 'A_i'
+        A_i.init()
+
+        # Write 0. The port has the same default value.
+        # However, since this is the first write, the
+        # propagation should be forced.
+        A_i.pi.write(0)
+        sim.run(1)
+        assert A_i.po.read() == 3
+
+        # Now, we write the same value again, but this time
+        # the output shouldn't change.
+        A_i.pi.write(0)
+        sim.run(1)
+        assert A_i.po.read() == 3
 
 class TestPortX:
     def test_portx(self):

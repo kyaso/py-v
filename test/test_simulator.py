@@ -124,6 +124,10 @@ def test_queue():
 
     dut.inA.write(42)
     dut.inB.write(43)
+    assert sim._queue == deque([ dut.process, dut.A_i.process ])
+
+    fn = sim._queue.popleft()
+    fn()
     assert sim._queue == deque([ dut.A_i.process ])
 
     fn = sim._queue.popleft()
