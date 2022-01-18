@@ -142,7 +142,14 @@ class TestPort:
         A_i.pi.write(0)
         sim.run(1)
         assert A_i.po.read() == 3
+    
+    def test_readOutput(self):
+        p = Port(OUT)
+        p.write(4)
 
+        with pytest.warns(UserWarning):
+            p.read()
+        
 class TestPortX:
     def test_portx(self):
         # Init

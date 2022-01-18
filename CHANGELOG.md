@@ -10,6 +10,8 @@
     - Ports now have default value of 0 (instead of `None`)
         - As suggested in #4, a forced propagation shall happen at the very first write of any port
     - Calling of the onchange handler is not restricted to non-root ports anymore
+    - Directly reading an _output_ port now issues a warning to the user
+        - For more details, see issue #5
 
 # 0.1.0
 

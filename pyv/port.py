@@ -48,9 +48,8 @@ class Port:
             The current value of the port.
         """
 
-        if self._val is None:
-            #raise Exception("Port: Attempt to read a None port value.")
-            warnings.warn("Attempt to read a None port value.")
+        if self._direction == OUT:
+            warnings.warn("Reading output ports directly in process methods is not recommended. If you are reading a top-level output port, you can ignore this warning.")
 
         return copy.deepcopy(self._val)
 
