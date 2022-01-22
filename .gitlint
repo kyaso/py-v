@@ -66,8 +66,8 @@ regex=^(feat|fix|docs|refactor|test|perf|ci|style|chore){1}(\(\w+\))?(!)?: [\w\s
 # [body-max-line-length]
 # line-length=72
 
-# [body-min-length]
-# min-length=5
+[body-min-length]
+min-length=5
 
 #[body-is-missing]
 # Whether to ignore this rule on merge commits (which typically only have a title)
