@@ -18,14 +18,14 @@
     - When a module is processed multiple times during a cycle, it could happen that an unstable port
       value is used as a memory address/register index. As we can assume that the value will eventually stablize, we temporarily allow that access by catching the `IndexError` and returning 0 as the read value.
     - If the address is indeed illegal, that should be handled synchronously (not implemented yet)
-    - Register indeces cannot become illegal during regular program flow, because the decoder will only pass 5 bit indeces
+      - Register indeces cannot become illegal during regular program flow, because the decoder will only pass 5 bit indeces
   - Removed the `setWe()` method
     - The `we` attribute can be accessed directly instead
   - **New**: Added a **read enable** (`re`) attribute to `MemBase`
     - This is to enable illegal read access exception handling (not implemented yet)
       - The handling is planned to happen synchronously in `_tick()`
       - `Memory` now also remembers the last read address, for later illegal access detection
-    - ⚠️ The designer mst ensure that the `re` is defaulted to 0 when no read is intended
+    - ⚠️ The designer must ensure that the `re` is defaulted to 0 when no read is intended
     - `Regfile` does not make use of `re` (because usually no exceptions need to be handled here)
 
 # 0.1.0
