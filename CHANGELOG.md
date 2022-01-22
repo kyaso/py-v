@@ -14,7 +14,7 @@
   - Directly reading an _output_ port now issues a warning to the user
     - For more details, see issue #5
 - Changes to **Memories/Register files**:
-  - Illegal indeces (aka address) for memories and register files, will no longer cause an `IndexError` exception
+  - Illegal indeces (aka address) for memories and register files, will no longer cause an `IndexError` exception (see issue #6)
     - When a module is processed multiple times during a cycle, it could happen that an unstable port
       value is used as a memory address/register index. As we can assume that the value will eventually stablize, we temporarily allow that access by catching the `IndexError` and returning 0 as the read value.
     - If the address is indeed illegal, that should be handled synchronously (not implemented yet)
