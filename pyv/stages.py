@@ -572,6 +572,7 @@ class MEMStage(Module):
         load_val = 0
         # Don't write by default
         self.mem.we = False
+        self.mem.re = False
 
         if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
