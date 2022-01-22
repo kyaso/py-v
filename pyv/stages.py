@@ -57,6 +57,7 @@ class IFStage(Module):
 
         # Read instruction
         self.ir_reg.next.write(self.imem.read(npc, 4))
+        # TODO: Illegal address exception handling
 
 
 class IDStage(Module):
@@ -599,6 +600,8 @@ class MEMStage(Module):
                 raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
         # else:
         #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
+
+        # TODO: Illegal address execption handling
 
         # Outputs
         self.MEMWB_o.write('mem_rdata', load_val)
