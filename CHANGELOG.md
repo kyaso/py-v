@@ -1,4 +1,4 @@
-# 0.2.0
+# Next release (0.2.0)
 
 - **New**: Implemented abstract `Clocked` class to unite handling of registers and memories
   - Write operations on memories and register files will _not_ commit until the next clock tick
