@@ -154,7 +154,20 @@ class Regfile(MemBase):
         if reg == 0:
             return 0
         else:
-            return self.regs[reg]
+            # During the processing of the current cycle, it might occur that
+            # an unstable port value is used as the index. However, the port
+            # will eventually become stable, so we should "allow" that access
+            # by just returning a dummy value, e.g., 0.
+            #
+            # Note: this exception should never be caused by a running program,
+            # because the decoder will only feed-in valid 5 bit indeces.
+            try:
+                val = self.regs[reg]
+            except IndexError:
+                logger.warn("Potentially illegal register index 0x{:08X}. This might be normal during cycle processing.".format(reg))
+                val = 0
+
+            return val
 
     def writeRequest(self, reg: int, val: int):
         """Writes a value to a register.
@@ -169,23 +182,26 @@ class Regfile(MemBase):
             # self.regs[reg] = val
             self._nextWidx = reg
             self._nextWval = val
-            self._we = True
+            self.we = True
     
     def _tick(self):
         """Register file tick.
 
-        Commits a write request (when `_we` is set). 
+        Commits a write request (when `we` is set). 
         """
-        if not self._we:
+        if not self.we:
             return
 
         self.regs[self._nextWidx] = self._nextWval
 
         # TODO: Technically, it shouldn't be the regfile's responsibility to reset
-        # the write enable after a write. But we leave it now for safety.
-        self._we = False
+        # the write enables. But we leave it now for safety.
+        self.we = False
 
     def _reset(self):
         """Resets the register file."""
         self.regs = [0  for _ in range(0, 32)]
-        self._we = False
+        # TODO: Similar story as above in _tick(): These signals are driven by external
+        # modules, so it's actually not the memories responsibility to reset them.
+        # We still do for additional simulation safety.
+        self.we = False

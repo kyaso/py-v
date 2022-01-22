@@ -112,7 +112,9 @@ class MemBase(Clock):
         # Add to list of memories
         MemBase._mem_list.append(self)
         # Disable write by default
-        self._we = False
+        self.we = False
+        # Read enable
+        self.re = False
     
     @staticmethod
     def tick():
@@ -139,14 +141,6 @@ class MemBase(Clock):
         """Generate a write request.
         
         The write will be committed with the next tick.
-        (Unless `_we` is False)
+        (Unless `we` is False)
         """
         raise NotImplementedError
-    
-    def setWe(self, val: bool):
-        """Set write enable.
-
-        Args:
-            val (bool): The new write enable value.
-        """
-        self._we = val

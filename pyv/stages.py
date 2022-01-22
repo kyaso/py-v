@@ -69,7 +69,7 @@ class IDStage(Module):
         IDEX_o: Interface to EXStage
     """
 
-    def __init__(self, regf):
+    def __init__(self, regf: Regfile):
         self.regfile = regf
 
         # Inputs
@@ -571,7 +571,7 @@ class MEMStage(Module):
 
         load_val = 0
         # Don't write by default
-        self.mem.setWe(False)
+        self.mem.we = False
 
         if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
@@ -621,7 +621,7 @@ class WBStage(Module):
         # Default to no write.
         # If write, then `write()` below will
         # enable write in regfile.
-        self.regfile.setWe(False)
+        self.regfile.we = False
 
         if we:
             if wb_sel==0: # ALU op

@@ -57,3 +57,11 @@ def test_store():
     # Test invalid width
     with pytest.raises(Exception):
         mem.writeRequest(0, 6)
+
+def test_readInvalid():
+    mem = Memory(8)
+
+    # This shouldn't raise an IndexError exception.
+    # Check the log for the warning.
+    # TODO: we should probably assert the the log message (maybe using caplog?)
+    val = mem.read(8, 1)

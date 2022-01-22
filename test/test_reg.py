@@ -83,6 +83,12 @@ def test_regfile():
     rf._tick()
     assert rf.regs[0] == 0
 
+    # Test invalid index
+    # This shouldn't raise an IndexError exception.
+    # Check the log for the warning.
+    # TODO: we should probably assert the the log message (maybe using caplog?)
+    val = rf.read(33)
+
     # Test reset
     rf._reset()
     assert rf.regs == [0 for _ in range(0,32)]
