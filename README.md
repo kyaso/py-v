@@ -80,6 +80,8 @@ Simulation done at cycle 3000 after 0.12019554300059099s.
 Result =  ['0x37', '0x0', '0x0', '0x0']
 ```
 
+_Note_: The simulation times can vary from machine to machine. Also, in the meantime (as of Jan 2022), I added logging which could additionally slow down the simulation. There still some work to do when it comes to runtime optimiztions!
+
 ### Adding custom programs
 
 You can add your own programs by following the examples in `programs/`. To simulate, refer to `main.py` to see how the example programs are run. I know that having a command line interface here would be nice, but I didn't have time to implement that, but it's definitely on my wishlist!
@@ -93,6 +95,7 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 - [ ] Branch predictor
 - [ ] Caches
 - [ ] Logging capabilities
+  - Partially implemented already!
 - [ ] ...
 
 ## API documentation
@@ -111,6 +114,7 @@ This section is intended to explain how Py-V (and the language behind it) works 
 
 `pyv/`. This is the package where the source files of Py-V are located.
 
+- `clocked.py`: Contains base definitions of all clocked elements (e.g., memories, registers)
 - `defines.py`: Contains common definitions, constants, etc.
 - `isa.py`: Contains definitions for RISC-V ISA (opcodes, etc.)
 - `mem.py`: Contains a simple behavioral memory model
