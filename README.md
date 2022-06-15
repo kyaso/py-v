@@ -117,15 +117,16 @@ This section is intended to explain how Py-V (and the language behind it) works 
 - `clocked.py`: Contains base definitions of all clocked elements (e.g., memories, registers)
 - `defines.py`: Contains common definitions, constants, etc.
 - `isa.py`: Contains definitions for RISC-V ISA (opcodes, etc.)
+- `log.py`: Contains a basic logger
 - `mem.py`: Contains a simple behavioral memory model
-- `models.py`: In this file, the different core models are defined
-  - Currently only `SingleCycle`
+- `models/`: Contains different core models
+  - `model.py`: Base class for core models
 - `module.py`: Abstract base class for all modules
 - `port.py`: Contains definitions for ports
   - Currently: single value `Port` and bus/interface `PortX`
 - `reg.py`: Contains definitions for register modules
   - Also defines register file
-- `simulator.py`: Contains the simulator.
+- `simulator.py`: Contains the simulator
 - `stages.py`: Module definitions for the various pipeline stages
 - `util.py`: Contains helper functions, and variables/constants
 
