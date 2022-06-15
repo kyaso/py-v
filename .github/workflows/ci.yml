@@ -35,4 +35,4 @@ jobs:
       - name: Run tests
         run: |
           export PYTHONPATH=$(pwd)/pyv
-          pytest
+          pytest --ignore=pyv/serial
