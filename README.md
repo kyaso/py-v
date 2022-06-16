@@ -5,8 +5,6 @@
     <img src="https://img.shields.io/github/license/kyaso/py-v">
 </p>
 
-🚧 This README is still under construction 🚧
-
 Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Python.
 
 ## Why Py-V?
