@@ -25,14 +25,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Install pytest
-      - name: Install pytest
+      # Install dependencies
+      - name: Install dependencies
         run: |
-          pip3 install -U pytest
+          pip3 install -U pytest coverage
           pytest --version
+          coverage --version
 
       # Run tests
       - name: Run tests
         run: |
           export PYTHONPATH=$(pwd)/pyv
-          pytest --ignore=pyv/serial
+          coverage run --include='pyv/*' -m pytest --ignore=pyv/serial
+          coverage report -m
