@@ -106,7 +106,22 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 
 This section is intended to explain how Py-V (and the language behind it) works internally. 🚧 I am still working on a proper documentation for Py-V, so currently there is no ETA on when this section will be finished.
 
+- Modules
+- Ports
+  - Connections
+- process method
+- Registers
+- Simulation
+  - topological sort
+  - How to deal with issues when bi-directional data exchange in same cycle
 
+### Ports
+
+Like in any HDL, a module can have an arbitrary number of input and/or output ports. Ports of different modules can be connected using the `connect()` method. For simulation purposes it is sufficient to know for each port who it's driver (another port) is. [[8op3ac]]
+
+### Process method
+
+Each module has to implement a `process()` method. The `process` method is where the behavior of the _combinatorial_ part of the module is described.
 
 ### Source files
 

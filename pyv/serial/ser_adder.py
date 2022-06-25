@@ -1,6 +1,6 @@
-from module import *
-from port import *
-from reg import Reg
+from pyv.module import *
+from pyv.port import *
+from pyv.reg import Reg
 
 # TODO: Maybe add a DONE signal
 class SerAdder(Module):

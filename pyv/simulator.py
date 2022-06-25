@@ -36,13 +36,15 @@ class Simulator:
         for i in range(0, num_cycles):
             #print("")
             #print("**** Cycle {} ****".format(self._cycles))
-            logger.debug("**** Cycle {} ****".format(self._cycles))
+            logger.info("\n**** Cycle {} ****\n".format(self._cycles))
             #print("")
+            # logger.debug("Sim queue: {}".format(self._queue))
 
             # While queue not empty
             while len(self._queue) > 0:
+                self.__printQueue()
                 nextFn = self._queue.popleft()
-                logger.debug("Running {}".format(nextFn.__qualname__))
+                logger.info("Running {}".format(nextFn.__qualname__))
                 nextFn()
         
             self._customLog() 
@@ -76,3 +78,8 @@ class Simulator:
             int: The current number of cycles.
         """
         return self._cycles
+
+    def __printQueue(self):
+        res = "Queue: " + str([p.__qualname__  for p in self._queue])
+
+        logger.info(res)

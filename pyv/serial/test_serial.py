@@ -1,10 +1,10 @@
 import pytest
-from reg import Reg, RegBase
+from pyv.reg import Reg, RegBase
 from pyv.serial.ser_adder import SerAdder
 from pyv.util import getBitVector
 
 def test_ser_adder():
-    RegBase._clearRegList()
+    RegBase.clear()
 
     dut = SerAdder()
 

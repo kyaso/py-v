@@ -60,8 +60,7 @@ class Port:
             val: The new value.
 
         Raises:
-            Exception: A port that is driven by another port has called
-            `write()`.
+            Exception: A port that is driven by another port has called `write()`.
         """
 
         if self._is_root_driver:
@@ -82,6 +81,7 @@ class Port:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
     
     def _propagate(self, val):
+        # logger.debug("Port {} changed to {}.".format(self._module.name+"."+self.name, val))
         logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
         """Propagate a new value to all children ports.
 
