@@ -5,6 +5,9 @@ from pyv.mem import *
 import pyv.isa as isa
 from pyv.util import *
 from pyv.defines import *
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 # class Stage:
 #     def __init__(self):
@@ -78,13 +81,25 @@ class IDStage(Module):
 
         # Outputs
         self.IDEX_o = PortX(OUT, self, 'rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
-        
+
     def process(self):
         # Read inputs
-        inst, pc = self.IFID_i.read('inst', 'pc')
-        
+        inst, self.pc = self.IFID_i.read('inst', 'pc')
+
+        # Illegal instruction if bits 1:0 of inst != b11
+        if (inst & 0x3) != 0x3:
+            # TODO: Log for now. Implement logic later
+            logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+
         # Determine opcode (inst[6:2])
         opcode = getBits(inst, 6, 2)
+
+        # funct3, funct7
+        funct3 = getBits(inst, 14, 12)
+        funct7 = getBits(inst, 31, 25)
+
+        # TODO: Check for exception
+        self.check_exception(opcode, funct3, funct7)
 
         # Determine register indeces
         rs1_idx = getBits(inst, 19, 15)
@@ -94,13 +109,6 @@ class IDStage(Module):
         # Read regfile
         rs1 = self.regfile.read(rs1_idx)
         rs2 = self.regfile.read(rs2_idx)
-
-        # funct3, funct7
-        funct3 = getBits(inst, 14, 12)
-        funct7 = getBits(inst, 31, 25)
-
-        # TODO: Check for exception
-        # exc = self.check_exception(opcode, funct3, funct7)
 
         # Decode immediate
         imm = self.decImm(opcode, inst)
@@ -115,7 +123,7 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # Outputs
-        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
+        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', self.pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -175,14 +183,14 @@ class IDStage(Module):
             imm = imm_11_0
             if sign:
                 sign_ext = 0xfffff<<12
-        
+
         elif opcode in isa.INST_S:
             imm_11_5 = getBits(inst, 31, 25)
             imm_4_0 = getBits(inst, 11, 7)
             imm = (imm_11_5<<5) | imm_4_0
             if sign:
                 sign_ext = 0xfffff<<12
-        
+
         elif opcode in isa.INST_B:
             imm_12 = getBit(inst, 31)
             imm_10_5 = getBits(inst, 30, 25)
@@ -191,11 +199,11 @@ class IDStage(Module):
             imm =  (imm_12<<12) | (imm_11<<11) | (imm_10_5<<5) | (imm_4_1<<1)
             if sign:
                 sign_ext = 0x7ffff<<13
-        
+
         elif opcode in isa.INST_U:
             imm_31_12 = getBits(inst, 31, 12)
             imm = imm_31_12<<12
-        
+
         elif opcode in isa.INST_J:
             imm_20 = getBit(inst, 31)
             imm_10_1 = getBits(inst, 30, 21)
@@ -219,25 +227,57 @@ class IDStage(Module):
         Returns:
             [type]: [description]
         """
+        illinst = False
+
         if opcode not in isa.OPCODES:
             # Illegal instruction
-            pass
-        
+            logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X}: unknown opcode")
+
         if opcode==isa.OPCODES['OP-IMM']:
             if f3==0b001 and f7!=0: # SLLI
                 # Illegal instruction
-                pass
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
             elif f3==0b101 and not(f7==0 or f7==0b0100000): # SRLI, SRAI
                 # Illegal instruction
-                pass
-        
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
         if opcode==isa.OPCODES['OP']:
             if not (f7==0 or f7==0b0100000):
                 # Illegal instruction
-                pass
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
             elif f7==0b0100000 and not(f3==0b000 or f3==0b101):
                 # Illegal instruction
-                pass
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['JALR']:
+            if f3 != 0:
+                # Illegal instruction
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['BRANCH']:
+            if f3 == 2 or f3 == 3:
+                # Illegal instruction
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['LOAD']:
+            if f3 == 3 or f3 == 6 or f3 == 7:
+                # Illegal instruction
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['STORE']:
+            if f3 > 2:
+                # Illegal instruction
+                logger.error(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        # TODO: do something with illinst
 
         # TODO: Return some exception type
         return False

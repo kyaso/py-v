@@ -3,6 +3,9 @@ from pyv.stages import *
 from pyv.reg import *
 from pyv.util import MASK_32
 from pyv.mem import Memory
+from pyv.simulator import Simulator
+
+sim = Simulator()
 
 def test_sanity():
     assert True
@@ -108,10 +111,106 @@ class TestIDStage:
         inst = 0b11111010110000011010000001101111
         imm = dec.decImm(0b11011, inst)
         assert imm == 0xFFF1A7AC
-    
-    # TODO
-    def test_check_exception(self):
-        pass
+
+    def test_exception(self, caplog):
+        dec = IDStage(Regfile())
+
+        # --- Illegal Instruction -----------------
+        pc = 0
+
+        ## Inst[1:0] != 2'b11
+        inst = 0x10
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+
+        ## Unsupported RV32base Opcodes
+        inst = 0x1F # opcode = 0011111
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode" in caplog.text
+        caplog.clear()
+
+        inst = 0x73 # opcode = 1110011
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode" in caplog.text
+        caplog.clear()
+
+        ## Illegal combinations of funct3, funct7
+
+        # ADDI - SRAI -> opcode = 0010011
+        # If funct3 == 1 => funct7 == 0
+        inst = 0x02001013 # funct7 = 1
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+        # If funct3 == 5 => funct7 == {0, 0100000}
+        inst = 0xc0005013 # funct7 = 1100000
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+
+        # ADD - AND -> opcode = 0110011
+        # If funct7 != {0, 0100000} -> illegal
+        inst = 0x80000033 # funct7 = 1000000
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+        # If funct7 == 0100000 => funct3 == {0, 5}
+        inst = 0x40002033 # funct3 = 2
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+
+        # JALR -> opcode = 1100111 => funct3 == 0
+        inst = 0x00005067 # funct3 = 5
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+        caplog.clear()
+
+        # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
+        funct3 = [2,3]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x63 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            dec.process()
+            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+            caplog.clear()
+
+        # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
+        funct3 = [3,6,7]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x3 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            dec.process()
+            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+            caplog.clear()
+
+        # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
+        funct3 = [3,4,5,6,7]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x23 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            dec.process()
+            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
+            caplog.clear()
 
     def test_IDStage(self):
         regf = Regfile()
