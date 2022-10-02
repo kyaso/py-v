@@ -1010,6 +1010,43 @@ class TestMEMStage:
         mem.mem._tick()
         assert mem.mem.read(0, 4) == 0xabadbabe
 
+    def test_exception(self, caplog):
+        mem = MEMStage(Memory(16))
+
+        # --- Load address misaligned ---------------
+        # LH/LHU
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 1) # addr
+        mem.EXMEM_i.write('funct3', 1) # lh
+        mem.process()
+        assert f"Misaligned load from address 0x00000001" in caplog.text
+        caplog.clear()
+
+        # LW
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 3) # addr
+        mem.EXMEM_i.write('funct3', 2) # lh
+        mem.process()
+        assert f"Misaligned load from address 0x00000003" in caplog.text
+        caplog.clear()
+
+        # --- Store address misaligned --------------
+        # SH
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 1) # addr
+        mem.EXMEM_i.write('funct3', 1) # sh
+        mem.process()
+        assert f"Misaligned store to address 0x00000001" in caplog.text
+        caplog.clear()
+
+        # SW
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 3) # addr
+        mem.EXMEM_i.write('funct3', 2) # sw
+        mem.process()
+        assert f"Misaligned store to address 0x00000003" in caplog.text
+        caplog.clear()
+
 # ---------------------------------------
 # Test WRITE-BACK
 # ---------------------------------------

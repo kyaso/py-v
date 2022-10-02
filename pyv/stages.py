@@ -615,6 +615,8 @@ class MEMStage(Module):
         self.mem.we = False
         self.mem.re = False
 
+        self.check_exception(op, addr, f3)
+
         if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
                 load_val = signext(self.mem.read(addr, 1), 8)
@@ -645,6 +647,19 @@ class MEMStage(Module):
 
         # Outputs
         self.MEMWB_o.write('mem_rdata', load_val)
+
+    def check_exception(self, op, addr, f3):
+        if f3 == 0:
+            return
+
+        op_str = "load from" if op == LOAD else "store to"
+
+        if f3 == 1: # Half word
+            if addr & 0x1 != 0:
+                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
+        elif f3 == 2: # Word
+            if addr & 0x11 != 0:
+                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
 
 class WBStage(Module):
     """Write-back stage.
