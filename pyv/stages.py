@@ -334,11 +334,14 @@ class EXStage(Module):
             take_branch = self.branch(f3, rs1, rs2)
         elif opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
             take_branch = True
-        
+
         pc4 = pc+4
 
         # ALU
         alu_res = self.alu(opcode, rs1, rs2, imm, pc, f3, f7)
+
+        # Check for exceptions
+        self.check_exception(take_branch, alu_res, pc)
 
         # Outputs
         self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
@@ -366,7 +369,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
-            
+
             Returns:
                 1 if val1 < val2 (signed comparison)
                 0 otherwise
@@ -400,7 +403,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
-            
+
             Returns:
                 1 if val1 < val2 (unsigned comparison)
                 0 otherwise
@@ -417,7 +420,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Logical left shift of val1 by val2 (5 bits)
             """
@@ -430,7 +433,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Logical right shift of val1 by val2 (5 bits)
             """
@@ -443,7 +446,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Arithmetic right shift of val1 by val2 (5 bits)
             """
@@ -567,6 +570,13 @@ class EXStage(Module):
             return rs1<rs2
         elif f3==7:             # BGEU
             return rs1>=rs2
+
+    def check_exception(self, take_branch, alu_res, pc):
+        # --- Branch/jump target misaligned ------
+        if take_branch:
+            if alu_res & 0x3 != 0:
+                logger.error(f"Target instruction address misaligned exception at PC = {pc:08x}")
+
 
 class MEMStage(Module):
     """Memory stage.

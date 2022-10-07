@@ -885,6 +885,38 @@ class TestEXStage:
         assert out['wb_sel'] == 1
         assert out['pc4'] == 0x80004004
 
+    def test_exception(self, caplog):
+        ex = EXStage()
+
+        # --- Misaligned instruction address ---------
+        # JAL x13, 0x2DA89
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0x2DA89<<1,
+                        'pc', 0x80004000,
+                        'rd', 13,
+                        'we', True,
+                        'wb_sel', 1,
+                        'opcode', 0b11011)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004000" in caplog.text
+        caplog.clear()
+
+        # JALR
+
+        # BEQ
+
+        # BNE
+
+        # BLT
+
+        # BGE
+
+        # BLTU
+
+        # BGEU
+        pass
+
 
 
 
