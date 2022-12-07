@@ -977,6 +977,18 @@ class TestEXStage:
         assert f"Target instruction address misaligned exception at PC = 0x8000401C" in caplog.text
         caplog.clear()
 
+        # No exception for not-taken branch
+        # BEQ
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x80004020,
+                        'funct3', 0,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004020" not in caplog.text
+        caplog.clear()
+
 
 
 
