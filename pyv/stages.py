@@ -486,7 +486,7 @@ class EXStage(Module):
             alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['JALR']:
-            alu_res = 0xfffffffe & (op1 + op2) # TODO: Why do we need mask here?
+            alu_res = 0xfffffffe & (op1 + op2)
 
         elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']: # TODO: Could be merged with the upper elif
             alu_res = op1 + op2
@@ -575,7 +575,7 @@ class EXStage(Module):
         # --- Branch/jump target misaligned ------
         if take_branch:
             if alu_res & 0x3 != 0:
-                logger.error(f"Target instruction address misaligned exception at PC = {pc:08x}")
+                logger.error(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")
 
 
 class MEMStage(Module):
