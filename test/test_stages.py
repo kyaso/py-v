@@ -888,106 +888,107 @@ class TestEXStage:
     def test_exception(self, caplog):
         ex = EXStage()
 
+        pc = 0x80004000
+
         # --- Misaligned instruction address ---------
         # JAL x13, 0x2DA89
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 0,
                         'imm', 0x2DA89<<1,
-                        'pc', 0x80004000,
+                        'pc', pc,
                         'rd', 13,
                         'opcode', 0b11011)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004000" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # JALR x13, rs1, 0xA8A
         ex.IDEX_i.write('rs1', 0x80100000,
                         'rs2', 0,
                         'imm', 0xA8A,
-                        'pc', 0x80004004,
+                        'pc', pc,
                         'rd', 13,
                         'opcode', 0b11001)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004004" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BEQ
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 0,
                         'imm', 0xA8B<<1,
-                        'pc', 0x80004008,
+                        'pc', pc,
                         'funct3', 0,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004008" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BNE
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 1,
                         'imm', 0xA8B<<1,
-                        'pc', 0x8000400C,
+                        'pc', pc,
                         'funct3', 1,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x8000400C" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BLT
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 1,
                         'imm', 0xA8B<<1,
-                        'pc', 0x80004010,
+                        'pc', pc,
                         'funct3', 4,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004010" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BGE
         ex.IDEX_i.write('rs1', 1,
                         'rs2', 0,
                         'imm', 0xA8B<<1,
-                        'pc', 0x80004014,
+                        'pc', pc,
                         'funct3', 5,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004014" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BLTU
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 1,
                         'imm', 0xA8B<<1,
-                        'pc', 0x80004018,
+                        'pc', pc,
                         'funct3', 6,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004018" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # BGEU
         ex.IDEX_i.write('rs1', 1,
                         'rs2', 0,
                         'imm', 0xA8B<<1,
-                        'pc', 0x8000401C,
+                        'pc', pc,
                         'funct3', 7,
                         'opcode', 0b11000)
-        ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x8000401C" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
 
         # No exception for not-taken branch
         # BEQ
         ex.IDEX_i.write('rs1', 1,
                         'rs2', 0,
                         'imm', 0xA8B<<1,
-                        'pc', 0x80004020,
+                        'pc', pc,
                         'funct3', 0,
                         'opcode', 0b11000)
         ex.process()
-        assert f"Target instruction address misaligned exception at PC = 0x80004020" not in caplog.text
-        caplog.clear()
+        pc += 4
 
 
 

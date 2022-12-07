@@ -575,7 +575,7 @@ class EXStage(Module):
         # --- Branch/jump target misaligned ------
         if take_branch:
             if alu_res & 0x3 != 0:
-                logger.error(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")
+                raise Exception(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")
 
 
 class MEMStage(Module):
