@@ -895,27 +895,87 @@ class TestEXStage:
                         'imm', 0x2DA89<<1,
                         'pc', 0x80004000,
                         'rd', 13,
-                        'we', True,
-                        'wb_sel', 1,
                         'opcode', 0b11011)
         ex.process()
         assert f"Target instruction address misaligned exception at PC = 0x80004000" in caplog.text
         caplog.clear()
 
-        # JALR
+        # JALR x13, rs1, 0xA8A
+        ex.IDEX_i.write('rs1', 0x80100000,
+                        'rs2', 0,
+                        'imm', 0xA8A,
+                        'pc', 0x80004004,
+                        'rd', 13,
+                        'opcode', 0b11001)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004004" in caplog.text
+        caplog.clear()
 
         # BEQ
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x80004008,
+                        'funct3', 0,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004008" in caplog.text
+        caplog.clear()
 
         # BNE
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x8000400C,
+                        'funct3', 1,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x8000400C" in caplog.text
+        caplog.clear()
 
         # BLT
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x80004010,
+                        'funct3', 4,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004010" in caplog.text
+        caplog.clear()
 
         # BGE
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x80004014,
+                        'funct3', 5,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004014" in caplog.text
+        caplog.clear()
 
         # BLTU
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x80004018,
+                        'funct3', 6,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x80004018" in caplog.text
+        caplog.clear()
 
         # BGEU
-        pass
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', 0x8000401C,
+                        'funct3', 7,
+                        'opcode', 0b11000)
+        ex.process()
+        assert f"Target instruction address misaligned exception at PC = 0x8000401C" in caplog.text
+        caplog.clear()
 
 
 
