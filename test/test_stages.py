@@ -121,24 +121,21 @@ class TestIDStage:
         ## Inst[1:0] != 2'b11
         inst = 0x10
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
 
         ## Unsupported RV32base Opcodes
         inst = 0x1F # opcode = 0011111
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
 
         inst = 0x73 # opcode = 1110011
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode" in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
 
         ## Illegal combinations of funct3, funct7
 
@@ -147,40 +144,35 @@ class TestIDStage:
         inst = 0x02001013 # funct7 = 1
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013 # funct7 = 1100000
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
 
         # ADD - AND -> opcode = 0110011
         # If funct7 != {0, 0100000} -> illegal
         inst = 0x80000033 # funct7 = 1000000
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033 # funct3 = 2
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067 # funct3 = 5
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        dec.process()
-        assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-        caplog.clear()
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
 
         # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
         funct3 = [2,3]
@@ -188,9 +180,8 @@ class TestIDStage:
             pc += 1
             inst = 0x63 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            dec.process()
-            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-            caplog.clear()
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+                dec.process()
 
         # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
         funct3 = [3,6,7]
@@ -198,9 +189,8 @@ class TestIDStage:
             pc += 1
             inst = 0x3 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            dec.process()
-            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-            caplog.clear()
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+                dec.process()
 
         # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
         funct3 = [3,4,5,6,7]
@@ -208,9 +198,8 @@ class TestIDStage:
             pc += 1
             inst = 0x23 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            dec.process()
-            assert f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected." in caplog.text
-            caplog.clear()
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+                dec.process()
 
     def test_IDStage(self):
         regf = Regfile()
