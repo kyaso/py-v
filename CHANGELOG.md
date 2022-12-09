@@ -1,4 +1,4 @@
-# Next release (0.2.0)
+# Next release (0.?.0)
 
 - **New**: Implemented abstract `Clocked` class to unite handling of registers and memories
   - Write operations on memories and register files will _not_ commit until the next clock tick
@@ -29,8 +29,12 @@
     - `Regfile` does not make use of `re` (because usually no exceptions need to be handled here)
   - **New**: Added **exceptions**
     - Illegal instruction
+      - Will throw an actual Python exception
     - Instruction address misaligned
-    - For now, these exceptions will throw actual Python exceptions
+      - Will throw an actual Python exception
+    - Load/store address misaligned
+      - Will only generate a log message for now
+      - In Py-V it's not a big deal to access misaligned locations
 
 # 0.1.0
 
