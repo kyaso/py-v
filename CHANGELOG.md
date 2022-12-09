@@ -27,6 +27,10 @@
       - `Memory` now also remembers the last read address, for later illegal access detection
     - ⚠️ The designer must ensure that the `re` is defaulted to 0 when no read is intended
     - `Regfile` does not make use of `re` (because usually no exceptions need to be handled here)
+  - **New**: Added **exceptions**
+    - Illegal instruction
+    - Instruction address misaligned
+    - For now, these exceptions will throw actual Python exceptions
 
 # 0.1.0
 
