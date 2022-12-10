@@ -118,8 +118,14 @@ class TestIDStage:
         # --- Illegal Instruction -----------------
         pc = 0
 
+        # No exception for valid instruction
+        inst = 0x23 # store
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+
         ## Inst[1:0] != 2'b11
         inst = 0x10
+        pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
