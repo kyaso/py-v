@@ -97,7 +97,6 @@ class IDStage(Module):
         funct3 = getBits(inst, 14, 12)
         funct7 = getBits(inst, 31, 25)
 
-        # TODO: Check for exception
         self.check_exception(opcode, funct3, funct7)
 
         # Determine register indeces
@@ -214,7 +213,6 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
-    # TODO
     def check_exception(self, opcode, f3, f7):
         """[summary]
 
