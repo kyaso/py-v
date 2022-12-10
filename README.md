@@ -90,6 +90,7 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 
 - [ ] Pipelined core model
 - [ ] Exceptions
+  - Partial support implemented
 - [ ] Branch predictor
 - [ ] Caches
 - [ ] Logging capabilities

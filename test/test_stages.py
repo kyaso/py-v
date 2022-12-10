@@ -3,6 +3,9 @@ from pyv.stages import *
 from pyv.reg import *
 from pyv.util import MASK_32
 from pyv.mem import Memory
+from pyv.simulator import Simulator
+
+sim = Simulator()
 
 def test_sanity():
     assert True
@@ -108,10 +111,101 @@ class TestIDStage:
         inst = 0b11111010110000011010000001101111
         imm = dec.decImm(0b11011, inst)
         assert imm == 0xFFF1A7AC
-    
-    # TODO
-    def test_check_exception(self):
-        pass
+
+    def test_exception(self, caplog):
+        dec = IDStage(Regfile())
+
+        # --- Illegal Instruction -----------------
+        pc = 0
+
+        # No exception for valid instruction
+        inst = 0x23 # store
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        dec.process()
+
+        ## Inst[1:0] != 2'b11
+        inst = 0x10
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+
+        ## Unsupported RV32base Opcodes
+        inst = 0x1F # opcode = 0011111
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
+
+        inst = 0x73 # opcode = 1110011
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            dec.process()
+
+        ## Illegal combinations of funct3, funct7
+
+        # ADDI - SRAI -> opcode = 0010011
+        # If funct3 == 1 => funct7 == 0
+        inst = 0x02001013 # funct7 = 1
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+        # If funct3 == 5 => funct7 == {0, 0100000}
+        inst = 0xc0005013 # funct7 = 1100000
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+
+        # ADD - AND -> opcode = 0110011
+        # If funct7 != {0, 0100000} -> illegal
+        inst = 0x80000033 # funct7 = 1000000
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+        # If funct7 == 0100000 => funct3 == {0, 5}
+        inst = 0x40002033 # funct3 = 2
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+
+        # JALR -> opcode = 1100111 => funct3 == 0
+        inst = 0x00005067 # funct3 = 5
+        pc += 1
+        dec.IFID_i.write('inst', inst, 'pc', pc)
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            dec.process()
+
+        # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
+        funct3 = [2,3]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x63 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+                dec.process()
+
+        # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
+        funct3 = [3,6,7]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x3 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+                dec.process()
+
+        # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
+        funct3 = [3,4,5,6,7]
+        for f3 in funct3:
+            pc += 1
+            inst = 0x23 | (f3 << 12)
+            dec.IFID_i.write('inst', inst, 'pc', pc)
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+                dec.process()
 
     def test_IDStage(self):
         regf = Regfile()
@@ -753,7 +847,7 @@ class TestEXStage:
         # JAL x13, 0x2DA89
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 0,
-                        'imm', 0x2DA89<<1,
+                        'imm', 0x2DA8A<<1,
                         'pc', 0x80004000,
                         'rd', 13,
                         'we', True,
@@ -762,7 +856,7 @@ class TestEXStage:
         ex.process()
         out = ex.EXMEM_o.read()
         assert out['take_branch'] == True
-        assert out['alu_res'] == 0x8005F512
+        assert out['alu_res'] == 0x8005F514
         assert out['rd'] == 13
         assert out['we'] == True
         assert out['wb_sel'] == 1
@@ -785,6 +879,111 @@ class TestEXStage:
         assert out['we'] == True
         assert out['wb_sel'] == 1
         assert out['pc4'] == 0x80004004
+
+    def test_exception(self, caplog):
+        ex = EXStage()
+
+        pc = 0x80004000
+
+        # --- Misaligned instruction address ---------
+        # JAL x13, 0x2DA89
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0x2DA89<<1,
+                        'pc', pc,
+                        'rd', 13,
+                        'opcode', 0b11011)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # JALR x13, rs1, 0xA8A
+        ex.IDEX_i.write('rs1', 0x80100000,
+                        'rs2', 0,
+                        'imm', 0xA8A,
+                        'pc', pc,
+                        'rd', 13,
+                        'opcode', 0b11001)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BEQ
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 0,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BNE
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 1,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BLT
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 4,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BGE
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 5,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BLTU
+        ex.IDEX_i.write('rs1', 0,
+                        'rs2', 1,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 6,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # BGEU
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 7,
+                        'opcode', 0b11000)
+        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+            ex.process()
+        pc += 4
+
+        # No exception for not-taken branch
+        # BEQ
+        ex.IDEX_i.write('rs1', 1,
+                        'rs2', 0,
+                        'imm', 0xA8B<<1,
+                        'pc', pc,
+                        'funct3', 0,
+                        'opcode', 0b11000)
+        ex.process()
+        pc += 4
 
 
 
@@ -910,6 +1109,43 @@ class TestMEMStage:
         mem.process()
         mem.mem._tick()
         assert mem.mem.read(0, 4) == 0xabadbabe
+
+    def test_exception(self, caplog):
+        mem = MEMStage(Memory(16))
+
+        # --- Load address misaligned ---------------
+        # LH/LHU
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 1) # addr
+        mem.EXMEM_i.write('funct3', 1) # lh
+        mem.process()
+        assert f"Misaligned load from address 0x00000001" in caplog.text
+        caplog.clear()
+
+        # LW
+        mem.EXMEM_i.write('mem', 1) # load
+        mem.EXMEM_i.write('alu_res', 3) # addr
+        mem.EXMEM_i.write('funct3', 2) # lh
+        mem.process()
+        assert f"Misaligned load from address 0x00000003" in caplog.text
+        caplog.clear()
+
+        # --- Store address misaligned --------------
+        # SH
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 1) # addr
+        mem.EXMEM_i.write('funct3', 1) # sh
+        mem.process()
+        assert f"Misaligned store to address 0x00000001" in caplog.text
+        caplog.clear()
+
+        # SW
+        mem.EXMEM_i.write('mem', 2) # store
+        mem.EXMEM_i.write('alu_res', 3) # addr
+        mem.EXMEM_i.write('funct3', 2) # sw
+        mem.process()
+        assert f"Misaligned store to address 0x00000003" in caplog.text
+        caplog.clear()
 
 # ---------------------------------------
 # Test WRITE-BACK

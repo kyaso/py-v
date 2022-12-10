@@ -5,6 +5,9 @@ from pyv.mem import *
 import pyv.isa as isa
 from pyv.util import *
 from pyv.defines import *
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 # class Stage:
 #     def __init__(self):
@@ -78,13 +81,23 @@ class IDStage(Module):
 
         # Outputs
         self.IDEX_o = PortX(OUT, self, 'rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
-        
+
     def process(self):
         # Read inputs
-        inst, pc = self.IFID_i.read('inst', 'pc')
-        
+        inst, self.pc = self.IFID_i.read('inst', 'pc')
+
+        # Illegal instruction if bits 1:0 of inst != b11
+        if (inst & 0x3) != 0x3:
+            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+
         # Determine opcode (inst[6:2])
         opcode = getBits(inst, 6, 2)
+
+        # funct3, funct7
+        funct3 = getBits(inst, 14, 12)
+        funct7 = getBits(inst, 31, 25)
+
+        self.check_exception(opcode, funct3, funct7)
 
         # Determine register indeces
         rs1_idx = getBits(inst, 19, 15)
@@ -94,13 +107,6 @@ class IDStage(Module):
         # Read regfile
         rs1 = self.regfile.read(rs1_idx)
         rs2 = self.regfile.read(rs2_idx)
-
-        # funct3, funct7
-        funct3 = getBits(inst, 14, 12)
-        funct7 = getBits(inst, 31, 25)
-
-        # TODO: Check for exception
-        # exc = self.check_exception(opcode, funct3, funct7)
 
         # Decode immediate
         imm = self.decImm(opcode, inst)
@@ -115,7 +121,7 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # Outputs
-        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
+        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', self.pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -175,14 +181,14 @@ class IDStage(Module):
             imm = imm_11_0
             if sign:
                 sign_ext = 0xfffff<<12
-        
+
         elif opcode in isa.INST_S:
             imm_11_5 = getBits(inst, 31, 25)
             imm_4_0 = getBits(inst, 11, 7)
             imm = (imm_11_5<<5) | imm_4_0
             if sign:
                 sign_ext = 0xfffff<<12
-        
+
         elif opcode in isa.INST_B:
             imm_12 = getBit(inst, 31)
             imm_10_5 = getBits(inst, 30, 25)
@@ -191,11 +197,11 @@ class IDStage(Module):
             imm =  (imm_12<<12) | (imm_11<<11) | (imm_10_5<<5) | (imm_4_1<<1)
             if sign:
                 sign_ext = 0x7ffff<<13
-        
+
         elif opcode in isa.INST_U:
             imm_31_12 = getBits(inst, 31, 12)
             imm = imm_31_12<<12
-        
+
         elif opcode in isa.INST_J:
             imm_20 = getBit(inst, 31)
             imm_10_1 = getBits(inst, 30, 21)
@@ -207,7 +213,6 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
-    # TODO
     def check_exception(self, opcode, f3, f7):
         """[summary]
 
@@ -219,25 +224,57 @@ class IDStage(Module):
         Returns:
             [type]: [description]
         """
-        if opcode not in isa.OPCODES:
+        illinst = False
+
+        if opcode not in isa.OPCODES.values():
             # Illegal instruction
-            pass
-        
+            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X}: unknown opcode")
+
         if opcode==isa.OPCODES['OP-IMM']:
             if f3==0b001 and f7!=0: # SLLI
                 # Illegal instruction
-                pass
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
             elif f3==0b101 and not(f7==0 or f7==0b0100000): # SRLI, SRAI
                 # Illegal instruction
-                pass
-        
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
         if opcode==isa.OPCODES['OP']:
             if not (f7==0 or f7==0b0100000):
                 # Illegal instruction
-                pass
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
             elif f7==0b0100000 and not(f3==0b000 or f3==0b101):
                 # Illegal instruction
-                pass
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['JALR']:
+            if f3 != 0:
+                # Illegal instruction
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['BRANCH']:
+            if f3 == 2 or f3 == 3:
+                # Illegal instruction
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['LOAD']:
+            if f3 == 3 or f3 == 6 or f3 == 7:
+                # Illegal instruction
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        if opcode==isa.OPCODES['STORE']:
+            if f3 > 2:
+                # Illegal instruction
+                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                illinst = True
+
+        # TODO: do something with illinst
 
         # TODO: Return some exception type
         return False
@@ -294,11 +331,14 @@ class EXStage(Module):
             take_branch = self.branch(f3, rs1, rs2)
         elif opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
             take_branch = True
-        
+
         pc4 = pc+4
 
         # ALU
         alu_res = self.alu(opcode, rs1, rs2, imm, pc, f3, f7)
+
+        # Check for exceptions
+        self.check_exception(take_branch, alu_res, pc)
 
         # Outputs
         self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
@@ -326,7 +366,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
-            
+
             Returns:
                 1 if val1 < val2 (signed comparison)
                 0 otherwise
@@ -360,7 +400,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Sign-extended immediate
-            
+
             Returns:
                 1 if val1 < val2 (unsigned comparison)
                 0 otherwise
@@ -377,7 +417,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Logical left shift of val1 by val2 (5 bits)
             """
@@ -390,7 +430,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Logical right shift of val1 by val2 (5 bits)
             """
@@ -403,7 +443,7 @@ class EXStage(Module):
             Args:
                 val1: Value of register rs1
                 val2: rs2 / Immediate
-            
+
             Returns:
                 Arithmetic right shift of val1 by val2 (5 bits)
             """
@@ -443,7 +483,7 @@ class EXStage(Module):
             alu_res = op1 + op2
         
         elif opcode==isa.OPCODES['JALR']:
-            alu_res = 0xfffffffe & (op1 + op2) # TODO: Why do we need mask here?
+            alu_res = 0xfffffffe & (op1 + op2)
 
         elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']: # TODO: Could be merged with the upper elif
             alu_res = op1 + op2
@@ -497,8 +537,6 @@ class EXStage(Module):
    
         return MASK_32 & alu_res
 
-    # TODO
-    # opcode can be removed
     def branch(self, f3, rs1, rs2) -> bool:
         """Performs comparison of rs1 and rs2 using comp op given by f3.
 
@@ -527,6 +565,13 @@ class EXStage(Module):
             return rs1<rs2
         elif f3==7:             # BGEU
             return rs1>=rs2
+
+    def check_exception(self, take_branch, alu_res, pc):
+        # --- Branch/jump target misaligned ------
+        if take_branch:
+            if alu_res & 0x3 != 0:
+                raise Exception(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")
+
 
 class MEMStage(Module):
     """Memory stage.
@@ -575,6 +620,8 @@ class MEMStage(Module):
         self.mem.we = False
         self.mem.re = False
 
+        self.check_exception(op, addr, f3)
+
         if op == LOAD:                                          # Read memory
             if f3 == 0: # LB
                 load_val = signext(self.mem.read(addr, 1), 8)
@@ -605,6 +652,19 @@ class MEMStage(Module):
 
         # Outputs
         self.MEMWB_o.write('mem_rdata', load_val)
+
+    def check_exception(self, op, addr, f3):
+        if f3 == 0:
+            return
+
+        op_str = "load from" if op == LOAD else "store to"
+
+        if f3 == 1: # Half word
+            if addr & 0x1 != 0:
+                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
+        elif f3 == 2: # Word
+            if addr & 0x11 != 0:
+                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
 
 class WBStage(Module):
     """Write-back stage.
