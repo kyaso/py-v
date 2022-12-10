@@ -150,13 +150,13 @@ class TestIDStage:
         inst = 0x02001013 # funct7 = 1
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013 # funct7 = 1100000
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
 
         # ADD - AND -> opcode = 0110011
@@ -164,20 +164,20 @@ class TestIDStage:
         inst = 0x80000033 # funct7 = 1000000
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033 # funct3 = 2
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067 # funct3 = 5
         pc += 1
         dec.IFID_i.write('inst', inst, 'pc', pc)
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
             dec.process()
 
         # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
@@ -186,7 +186,7 @@ class TestIDStage:
             pc += 1
             inst = 0x63 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
                 dec.process()
 
         # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
@@ -195,7 +195,7 @@ class TestIDStage:
             pc += 1
             inst = 0x3 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
                 dec.process()
 
         # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
@@ -204,7 +204,7 @@ class TestIDStage:
             pc += 1
             inst = 0x23 | (f3 << 12)
             dec.IFID_i.write('inst', inst, 'pc', pc)
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
                 dec.process()
 
     def test_IDStage(self):
@@ -847,7 +847,7 @@ class TestEXStage:
         # JAL x13, 0x2DA89
         ex.IDEX_i.write('rs1', 0,
                         'rs2', 0,
-                        'imm', 0x2DA89<<1,
+                        'imm', 0x2DA8A<<1,
                         'pc', 0x80004000,
                         'rd', 13,
                         'we', True,
@@ -856,7 +856,7 @@ class TestEXStage:
         ex.process()
         out = ex.EXMEM_o.read()
         assert out['take_branch'] == True
-        assert out['alu_res'] == 0x8005F512
+        assert out['alu_res'] == 0x8005F514
         assert out['rd'] == 13
         assert out['we'] == True
         assert out['wb_sel'] == 1

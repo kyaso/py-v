@@ -228,7 +228,7 @@ class IDStage(Module):
         """
         illinst = False
 
-        if opcode not in isa.OPCODES:
+        if opcode not in isa.OPCODES.values():
             # Illegal instruction
             raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X}: unknown opcode")
 
@@ -539,8 +539,6 @@ class EXStage(Module):
    
         return MASK_32 & alu_res
 
-    # TODO
-    # opcode can be removed
     def branch(self, f3, rs1, rs2) -> bool:
         """Performs comparison of rs1 and rs2 using comp op given by f3.
 
