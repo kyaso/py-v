@@ -4,23 +4,43 @@ from pyv.port import *
 from pyv.util import bitVector2num, getBitVector
 from pyv.defines import IN, OUT
 from pyv.clocked import MemBase, RegBase
+import pyv.log as log
+
+logger = log.getLogger(__name__)
 
 class Reg(RegBase):
     """Represents a single value register."""
 
     def __init__(self, resetVal = 0):
+        """Create a new register.
+
+        Args:
+            resetVal (int, optional): Reset value. Defaults to 0.
+        """
         # Add this register to the global register list
         super().__init__(resetVal)
 
         self.next = Port(IN)          # Next value input
-        self.cur = Port(OUT)           # Current value output
-    
+        self.cur = Port(OUT)          # Current value output
+        self.rst = Port(IN)           # Synchronous Reset in (active high)
+
     def _prepareNextVal(self):
-        self.nextv = self.next.read()
+        self._doReset = False
+
+        if self.rst.read() == 1:
+            self._doReset = True
+        elif self.rst.read() == 0:
+            self.nextv = self.next.read()
+        else:
+            raise Exception("Error: Invalid reset value!")
 
     def _tick(self):
-        self.cur.write(self.nextv)
-    
+        if self._doReset:
+            logger.debug(f"Sync reset on register {self.name}. Reset value: {self.resetVal}.")
+            self.cur.write(self.resetVal)
+        else:
+            self.cur.write(self.nextv)
+
     def _reset(self):
         self.cur.write(self.resetVal)
 
@@ -28,24 +48,22 @@ class RegX(Reg):
     """Represents a multivalue register."""
 
     def __init__(self, *args):
+        """Create a new multivalued register."""
         super().__init__()
 
         self.next = PortX(IN, None, *args)    # Next value input
         self.cur = PortX(OUT, None, *args)     # Current value output
-    
+
     def _reset(self):
         """Reset all subports.
 
         For now: 0
-
-        Args:
-            resetVal: The reset value.
         """
-        self.cur.write(0)
+        self.cur.write(self.resetVal)
 
 class ShiftReg(RegBase):
     """Represents a single-valued shift register.
-    
+
     For optimization reasons, the lists operate from right to left.
     """
 
@@ -57,36 +75,44 @@ class ShiftReg(RegBase):
 
         self.serIn = Port()          # Serial input
         self.serOut = Port()         # Serial output
+        self.rst = Port(IN)          # Synchronous reset (active high)
 
         # Initialize shift register
         self._reset()
         #self.regs = [initVal  for _ in range(0, depth)]
 
-        # Write output
-        self.updateSerOut()
-    
     def _reset(self):
-        self.regs = [self.resetVal  for _ in range(0, self.depth)] 
+        self.regs = [self.resetVal  for _ in range(0, self.depth)]
+        self.updateSerOut()
 
     def _prepareNextVal(self):
-        self.nextv = self.serIn.read()
-        if self.nextv.bit_length() > 1:
-            warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self.nextv))
-            self.nextv = self.nextv & 1
+        self._doReset = False
+
+        if self.rst.read() == 1:
+            self._doReset = True
+        elif self.rst.read() == 0:
+            self.nextv = self.serIn.read()
+            if self.nextv.bit_length() > 1:
+                warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self.nextv))
+                self.nextv = self.nextv & 1
 
     def _tick(self):
-        """Shift elements.
+        """Shift elements. Or reset.
 
         TODO: formulate this better
         For optimization reasons the list is right to left
         """
 
-        # Fetch the new value
-        self.regs.append(self.nextv)
+        if self._doReset:
+            logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self.resetVal}.")
+            self.regs = [self.resetVal  for _ in range(0, self.depth)]
+        else:
+            # Fetch the new value
+            self.regs.append(self.nextv)
 
-        # Perform shift
-        # We move the list elements left by one
-        self.regs = self.regs[1:]
+            # Perform shift
+            # We move the list elements left by one
+            self.regs = self.regs[1:]
 
         # Update output
         self.updateSerOut()
@@ -108,27 +134,37 @@ class ShiftRegParallel(ShiftReg):
         self.depth = depth
         self.parInNext = 0
         self.parMask = 2**self.depth - 1
-    
+
     def _prepareNextVal(self):
+        self._doReset = False
+
+        if self.rst.read() == 1:
+            self._doReset = True
+            return
+
         if not self.parEnable.read():
             super()._prepareNextVal()
         else:
             self.parInNext = self.parIn.read()
 
     def _tick(self):
-        if not self.parEnable.read():
+        if self._doReset:
             super()._tick()
             self.updateParOut()
         else:
-            # Check whether the input is not wider as our depth
-            # If it is, we issue a warning and only take the lower `depth` bit
-            if self.parInNext.bit_length() > self.depth:
-                warnings.warn("ShiftRegParallel: Parallel input value is wider than register depth. Register has depth {}, value is {}".format(self.depth, self.parInNext))
-                self.parInNext = self.parInNext & self.parMask
-            self.regs = getBitVector(self.parInNext, self.depth)
-            self.updateSerOut()
-            self.updateParOut()
-    
+            if not self.parEnable.read():
+                super()._tick()
+                self.updateParOut()
+            else:
+                # Check whether the input is not wider as our depth
+                # If it is, we issue a warning and only take the lower `depth` bit
+                if self.parInNext.bit_length() > self.depth:
+                    warnings.warn("ShiftRegParallel: Parallel input value is wider than register depth. Register has depth {}, value is {}".format(self.depth, self.parInNext))
+                    self.parInNext = self.parInNext & self.parMask
+                self.regs = getBitVector(self.parInNext, self.depth)
+                self.updateSerOut()
+                self.updateParOut()
+
     def updateParOut(self):
         self.parOut.write(bitVector2num(self.regs))
 
@@ -183,7 +219,7 @@ class Regfile(MemBase):
             self._nextWidx = reg
             self._nextWval = val
             self.we = True
-    
+
     def _tick(self):
         """Register file tick.
 

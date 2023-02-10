@@ -1,4 +1,5 @@
 import pyv.simulator as simulator
+from pyv.clocked import RegBase
 from pyv.port import Port, PortX
 from pyv.reg import Reg, RegX
 import pyv.log as log
@@ -29,7 +30,7 @@ class Module:
 
         for key in self.__dict__:
             obj = self.__dict__[key]
-            if isinstance(obj, (Port, Reg, Module)):
+            if isinstance(obj, (Port, RegBase, Reg, Module)):
                 obj.name = self.name+"."+key
             
                 if isinstance(obj, PortX):

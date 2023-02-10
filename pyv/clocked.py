@@ -55,11 +55,16 @@ class RegBase(Clock):
     _reg_list = []
 
     def __init__(self, resetVal):
+        self.name = 'noName'
+
         # Add register to register list
         self._reg_list.append(self)
 
         self.nextv = 0
         self.resetVal = resetVal
+
+        # Whether to do a reset on the next tick
+        self._doReset = False
 
     @staticmethod
     def tick():
