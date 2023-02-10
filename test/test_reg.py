@@ -288,3 +288,61 @@ def test_reset():
     assert reg3.cur.read() == {'foo': 0, 'bar': 0}
     assert reg4.regs == [1  for _ in range(0,8)]
     assert reg5.regs == [2  for _ in range(0,8)]
+
+def test_sync_reset():
+    RegBase.clear()
+    reg1 = Reg(0)
+
+    # No reset -> next val
+    reg1.next.write(42)
+    reg1.rst.write(0)
+    RegBase.tick()
+    assert reg1.cur.read() == 42
+
+    # Now assert reset
+    reg1.rst.write(1)
+    RegBase.tick()
+    assert reg1.cur.read() == 0
+
+    # Throw exception on wrong reset value
+    reg1.rst.write(44)
+    with pytest.raises(Exception, match = "Error: Invalid reset value!"):
+        RegBase.tick()
+
+def test_sync_reset_RegX():
+    RegBase.clear()
+    reg1 = RegX('foo', 'bar')
+
+    # No reset
+    reg1.next.write('foo', 42, 'bar', 68)
+    reg1.rst.write(0)
+    RegBase.tick()
+    assert reg1.cur.read() == {'foo': 42, 'bar': 68}
+
+    # Reset
+    reg1.rst.write(1)
+    RegBase.tick()
+    assert reg1.cur.read() == {'foo': 0, 'bar': 0}
+
+def test_sync_reset_shiftreg():
+    RegBase.clear()
+    reg1 = ShiftReg(8, 1)
+    reg2 = ShiftRegParallel(8, 0)
+
+    # Load some values
+    reg1.regs = [1,0,1,0,0,1,0,1]
+    reg2.regs = [1,0,1,0,0,1,0,1]
+
+    # No reset
+    reg1.rst.write(0)
+    reg2.rst.write(0)
+    RegBase.tick()
+    assert reg1.regs != [1,1,1,1,1,1,1,1]
+    assert reg2.regs != [0,0,0,0,0,0,0,0]
+
+    # Reset
+    reg1.rst.write(1)
+    reg2.rst.write(1)
+    RegBase.tick()
+    assert reg1.regs == [1  for _ in range(0,8)]
+    assert reg2.regs == [0  for _ in range(0,8)]

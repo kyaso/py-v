@@ -35,6 +35,9 @@
   - Load/store address misaligned
     - Will only generate a log message for now
     - In Py-V it's not a big deal to access misaligned locations
+- **New**: Added **synchronous resets**
+  - Registers now have a second input port `rst`
+    - If asserted, the register will be reset to its `resetVal` with the next tick
 
 # 0.1.0
 
