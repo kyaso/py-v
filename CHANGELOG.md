@@ -27,14 +27,14 @@
       - `Memory` now also remembers the last read address, for later illegal access detection
     - ⚠️ The designer must ensure that the `re` is defaulted to 0 when no read is intended
     - `Regfile` does not make use of `re` (because usually no exceptions need to be handled here)
-  - **New**: Added **exceptions**
-    - Illegal instruction
-      - Will throw an actual Python exception
-    - Instruction address misaligned
-      - Will throw an actual Python exception
-    - Load/store address misaligned
-      - Will only generate a log message for now
-      - In Py-V it's not a big deal to access misaligned locations
+- **New**: Added **exceptions**
+  - Illegal instruction
+    - Will throw an actual Python exception
+  - Instruction address misaligned
+    - Will throw an actual Python exception
+  - Load/store address misaligned
+    - Will only generate a log message for now
+    - In Py-V it's not a big deal to access misaligned locations
 
 # 0.1.0
 
