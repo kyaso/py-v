@@ -19,7 +19,7 @@ Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Py
 - I am doing this more as an experiment, to design an easy to use "hardware prototyping framework" with an integrated simulator
   - A CPU was an obvious choice to test this idea
   - Py-V can be used for _rapid prototyping_: High-level design flexibility by leveraging the language features of Python, with the possibility to go as low-level as Verilog/VHDL
-    - Similar projects are [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen) and [PyMTL](https://github.com/pymtl/pymtl3)
+    - Similar projects are [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen), [PyMTL](https://github.com/pymtl/pymtl3), and [PyRTL](https://ucsbarchlab.github.io/PyRTL/)
   - I have not yet planned on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
   - Once the hardware modelling framework behind Py-V is mature enough, I will put it into a separate library, and Py-V will just use the new library.
 
@@ -106,8 +106,6 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 ## Under the hood
 
 This section is intended to explain how Py-V (and the language behind it) works internally. 🚧 I am still working on a proper documentation for Py-V, so currently there is no ETA on when this section will be finished.
-
-
 
 ### Source files
 
