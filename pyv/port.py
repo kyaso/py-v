@@ -8,7 +8,7 @@ logger = log.getLogger(__name__)
 class Port:
     """Represents a single port."""
 
-    def __init__(self, direction: bool = IN, module = None, initVal = 0):
+    def __init__(self, direction: bool = IN, module = None, initVal = 0, sensitive_methods = []):
         """Create a new Port object.
 
         Args:
@@ -17,6 +17,10 @@ class Port:
             module (Module): The module this port belongs to.
             initVal (int, optional): Value to initialize Port output with.
                 Defaults to None.
+            sensitive_methods (list, optional): List of methods to trigger when
+                a write to this port changes it current value. Only valid for
+                INPUT ports. If omitted, only the parent module's process()
+                method is taken.
         """
         self.name = 'noName'
 
@@ -40,6 +44,17 @@ class Port:
         # For most (if not all) ports this will only be the case during the
         # first cycle.
         self._isUntouched = True
+
+        # Setup sensitivity list
+        if self._direction == IN:
+            self._processMethods = []
+            if self._module is not None and len(sensitive_methods) == 0:
+                self._addProcessMethod(self._module.process)
+            else:
+                for m in sensitive_methods:
+                    self._addProcessMethod(m)
+        elif len(sensitive_methods) > 0:
+            logger.info(f"Ignoring sensitive methods for port '{self.name}' with direction OUT")
 
     def read(self):
         """Reads the current value of the port.
@@ -90,10 +105,11 @@ class Port:
         """
         self._val = copy.deepcopy(val)
 
-        # Call the onChange handler of the parent module
-        # Only for input ports
-        if (self._module is not None) and (self._direction == IN):
-            self._module.onPortChange(self)
+        # Add this port's sensitive methods to the simulation queue
+        if self._direction == IN:
+            import pyv.simulator as simulator
+            for func in self._processMethods:
+                simulator.Simulator.globalSim.addToSimQ(func)
 
         # Now call propagate change to children as well.
         for p in self._children:
@@ -127,10 +143,14 @@ class Port:
         else:
             raise Exception("ERROR (Port): Port already has a parent!")
 
+    def _addProcessMethod(self, func):
+        if func not in self._processMethods:
+            self._processMethods.append(func)
+
 class PortX(Port):
     """Represents a collection of Ports."""
 
-    def __init__(self, direction: bool = IN, module = None, *ports):
+    def __init__(self, direction: bool = IN, module = None, *ports, sensitive_methods = []):
         """Creates a new PortX object.
 
         A dictionary of `Port` objects will be created.
@@ -140,14 +160,21 @@ class PortX(Port):
 
         Args:
             direction: Port direction. Default: Input
-                
                 All sub-ports will have the same direction.
             module: The parent module of this port.
             *ports: The names of the sub-ports.
+            sensitive_methods (list, optional): List of methods to trigger when
+                a write to a sub-port of this PortX occurs. Only valid for
+                INPUT PortX. All sub-ports of this PortX will have the same
+                sensitive_methods list.
         """
+        self.name = 'noName'
 
         # Build dict of ports
-        self._val = { port: Port(direction, module)  for port in ports }
+        if direction == OUT and len(sensitive_methods) > 0:
+            logger.info(f"Ignoring sensitive methods for PortX '{self.name}' with direction OUT")
+            sensitive_methods = []
+        self._val = { port: Port(direction, module, sensitive_methods=sensitive_methods)  for port in ports }
 
     def read(self, *ports):
         """Reads the current value(s) of one or more sub-ports.

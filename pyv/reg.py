@@ -1,6 +1,6 @@
 import copy
 import warnings
-from pyv.port import *
+from pyv.port import Port, PortX
 from pyv.util import bitVector2num, getBitVector
 from pyv.defines import IN, OUT
 from pyv.clocked import MemBase, RegBase

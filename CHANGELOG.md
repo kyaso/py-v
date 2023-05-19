@@ -11,6 +11,13 @@
   - Ports now have default value of 0 (instead of `None`)
     - As suggested in #4, a forced propagation shall happen at the very first write of any port
   - Calling of the onchange handler is not restricted to non-root ports anymore
+  - _Input_ ports now have an optional **sensitivity list**
+    - The list contains all process methods which should be triggered when the value of the port changes
+    - The sensitivity list is passed in the port constructor
+    - When the value of the port changes, all methods from the sensitivity list are added to the simulation queue
+    - If no sensitvity list was given, the parent module's `process()` method will be taken as the default
+    - The `Module.onPortChange()` method is now obsolete and has been removed
+    - This feature closes issue #10
   - Directly reading an _output_ port now issues a warning to the user
     - For more details, see issue #5
 - Changes to **Memories/Register files**:

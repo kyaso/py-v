@@ -1,3 +1,4 @@
+from collections import deque
 import pytest
 from pyv.port import Port, PortX, Wire
 from pyv.defines import *
@@ -118,7 +119,7 @@ class TestPort:
         sim = Simulator()
         class modA(Module):
             def __init__(self):
-                self.pi = Port(IN, self) # Default value: 0
+                self.pi = Port(IN, self, sensitive_methods=[self.process]) # Default value: 0
                 self.po = Port(OUT, self)
             
             def process(self):
@@ -149,7 +150,49 @@ class TestPort:
 
         with pytest.warns(UserWarning):
             p.read()
-        
+
+    def test_sensitive_methods(self, caplog):
+        def foo():
+            pass
+        def bar():
+            pass
+
+        # (also don't allow any duplicates)
+        p = Port(IN, sensitive_methods=[foo, bar, bar])
+        assert p._processMethods == [foo, bar]
+
+        # Output ports shouldn't have any sensitive methods
+        p2 = Port(OUT, sensitive_methods=[foo])
+        assert "Ignoring sensitive methods for port 'noName' with direction OUT" in caplog.text
+
+        # Default sensitive method
+        class modA(Module):
+            def process(self):
+                pass
+
+        A = modA()
+        # When no sens list, default to parent module's process method
+        p3 = Port(IN, A)
+        assert p3._processMethods == [A.process]
+
+        # When sens list AND module given, only take the sens list
+        p4 = Port(IN, A, sensitive_methods=[bar, foo])
+        assert p4._processMethods == [bar, foo]
+
+
+    def test_onChange(self):
+        def foo():
+            pass
+        def bar():
+            pass
+
+        p = Port(IN, sensitive_methods = [foo, bar])
+
+        sim = Simulator()
+
+        p.write(42)
+        assert sim._queue == deque([foo, bar])
+
 class TestPortX:
     def test_portx(self):
         # Init
@@ -208,5 +251,21 @@ class TestPortX:
         # Test connecting non-PortX
         with pytest.raises(TypeError):
             A.connect(42) # Just pass an integer as "driver"
-        
+
+    def test_sensitive_methods(self, caplog):
+        def foo():
+            pass
+        def bar():
+            pass
+
+        A = PortX(IN, None, 'one', 'two', sensitive_methods = [foo, bar])
+        assert A._val['one']._processMethods == [foo, bar]
+        assert A._val['two']._processMethods == [foo, bar]
+
+        # Output PortX shouldn't have sensitive methods
+        B = PortX(OUT, None, 'one', 'two', sensitive_methods = [foo, bar])
+        assert "Ignoring sensitive methods for PortX 'noName' with direction OUT" in caplog.text
+        # In case a non-empty sensitivity list got passed in, this shouldn't be
+        # propagated to the sub-ports
+        assert "Ignoring sensitive methods for port 'noName' with direction OUT" not in caplog.text
 

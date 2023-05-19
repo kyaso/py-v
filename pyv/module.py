@@ -52,14 +52,3 @@ class Module:
         """Generates module's combinatorial outputs for current cycle based on inputs."""
 
         raise Exception('Please implement process() for this module')
-    
-    def onPortChange(self, port: Port):
-        """Handles a changed input port value.
-
-        If not overriden, the module's process method is added to the
-        simulation queue.
-
-        Args:
-            port (Port): The port that changed.
-        """
-        simulator.Simulator.globalSim.addToSimQ(self.process)
