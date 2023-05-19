@@ -7,7 +7,7 @@ class A(Module):
     def __init__(self):
         self.IN = Port(IN, self)
         self.OUT = Port(OUT, self)
-    
+
     def process(self):
         self.OUT.write(self.IN.read() * 2)
 
@@ -17,7 +17,7 @@ class B(Module):
         self.IN2 = Port(IN, self)
         self.OUT1 = Port(OUT, self)
         self.OUT2 = Port(OUT, self)
-    
+
     def process(self):
         in1 = self.IN1.read()
         in2 = self.IN2.read()
@@ -54,7 +54,7 @@ class Top(Module):
         self.C_i.IN1.connect(self.B_i.OUT1)
         self.C_i.IN2.connect(self.B_i.OUT2)
         self.OUT.connect(self.C_i.OUT2)
-    
+
     def process(self):
         return
 
@@ -66,6 +66,6 @@ def test_feedback():
 
     dut.IN.write(4)
 
-    sim.run(3) 
+    sim.run(3)
 
     assert dut.OUT.read() == 298

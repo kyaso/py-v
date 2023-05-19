@@ -19,7 +19,7 @@ logger = log.getLogger(__name__)
 
 #     def process(self):
 #         self.C_o.val = self.A_i.val + self.B_i.val
-    
+
 LOAD = 1
 STORE = 2
 
@@ -301,7 +301,7 @@ class EXStage(Module):
                             'funct3',
                             'funct7',
                             'mem')
-        
+
         self.EXMEM_o = PortX(OUT, self,
                              'rd',
                              'we',
@@ -312,7 +312,7 @@ class EXStage(Module):
                              'rs2',
                              'mem',
                              'funct3')
-        
+
         # Pass throughs
         self.EXMEM_o['rd'].connect(self.IDEX_i['rd'])
         self.EXMEM_o['we'].connect(self.IDEX_i['we'])
@@ -478,16 +478,16 @@ class EXStage(Module):
         alu_res = 0
         if opcode==isa.OPCODES['LUI']:
             alu_res = op2
-        
+
         elif opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
             alu_res = op1 + op2
-        
+
         elif opcode==isa.OPCODES['JALR']:
             alu_res = 0xfffffffe & (op1 + op2)
 
         elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']: # TODO: Could be merged with the upper elif
             alu_res = op1 + op2
-        
+
         elif opcode==isa.OPCODES['OP-IMM']:
             if f3==0b000: # ADDI
                 alu_res = op1 + op2
@@ -509,7 +509,7 @@ class EXStage(Module):
                     alu_res = _srl(op1, op2)
                 elif f7==0b0100000: # SRAI
                     alu_res = _sra(op1, op2)
-        
+
         elif opcode==isa.OPCODES['OP']:
             if f7==0:
                 if f3==0b000: # ADD
@@ -534,7 +534,7 @@ class EXStage(Module):
                     alu_res = op1 - op2
                 elif f3==0b101: # SRA
                     alu_res = _sra(op1, op2)
-   
+
         return MASK_32 & alu_res
 
     def branch(self, f3, rs1, rs2) -> bool:
@@ -546,12 +546,12 @@ class EXStage(Module):
 
         # Branch less-than (BLT) logic
         def _blt(rs1, rs2):
-           if msb_32(rs1)==msb_32(rs2):
-               return rs1<rs2
-           elif msb_32(rs1)==1:
-               return True
-           else:
-               return False
+            if msb_32(rs1)==msb_32(rs2):
+                return rs1<rs2
+            elif msb_32(rs1)==1:
+                return True
+            else:
+                return False
 
         if f3==0:               # BEQ
             return rs1==rs2
@@ -592,7 +592,7 @@ class MEMStage(Module):
                              'mem',
                              'wb_sel',
                              'funct3')
-        
+
         self.MEMWB_o = PortX(OUT, self,
                              'rd',
                              'we',
@@ -602,11 +602,11 @@ class MEMStage(Module):
                              'wb_sel')
 
         # Pass throughs
-        self.MEMWB_o['rd'].connect(self.EXMEM_i['rd'])        
-        self.MEMWB_o['we'].connect(self.EXMEM_i['we'])        
-        self.MEMWB_o['wb_sel'].connect(self.EXMEM_i['wb_sel'])        
-        self.MEMWB_o['pc4'].connect(self.EXMEM_i['pc4'])        
-        self.MEMWB_o['alu_res'].connect(self.EXMEM_i['alu_res'])        
+        self.MEMWB_o['rd'].connect(self.EXMEM_i['rd'])
+        self.MEMWB_o['we'].connect(self.EXMEM_i['we'])
+        self.MEMWB_o['wb_sel'].connect(self.EXMEM_i['wb_sel'])
+        self.MEMWB_o['pc4'].connect(self.EXMEM_i['pc4'])
+        self.MEMWB_o['alu_res'].connect(self.EXMEM_i['alu_res'])
 
         # Main memory
         self.mem = dmem
@@ -696,7 +696,7 @@ class WBStage(Module):
                 wb_val = mem_rdata
             else:
                 raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
-            
+
             self.regfile.writeRequest(rd, wb_val)
 
 class BranchUnit(Module):
@@ -706,7 +706,7 @@ class BranchUnit(Module):
         pc_i: Program counter (PC)
         take_branch_i: Whether to take the branch or not
         target_i: Branch target address
-    
+
     Outputs:
         npc_o: Next PC
     """
@@ -715,13 +715,13 @@ class BranchUnit(Module):
         self.take_branch_i = Port(IN, self)
         self.target_i = Port(IN, self)
         self.npc_o = Port(OUT, self)
-    
+
     def process(self):
         # Read inputs
         pc = self.pc_i.read()
         take_branch = self.take_branch_i.read()
         target = self.target_i.read()
-        
+
         # Compute NPC
         npc = pc+4
         if take_branch:

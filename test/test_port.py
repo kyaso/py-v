@@ -26,12 +26,12 @@ class TestPort:
         A = Port()
         A._val = 42
         assert A.read() == 42
-    
+
     def test_write(self):
         A = Port()
         A.write(123)
         assert A._val == 123
-    
+
     def test_connect(self):
         A = Port()
         B = Port()
@@ -46,7 +46,7 @@ class TestPort:
         assert B._children == [C, D]
         assert C._children == []
         assert D._children == []
-        
+
         # Check parents
         assert A._parent is None
         assert B._parent == A
@@ -75,7 +75,7 @@ class TestPort:
         assert B._children == [C]
         A.write(420)
         assert B.read() == 420
-        assert C.read() == 420 
+        assert C.read() == 420
 
     def test_wire(self):
         A = Port()
@@ -108,11 +108,11 @@ class TestPort:
         A.connect(B)
         with pytest.raises(Exception):
             A.connect(C)
-        
+
         # Non-root port calls write
         with pytest.raises(Exception):
             A.write(42)
-    
+
     def test_defaultVal(self):
         # This tests checks whether the forced propagation on the
         # very first write works.
@@ -121,11 +121,11 @@ class TestPort:
             def __init__(self):
                 self.pi = Port(IN, self, sensitive_methods=[self.process]) # Default value: 0
                 self.po = Port(OUT, self)
-            
+
             def process(self):
                 # Simply add 3 to the input
                 self.po.write(self.pi.read()+3)
-        
+
         # Initialize module
         A_i = modA()
         A_i.name = 'A_i'
@@ -143,7 +143,7 @@ class TestPort:
         A_i.pi.write(0)
         sim.run(1)
         assert A_i.po.read() == 3
-    
+
     def test_readOutput(self):
         p = Port(OUT)
         p.write(4)

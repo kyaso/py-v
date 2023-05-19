@@ -32,14 +32,14 @@ class Module:
             obj = self.__dict__[key]
             if isinstance(obj, (Port, RegBase, Reg, Module)):
                 obj.name = self.name+"."+key
-            
+
                 if isinstance(obj, PortX):
                     obj._namePorts()
-                
+
                 if isinstance(obj, (Reg, RegX)):
                     obj.next.name = obj.name+".next"
                     obj.cur.name = obj.name+".cur"
-                
+
                     if isinstance(obj, RegX):
                         obj.next._namePorts()
                         obj.cur._namePorts()

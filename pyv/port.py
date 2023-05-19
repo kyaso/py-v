@@ -95,7 +95,7 @@ class Port:
 
         else:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
-    
+
     def _propagate(self, val):
         logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
         """Propagate a new value to all children ports.
@@ -114,9 +114,9 @@ class Port:
         # Now call propagate change to children as well.
         for p in self._children:
             p._propagate(val)
-    
+
     def connect(self, driver):
-        """Connects the current port to a driver port. 
+        """Connects the current port to a driver port.
 
         Args:
             driver (Port): The new driving port for this port.
@@ -198,9 +198,9 @@ class PortX(Port):
             port_vals = (self._val[ports[0]].read(),)
             for i in range(1, len(ports)):
                 port_vals = port_vals+(self._val[ports[i]].read(),)
-            
+
             return port_vals
-    
+
     def write(self, *args):
         """Writes new values to one or more sub-ports.
 
@@ -208,7 +208,7 @@ class PortX(Port):
             *args: A single integer value,
                 OR dict of Ports,
                 OR a list of key-value pairs.
-                
+
         If a single integer value is passed, all sub-ports will receive that value.
 
         A `dict` of ports is usually passed as part of some automatic write
@@ -243,7 +243,7 @@ class PortX(Port):
         # Odd indices: values
         for i in range(0, len(args), 2):
             self._val[args[i]].write(args[i+1])
-    
+
     def connect(self, driver):
         """Connects the current PortX to a driver PortX.
 
@@ -256,7 +256,7 @@ class PortX(Port):
 
         if not isinstance(driver, PortX):
             raise TypeError("{} is not a PortX!".format(driver))
-        
+
         # Iterate over port names (keys) and
         # Connect each sub-port to their new drivers.
         for port in self._val:
@@ -267,7 +267,7 @@ class PortX(Port):
     def __getitem__(self, key):
         # `key` is the name of a sub-port
         return self._val[key]
-    
+
     # TODO: Is this method necessary??
     def __setitem__(self, key, value):
         if not isinstance(value, Port):
@@ -275,14 +275,14 @@ class PortX(Port):
 
         self._val[key] = value
         # self._val[key].connect(value)
-    
+
     def _namePorts(self):
         """Name all subports with portxName.subportName format.
-        
+
         This requires a name to be set for the PortX (usually in Module.init()).
         """
         for port in self._val:
-            self._val[port].name = self.name+"."+port 
+            self._val[port].name = self.name+"."+port
 
 # A Wire has the same methods and attributes as a Port.
 class Wire(Port):
