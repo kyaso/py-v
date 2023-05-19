@@ -97,12 +97,13 @@ class Port:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
 
     def _propagate(self, val):
-        logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
         """Propagate a new value to all children ports.
 
         Args:
             val (int): The new value.
         """
+        logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
+
         self._val = copy.deepcopy(val)
 
         # Add this port's sensitive methods to the simulation queue
