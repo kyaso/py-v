@@ -37,7 +37,7 @@ class Port:
 
         # Who drives this port?
         self._parent = None
-        # Which ports does this ports drive?
+        # Which ports does this port drive?
         self._children = []
 
         # Whether the port has not been written to in the entire simulation.
@@ -124,6 +124,7 @@ class Port:
         Raises:
             Exception: The port attempted to connect to itself.
             TypeError: The `driver` was not of type `Port`.
+            Exception: The port is already connected to another port.
         """
 
         # Check whether an illegal self-connection was attempted.

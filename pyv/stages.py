@@ -683,7 +683,7 @@ class WBStage(Module):
 
         wb_val = 0
         # Default to no write.
-        # If write, then `write()` below will
+        # If write, then `writeRequest()` below will
         # enable write in regfile.
         self.regfile.we = False
 
