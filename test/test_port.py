@@ -162,8 +162,8 @@ class TestPort:
         assert p._processMethods == [foo, bar]
 
         # Output ports shouldn't have any sensitive methods
-        p2 = Port(OUT, sensitive_methods=[foo])
-        assert "Ignoring sensitive methods for port 'noName' with direction OUT" in caplog.text
+        with pytest.raises(Exception):
+            p2 = Port(OUT, sensitive_methods=[foo])
 
         # Default sensitive method
         class modA(Module):

@@ -54,7 +54,7 @@ class Port:
                 for m in sensitive_methods:
                     self._addProcessMethod(m)
         elif len(sensitive_methods) > 0:
-            logger.info(f"Ignoring sensitive methods for port '{self.name}' with direction OUT")
+            raise Exception(f"Port '{self.name}' with direction OUT cannot have sensitive methods.")
 
     def read(self):
         """Reads the current value of the port.
