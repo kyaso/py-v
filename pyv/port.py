@@ -46,8 +46,8 @@ class Port:
         self._isUntouched = True
 
         # Setup sensitivity list
+        self._processMethods = []
         if self._direction == IN:
-            self._processMethods = []
             if self._module is not None and len(sensitive_methods) == 0:
                 self._addProcessMethod(self._module.process)
             else:
