@@ -6,7 +6,7 @@ from pyv.module import Module
 from pyv.simulator import Simulator
 
 class TestPort:
-    def test_constructor(self):
+    def test_init(self):
         class mod(Module):
             pass
 
