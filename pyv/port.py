@@ -102,7 +102,7 @@ class Port:
         Args:
             val (int): The new value.
         """
-        logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
+        logger.debug(f"Port {self.name} changed from 0x{self._val:08X} to 0x{val:08X}.")
 
         self._val = copy.deepcopy(val)
 
