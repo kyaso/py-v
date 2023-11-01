@@ -40,7 +40,7 @@ class Reg(RegBase, Generic[T]):
     def _tick(self):
         if self._doReset:
             logger.debug(f"Sync reset on register {self.name}. Reset value: {self.resetVal}.")
-            self.cur.write(self.resetVal)
+            self._reset()
         else:
             self.cur.write(self.nextv)
 
