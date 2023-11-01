@@ -6,19 +6,49 @@ import pyv.isa as isa
 from pyv.util import *
 from pyv.defines import *
 import pyv.log as log
+from dataclasses import dataclass
 
 logger = log.getLogger(__name__)
 
-# class Stage:
-#     def __init__(self):
-#         pass
+@dataclass
+class IFID_t:
+    inst: int = 0
+    pc: int = 0
 
-#     A_i = Port()
-#     B_i = Port()
-#     C_o = Port()
+@dataclass
+class IDEX_t:
+    rs1: int = 0
+    rs2: int = 0
+    imm: int = 0
+    pc: int = 0
+    rd: int = 0
+    we: int = 0
+    wb_sel: int = 0
+    opcode: int = 0
+    funct3: int = 0
+    funct7: int = 0
+    mem: int = 0
 
-#     def process(self):
-#         self.C_o.val = self.A_i.val + self.B_i.val
+@dataclass
+class EXMEM_t:
+    rd: int = 0
+    we: int = 0
+    wb_sel: int = 0
+    take_branch: int = 0
+    alu_res: int = 0
+    pc4: int = 0
+    rs2: int = 0
+    mem: int = 0
+    funct3: int = 0
+
+@dataclass
+class MEMWB_t:
+    rd: int = 0
+    we: int = 0
+    alu_res: int = 0
+    pc4: int = 0
+    mem_rdata: int = 0
+    wb_sel: int = 0
 
 LOAD = 1
 STORE = 2
@@ -35,24 +65,26 @@ class IFStage(Module):
 
     def __init__(self, imem: Memory):
         # Next PC
-        self.npc_i = Port(IN, self)
-        self.IFID_o = PortX(OUT, self, 'inst', 'pc')
+        self.npc_i = Port(int, IN, self)
+        self.IFID_o = Port(IFID_t, OUT, self)
 
         # Program counter (PC)
-        self.pc_reg = Reg(-4)
+        self.pc_reg = Reg(int, -4)
 
         # Instruction register (IR)
-        self.ir_reg = Reg(0x00000013)
+        self.ir_reg = Reg(int, 0x00000013)
+
+        # Helper wires
+        self.pc_reg_w = Wire(int, self, [self.writeOutput])
+        self.ir_reg_w = Wire(int, self, [self.writeOutput])
+        self.pc_reg_w.connect(self.pc_reg.cur)
+        self.ir_reg_w.connect(self.ir_reg.cur)
 
         # Instruction memory
         self.imem = imem
 
         # Connect next PC to input of PC reg
         self.pc_reg.next.connect(self.npc_i)
-
-        # Outputs
-        self.IFID_o['inst'].connect(self.ir_reg.cur)
-        self.IFID_o['pc'].connect(self.pc_reg.cur)
 
     def process(self):
         # Read inputs
@@ -62,6 +94,8 @@ class IFStage(Module):
         self.ir_reg.next.write(self.imem.read(npc, 4))
         # TODO: Illegal address exception handling
 
+    def writeOutput(self):
+        self.IFID_o.write(IFID_t(self.ir_reg_w.read(), self.pc_reg_w.read()))
 
 class IDStage(Module):
     """Instruction decode stage.
@@ -77,14 +111,16 @@ class IDStage(Module):
         self.regfile = regf
 
         # Inputs
-        self.IFID_i = PortX(IN, self, 'inst', 'pc')
+        self.IFID_i = Port(IFID_t, IN, self)
 
         # Outputs
-        self.IDEX_o = PortX(OUT, self, 'rs1', 'rs2', 'imm', 'pc', 'rd', 'we', 'wb_sel', 'opcode', 'funct3', 'funct7', 'mem')
+        self.IDEX_o = Port(IDEX_t, OUT, self)
 
     def process(self):
         # Read inputs
-        inst, self.pc = self.IFID_i.read('inst', 'pc')
+        val: IFID_t = self.IFID_i.read()
+        inst = val.inst
+        self.pc = val.pc
 
         # Illegal instruction if bits 1:0 of inst != b11
         if (inst & 0x3) != 0x3:
@@ -121,7 +157,7 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # Outputs
-        self.IDEX_o.write('rs1', rs1, 'rs2', rs2, 'imm', imm, 'pc', self.pc, 'rd', rd_idx, 'we', we, 'wb_sel', wb_sel, 'opcode', opcode, 'funct3', funct3, 'funct7', funct7, 'mem', mem)
+        self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel, opcode, funct3, funct7, mem))
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -289,41 +325,36 @@ class EXStage(Module):
         EXMEM_o: Interface to MEMStage.
     """
     def __init__(self):
-        self.IDEX_i = PortX(IN, self,
-                            'rs1',
-                            'rs2',
-                            'imm',
-                            'pc',
-                            'rd',
-                            'we',
-                            'wb_sel',
-                            'opcode',
-                            'funct3',
-                            'funct7',
-                            'mem')
+        self.IDEX_i = Port(IDEX_t, IN, self, sensitive_methods=[self.process, self.passThrough])
 
-        self.EXMEM_o = PortX(OUT, self,
-                             'rd',
-                             'we',
-                             'wb_sel',
-                             'take_branch',
-                             'alu_res',
-                             'pc4',
-                             'rs2',
-                             'mem',
-                             'funct3')
+        self.EXMEM_o = Port(EXMEM_t, OUT, self)
+        self.exmem_val = EXMEM_t()
 
-        # Pass throughs
-        self.EXMEM_o['rd'].connect(self.IDEX_i['rd'])
-        self.EXMEM_o['we'].connect(self.IDEX_i['we'])
-        self.EXMEM_o['wb_sel'].connect(self.IDEX_i['wb_sel'])
-        self.EXMEM_o['rs2'].connect(self.IDEX_i['rs2'])
-        self.EXMEM_o['mem'].connect(self.IDEX_i['mem'])
-        self.EXMEM_o['funct3'].connect(self.IDEX_i['funct3'])
+    def writeOutput(self):
+        self.EXMEM_o.write(self.exmem_val)
+
+    def passThrough(self):
+        val = self.IDEX_i.read()
+        self.exmem_val.rd = val.rd
+        self.exmem_val.we = val.we
+        self.exmem_val.wb_sel = val.wb_sel
+        self.exmem_val.rs2 = val.rs2
+        self.exmem_val.mem = val.mem
+        self.exmem_val.funct3 = val.funct3
+
+        self.writeOutput()
+
 
     def process(self):
         # Read inputs
-        opcode, rs1, rs2, imm, pc, f3, f7 = self.IDEX_i.read('opcode', 'rs1', 'rs2', 'imm', 'pc', 'funct3', 'funct7')
+        val: IDEX_t = self.IDEX_i.read()
+        opcode = val.opcode
+        rs1 = val.rs1
+        rs2 = val.rs2
+        imm = val.imm
+        pc = val.pc
+        f3 = val.funct3
+        f7 = val.funct7
 
         # Check for branch/jump
         take_branch = False
@@ -341,7 +372,10 @@ class EXStage(Module):
         self.check_exception(take_branch, alu_res, pc)
 
         # Outputs
-        self.EXMEM_o.write('take_branch', take_branch, 'pc4', pc4, 'alu_res', alu_res)
+        self.exmem_val.take_branch = take_branch
+        self.exmem_val.pc4 = pc4
+        self.exmem_val.alu_res = alu_res
+        self.writeOutput()
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
         """Implements arithmetic-logic unit (ALU)
@@ -583,37 +617,19 @@ class MEMStage(Module):
         MEMWB_o: Interface to WBStage.
     """
     def __init__(self, dmem: Memory):
-        self.EXMEM_i = PortX(IN, self,
-                             'rd',
-                             'we',
-                             'alu_res',
-                             'pc4',
-                             'rs2',
-                             'mem',
-                             'wb_sel',
-                             'funct3')
-
-        self.MEMWB_o = PortX(OUT, self,
-                             'rd',
-                             'we',
-                             'alu_res',
-                             'pc4',
-                             'mem_rdata',
-                             'wb_sel')
-
-        # Pass throughs
-        self.MEMWB_o['rd'].connect(self.EXMEM_i['rd'])
-        self.MEMWB_o['we'].connect(self.EXMEM_i['we'])
-        self.MEMWB_o['wb_sel'].connect(self.EXMEM_i['wb_sel'])
-        self.MEMWB_o['pc4'].connect(self.EXMEM_i['pc4'])
-        self.MEMWB_o['alu_res'].connect(self.EXMEM_i['alu_res'])
+        self.EXMEM_i = Port(EXMEM_t, IN, self)
+        self.MEMWB_o = Port(MEMWB_t, OUT, self)
 
         # Main memory
         self.mem = dmem
 
     def process(self):
         # Read inputs
-        addr, mem_wdata, op, f3 = self.EXMEM_i.read('alu_res', 'rs2', 'mem', 'funct3')
+        in_val = self.EXMEM_i.read()
+        addr = in_val.alu_res
+        mem_wdata = in_val.rs2
+        op = in_val.mem
+        f3 = in_val.funct3
 
         load_val = 0
         # Don't write by default
@@ -651,7 +667,14 @@ class MEMStage(Module):
         # TODO: Illegal address execption handling
 
         # Outputs
-        self.MEMWB_o.write('mem_rdata', load_val)
+        self.MEMWB_o.write(MEMWB_t(
+            rd=in_val.rd,
+            we=in_val.we,
+            alu_res=in_val.alu_res,
+            pc4=in_val.pc4,
+            mem_rdata=load_val,
+            wb_sel=in_val.wb_sel
+        ))
 
     def check_exception(self, op, addr, f3):
         if f3 == 0:
@@ -675,11 +698,17 @@ class WBStage(Module):
     def __init__(self, regf: Regfile):
         self.regfile = regf
 
-        self.MEMWB_i = PortX(IN, self, 'rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
+        self.MEMWB_i = Port(MEMWB_t, IN, self)
 
     def process(self):
         # Read inputs
-        rd, we, alu_res, pc4, mem_rdata, wb_sel = self.MEMWB_i.read('rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel')
+        in_val = self.MEMWB_i.read()
+        rd = in_val.rd
+        we = in_val.we
+        alu_res = in_val.alu_res
+        pc4 = in_val.pc4
+        mem_rdata = in_val.mem_rdata
+        wb_sel = in_val.wb_sel
 
         wb_val = 0
         # Default to no write.
@@ -711,10 +740,10 @@ class BranchUnit(Module):
         npc_o: Next PC
     """
     def __init__(self):
-        self.pc_i = Port(IN, self)
-        self.take_branch_i = Port(IN, self)
-        self.target_i = Port(IN, self)
-        self.npc_o = Port(OUT, self)
+        self.pc_i = Port(int, IN, self)
+        self.take_branch_i = Port(int, IN, self)
+        self.target_i = Port(int, IN, self)
+        self.npc_o = Port(int, OUT, self)
 
     def process(self):
         # Read inputs

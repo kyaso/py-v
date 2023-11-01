@@ -3,10 +3,18 @@ import random
 from pyv.reg import * 
 from pyv.clocked import RegBase
 
+def test_reg_init():
+    reg = Reg(float, 42)
+
+    assert reg.next._type == float
+    assert reg.cur._type == float
+    assert reg.rst._type == int
+    assert reg.resetVal == 42
+
 def test_reg():
     RegBase.clear()
 
-    reg = Reg()
+    reg = Reg(int)
     RegBase.reset()
     assert reg.cur.read() == 0
 
@@ -32,24 +40,6 @@ def test_regbase():
     
     with pytest.raises(NotImplementedError):
         reg._tick()
-
-def test_regX():
-    RegBase.clear()
-
-    reg = RegX('A', 'B')
-    RegBase.reset()
-
-    reg.next.write('A', 42, 'B', 69)
-    assert reg.cur._val['A']._val == 0
-    assert reg.cur._val['B']._val == 0
-    RegBase.tick()
-    assert reg.cur._val['A']._val == 42
-    assert reg.cur._val['B']._val == 69
-
-    ret = reg.cur.read()
-    assert ret['A'] == 42
-    assert ret['B'] == 69
-
 
 def test_regfile():
     RegBase.clear()
@@ -96,10 +86,10 @@ def test_regfile():
 def test_regChain():
     RegBase.clear()
 
-    A = Reg()
-    B = Reg()
-    C = Reg()
-    D = Reg()
+    A = Reg(int)
+    B = Reg(int)
+    C = Reg(int)
+    D = Reg(int)
 
     B.next.connect(A.cur)
     C.next.connect(B.cur)
@@ -133,47 +123,6 @@ def test_regChain():
     assert B.cur.read() == 0
     assert C.cur.read() == 0
     assert D.cur.read() == 0x42
-
-def test_regChainX():
-    RegBase.clear()
-
-    A = RegX('A', 'B')
-    B = RegX('A', 'B')
-    C = RegX('A', 'B')
-    D = RegX('A', 'B')
-
-    B.next.connect(A.cur)
-    C.next.connect(B.cur)
-    D.next.connect(C.cur)
-    RegBase.reset()
-
-    A.next.write('A',45,'B',78)
-
-    RegBase.tick()
-    assert A.cur.read() == {'A':45, 'B':78}
-    assert B.cur.read() == {'A':0, 'B':0}
-    assert C.cur.read() == {'A':0, 'B':0}
-    assert D.cur.read() == {'A':0, 'B':0}
-
-    A.next.write('A',0,'B',0)
-
-    RegBase.tick()
-    assert A.cur.read() == {'A':0, 'B':0}
-    assert B.cur.read() == {'A':45, 'B':78}
-    assert C.cur.read() == {'A':0, 'B':0}
-    assert D.cur.read() == {'A':0, 'B':0}
-
-    RegBase.tick()
-    assert A.cur.read() == {'A':0, 'B':0}
-    assert B.cur.read() == {'A':0, 'B':0}
-    assert C.cur.read() == {'A':45, 'B':78}
-    assert D.cur.read() == {'A':0, 'B':0}
-
-    RegBase.tick()
-    assert A.cur.read() == {'A':0, 'B':0}
-    assert B.cur.read() == {'A':0, 'B':0}
-    assert C.cur.read() == {'A':0, 'B':0}
-    assert D.cur.read() == {'A':45, 'B':78}
 
 def test_shiftReg():
     RegBase.clear()
@@ -275,9 +224,8 @@ def test_shiftRegParallel():
     assert len(A.regs) == depth
 
 def test_reset():
-    reg1 = Reg()
-    reg2 = Reg(42)
-    reg3 = RegX('foo', 'bar')
+    reg1 = Reg(int)
+    reg2 = Reg(int, 42)
     reg4 = ShiftReg(8, 1)
     reg5 = ShiftRegParallel(8, 2)
 
@@ -285,13 +233,12 @@ def test_reset():
 
     assert reg1.cur.read() == 0
     assert reg2.cur.read() == 42
-    assert reg3.cur.read() == {'foo': 0, 'bar': 0}
     assert reg4.regs == [1  for _ in range(0,8)]
     assert reg5.regs == [2  for _ in range(0,8)]
 
 def test_sync_reset():
     RegBase.clear()
-    reg1 = Reg(0)
+    reg1 = Reg(int, 0)
 
     # No reset -> next val
     reg1.next.write(42)
@@ -306,23 +253,8 @@ def test_sync_reset():
 
     # Throw exception on wrong reset value
     reg1.rst.write(44)
-    with pytest.raises(Exception, match = "Error: Invalid reset value!"):
+    with pytest.raises(Exception, match = "Error: Invalid rst signal!"):
         RegBase.tick()
-
-def test_sync_reset_RegX():
-    RegBase.clear()
-    reg1 = RegX('foo', 'bar')
-
-    # No reset
-    reg1.next.write('foo', 42, 'bar', 68)
-    reg1.rst.write(0)
-    RegBase.tick()
-    assert reg1.cur.read() == {'foo': 42, 'bar': 68}
-
-    # Reset
-    reg1.rst.write(1)
-    RegBase.tick()
-    assert reg1.cur.read() == {'foo': 0, 'bar': 0}
 
 def test_sync_reset_shiftreg():
     RegBase.clear()

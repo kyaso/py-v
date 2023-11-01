@@ -1,5 +1,14 @@
 # Next release (0.?.0)
 
+- **Important**:
+  - `PortX` and `RegX` have been removed
+    - This greatly simplifies the simulation kernel, and tests
+    - The recommended way to create a complex port is to use a _dataclass_
+    - However, port value can be of any type, so theoretically anything is possible
+    - Requirements for custom types:
+      - *default value* mechanism
+      - *equals* operation
+      - *deepcopy* support
 - **New**: Implemented abstract `Clocked` class to unite handling of registers and memories
   - Write operations on memories and register files will _not_ commit until the next clock tick
     anymore
@@ -8,7 +17,11 @@
   - For logging purposes, the design will be scanned for submodules, ports and registers
     - The instance names of these components is then added as an attribute to each component
 - Changes to `Port`:
-  - Ports now have default value of 0 (instead of `None`)
+  - Ports now have a **type** associated with them
+    - Only values of the same type can be written to the port
+    - The type is a mandatory parameter when creating a new port
+    - There is runtime type checking in place, e.g., when connecting to ports, their types have to match
+  - Ports now have a default value (instead of `None`)
     - As suggested in #4, a forced propagation shall happen at the very first write of any port
   - Calling of the onchange handler is not restricted to non-root ports anymore
   - _Input_ ports now have an optional **sensitivity list**

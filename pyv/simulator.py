@@ -21,7 +21,7 @@ class Simulator:
 
         # Custom log function
         self.customLog = customLog
-        
+
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
 
@@ -39,23 +39,25 @@ class Simulator:
             logger.debug("**** Cycle {} ****".format(self._cycles))
             #print("")
 
-            # While queue not empty
-            while len(self._queue) > 0:
-                nextFn = self._queue.popleft()
-                logger.debug("Running {}".format(nextFn.__qualname__))
-                nextFn()
-        
-            self._customLog() 
+            self.process_queue()
+
+            self._customLog()
 
             Clock.tick()
-            self._customLog() 
+            self._customLog()
             self._cycles += 1
-    
+
+    def process_queue(self):
+        while len(self._queue) > 0:
+            nextFn = self._queue.popleft()
+            logger.debug("Running {}".format(nextFn.__qualname__))
+            nextFn()
+
     def _customLog(self):
         """Runs a custom logging function (if provided)."""
         if self.customLog is not None:
             self.customLog()
-    
+
     def addToSimQ(self, fn):
         """Add a function to the simulation queue.
 
@@ -68,7 +70,7 @@ class Simulator:
             self._queue.append(fn)
         else:
             logger.debug("{} already in queue.".format(fn.__qualname__))
-    
+
     def getCycles(self):
         """Returns the current number of cycles.
 

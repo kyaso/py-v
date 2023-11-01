@@ -12,8 +12,8 @@ class Mem(MemBase):
         self.val = 12
 
 def test_init():
-    reg1 = Reg()
-    reg2 = Reg()
+    reg1 = Reg(int)
+    reg2 = Reg(int)
     mem1 = Mem()
     mem2 = Mem()
     assert RegBase._reg_list == [reg1, reg2]
@@ -44,8 +44,8 @@ def test_abstractMethods():
 def test_tick():
     Clock.clear()
 
-    reg1 = Reg()
-    reg2 = Reg()
+    reg1 = Reg(int)
+    reg2 = Reg(int)
     mem = Mem()
 
     reg1.next.write(43)
@@ -60,8 +60,8 @@ def test_tick():
 def test_clear():
     Clock.clear()
 
-    reg1 = Reg()
-    reg2 = Reg()
+    reg1 = Reg(int)
+    reg2 = Reg(int)
     mem1 = Mem()
     mem2 = Mem()
 
