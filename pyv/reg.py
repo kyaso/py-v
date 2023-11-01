@@ -1,17 +1,20 @@
 import copy
 import warnings
-from pyv.port import Port, PortX
+from pyv.port import Port
 from pyv.util import bitVector2num, getBitVector
 from pyv.defines import IN, OUT
 from pyv.clocked import MemBase, RegBase
 import pyv.log as log
+from typing import TypeVar, Generic, Type
+
+T = TypeVar('T')
 
 logger = log.getLogger(__name__)
 
-class Reg(RegBase):
+class Reg(RegBase, Generic[T]):
     """Represents a single value register."""
 
-    def __init__(self, resetVal = 0):
+    def __init__(self, type: Type[T], resetVal = 0):
         """Create a new register.
 
         Args:
@@ -20,9 +23,9 @@ class Reg(RegBase):
         # Add this register to the global register list
         super().__init__(resetVal)
 
-        self.next = Port(IN)          # Next value input
-        self.cur = Port(OUT)          # Current value output
-        self.rst = Port(IN)           # Synchronous Reset in (active high)
+        self.next = Port(type, IN)          # Next value input
+        self.cur = Port(type, OUT)          # Current value output
+        self.rst = Port(int, IN)           # Synchronous Reset in (active high)
 
     def _prepareNextVal(self):
         self._doReset = False
@@ -32,7 +35,7 @@ class Reg(RegBase):
         elif self.rst.read() == 0:
             self.nextv = self.next.read()
         else:
-            raise Exception("Error: Invalid reset value!")
+            raise Exception("Error: Invalid rst signal!")
 
     def _tick(self):
         if self._doReset:
@@ -44,22 +47,6 @@ class Reg(RegBase):
     def _reset(self):
         self.cur.write(self.resetVal)
 
-class RegX(Reg):
-    """Represents a multivalue register."""
-
-    def __init__(self, *args):
-        """Create a new multivalued register."""
-        super().__init__()
-
-        self.next = PortX(IN, None, *args)    # Next value input
-        self.cur = PortX(OUT, None, *args)     # Current value output
-
-    def _reset(self):
-        """Reset all subports.
-
-        For now: 0
-        """
-        self.cur.write(self.resetVal)
 
 class ShiftReg(RegBase):
     """Represents a single-valued shift register.
@@ -73,9 +60,9 @@ class ShiftReg(RegBase):
 
         self.depth = depth
 
-        self.serIn = Port()          # Serial input
-        self.serOut = Port()         # Serial output
-        self.rst = Port(IN)          # Synchronous reset (active high)
+        self.serIn = Port(int, IN)          # Serial input
+        self.serOut = Port(int, OUT)         # Serial output
+        self.rst = Port(int, IN)          # Synchronous reset (active high)
 
         # Initialize shift register
         self._reset()
@@ -128,9 +115,9 @@ class ShiftRegParallel(ShiftReg):
     def __init__(self, depth, resetVal = 0):
         super().__init__(depth, resetVal)
 
-        self.parEnable = Port()
-        self.parIn = Port()
-        self.parOut = Port()
+        self.parEnable = Port(int, IN)
+        self.parIn = Port(int, IN)
+        self.parOut = Port(int, OUT)
         self.depth = depth
         self.parInNext = 0
         self.parMask = 2**self.depth - 1

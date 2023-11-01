@@ -10,11 +10,11 @@ from collections import deque
 # Build a simple example circuit
 class A(Module):
     def __init__(self):
-        self.inA = Port(IN, self)
-        self.inB = Port(IN, self)
+        self.inA = Port(int, IN, self)
+        self.inB = Port(int, IN, self)
 
-        self.outA = Port(OUT, self)
-        self.outB = Port(OUT, self)
+        self.outA = Port(int, OUT, self)
+        self.outB = Port(int, OUT, self)
     
     def process(self):
         self.outA.write(self.inA.read())
@@ -22,17 +22,17 @@ class A(Module):
 
 class B(Module):
     def __init__(self):
-        self.inA = Port(IN, self)
-        self.outA = Port(OUT, self)
+        self.inA = Port(int, IN, self)
+        self.outA = Port(int, OUT, self)
     
     def process(self):
         self.outA.write(self.inA.read())
 
 class C(Module):
     def __init__(self):
-        self.inA = Port(IN, self)
-        self.inB = Port(IN, self)
-        self.outA = Port(OUT, self)
+        self.inA = Port(int, IN, self)
+        self.inB = Port(int, IN, self)
+        self.outA = Port(int, OUT, self)
     
     def process(self):
         self.outA.write(self.inA.read() + self.inB.read())
@@ -41,9 +41,9 @@ class ExampleTop(Module):
     def __init__(self):
         super().__init__()
 
-        self.inA = Port(IN, self)
-        self.inB = Port(IN, self)
-        self.out = Port(OUT, self)
+        self.inA = Port(int, IN, self)
+        self.inB = Port(int, IN, self)
+        self.out = Port(int, OUT, self)
 
         self.A_i = A()
         self.B1_i = B()
@@ -83,10 +83,10 @@ class ExampleTop2(Module):
     def __init__(self):
         super().__init__()
 
-        self.out = Port(IN, self)
+        self.out = Port(int, IN, self)
 
-        self.reg1 = Reg(42)
-        self.reg2 = Reg(0)
+        self.reg1 = Reg(int, 42)
+        self.reg2 = Reg(int, 0)
 
         self.A_i = Mul(2)
         self.B_i = Add(10)

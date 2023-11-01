@@ -1,42 +1,44 @@
 from collections import deque
 import pytest
-from pyv.port import Port, PortX, Wire
+from pyv.port import Port, Wire
 from pyv.defines import *
 from pyv.module import Module
 from pyv.simulator import Simulator
 
 class TestPort:
-    def test_constructor(self):
+    def test_init(self):
         class mod(Module):
             pass
 
         foo = mod()
 
-        A = Port(IN, foo)
+        A = Port(int, IN, foo)
         assert A._direction == IN
         assert A._module == foo
-        assert A._val is 0
+        assert type(A._val) == int
+        assert A._val == 0
 
-        A = Port(OUT, initVal=42)
+        A = Port(float, OUT)
         assert A._direction == OUT
-        assert A._val == 42
         assert A._module is None
+        assert type(A._val) == float
+        assert A._val == 0
 
     def test_read(self):
-        A = Port()
+        A = Port(int)
         A._val = 42
         assert A.read() == 42
 
     def test_write(self):
-        A = Port()
+        A = Port(int)
         A.write(123)
         assert A._val == 123
 
     def test_connect(self):
-        A = Port()
-        B = Port()
-        C = Port()
-        D = Port()
+        A = Port(int)
+        B = Port(int)
+        C = Port(int)
+        D = Port(int)
         B.connect(A)
         C.connect(B)
         D.connect(B)
@@ -66,9 +68,9 @@ class TestPort:
         assert D.read() == 410
 
         # Test reverse connect order
-        A = Port()
-        B = Port()
-        C = Port()
+        A = Port(int)
+        B = Port(int)
+        C = Port(int)
         C.connect(B)
         B.connect(A)
         assert A._children == [B]
@@ -78,11 +80,11 @@ class TestPort:
         assert C.read() == 420
 
     def test_wire(self):
-        A = Port()
-        B = Port()
-        C = Port()
-        D = Port()
-        W = Wire()
+        A = Port(int)
+        B = Port(int)
+        C = Port(int)
+        D = Port(int)
+        W = Wire(int)
 
         # Connect wire W to port A
         W.connect(A)
@@ -100,11 +102,11 @@ class TestPort:
         assert D.read() == 42
 
     def test_errors(self):
-        A = Port()
+        A = Port(int)
 
         # Connecting a port to two parents
-        B = Port()
-        C = Port()
+        B = Port(int)
+        C = Port(int)
         A.connect(B)
         with pytest.raises(Exception):
             A.connect(C)
@@ -113,14 +115,34 @@ class TestPort:
         with pytest.raises(Exception):
             A.write(42)
 
+        # Wrong type write
+        D = Port(float)
+        with pytest.raises(TypeError):
+            D.write("hello")
+
+        # Connect port to itself
+        with pytest.raises(Exception):
+            D.connect(D)
+
+        # Invalid driver type
+        with pytest.raises(Exception):
+            D.connect("foo")
+
+    def test_connect_wrong_type(self):
+        A = Port(int)
+        B = Port(float)
+
+        with pytest.raises(Exception):
+            B.connect(A)
+
     def test_defaultVal(self):
         # This tests checks whether the forced propagation on the
         # very first write works.
         sim = Simulator()
         class modA(Module):
             def __init__(self):
-                self.pi = Port(IN, self, sensitive_methods=[self.process]) # Default value: 0
-                self.po = Port(OUT, self)
+                self.pi = Port(int, IN, self, sensitive_methods=[self.process]) # Default value: 0
+                self.po = Port(int, OUT, self)
 
             def process(self):
                 # Simply add 3 to the input
@@ -145,7 +167,7 @@ class TestPort:
         assert A_i.po.read() == 3
 
     def test_readOutput(self):
-        p = Port(OUT)
+        p = Port(int, OUT)
         p.write(4)
 
         with pytest.warns(UserWarning):
@@ -158,12 +180,12 @@ class TestPort:
             pass
 
         # (also don't allow any duplicates)
-        p = Port(IN, sensitive_methods=[foo, bar, bar])
+        p = Port(int, IN, sensitive_methods=[foo, bar, bar])
         assert p._processMethods == [foo, bar]
 
         # Output ports shouldn't have any sensitive methods
-        p2 = Port(OUT, sensitive_methods=[foo])
-        assert "Ignoring sensitive methods for port 'noName' with direction OUT" in caplog.text
+        with pytest.raises(Exception):
+            p2 = Port(int, OUT, sensitive_methods=[foo])
 
         # Default sensitive method
         class modA(Module):
@@ -172,11 +194,11 @@ class TestPort:
 
         A = modA()
         # When no sens list, default to parent module's process method
-        p3 = Port(IN, A)
+        p3 = Port(int, IN, A)
         assert p3._processMethods == [A.process]
 
         # When sens list AND module given, only take the sens list
-        p4 = Port(IN, A, sensitive_methods=[bar, foo])
+        p4 = Port(int, IN, A, sensitive_methods=[bar, foo])
         assert p4._processMethods == [bar, foo]
 
 
@@ -186,86 +208,9 @@ class TestPort:
         def bar():
             pass
 
-        p = Port(IN, sensitive_methods = [foo, bar])
+        p = Port(int, IN, sensitive_methods = [foo, bar])
 
         sim = Simulator()
 
         p.write(42)
         assert sim._queue == deque([foo, bar])
-
-class TestPortX:
-    def test_portx(self):
-        # Init
-        A = PortX(IN, None, 'one', 'two', 'three')
-
-        # Test write
-        A.write('one', 42, 'two', 45, 'three', 1)
-        assert A._val['one']._val == 42
-        assert A._val['two']._val == 45
-        assert A._val['three']._val == 1
-
-        # Test reading all subports
-        ret = A.read()
-        assert ret['one'] == 42
-        assert ret['two'] == 45
-        assert ret['three'] == 1
-
-        # Test reading one subport
-        ret = A.read('one')
-        assert ret == 42
-
-        # Test reading another subport
-        ret = A.read('two')
-        assert ret == 45
-
-        # Test reading multiple subports
-        val1, val2 = A.read('two', 'one')
-        assert val1 == 45
-        assert val2 == 42
-
-        # Test writing to all subports using dict
-        B = PortX(IN, None, 'one', 'two', 'three')
-        new = {'one':89, 'two':12, 'three':90}
-        B.write(new)
-        assert B._val['one']._val == 89
-        assert B._val['two']._val == 12
-        assert B._val['three']._val == 90
-
-        # Test reading with square brackets operator
-        for key, val in A._val.items():
-            assert A[key] is A._val[key]
-
-        # Test connecting other port to sub-port
-        B = Port()
-        A['two'].connect(B)
-        B.write(5678)
-        assert A._val['two'].read() == 5678
-
-    def test_errors(self):
-        A = PortX(IN, None, 'one', 'two', 'three') 
-
-        # Test invalid sq. brackets assignment
-        with pytest.raises(TypeError):
-            A['three'] = 3
-
-        # Test connecting non-PortX
-        with pytest.raises(TypeError):
-            A.connect(42) # Just pass an integer as "driver"
-
-    def test_sensitive_methods(self, caplog):
-        def foo():
-            pass
-        def bar():
-            pass
-
-        A = PortX(IN, None, 'one', 'two', sensitive_methods = [foo, bar])
-        assert A._val['one']._processMethods == [foo, bar]
-        assert A._val['two']._processMethods == [foo, bar]
-
-        # Output PortX shouldn't have sensitive methods
-        B = PortX(OUT, None, 'one', 'two', sensitive_methods = [foo, bar])
-        assert "Ignoring sensitive methods for PortX 'noName' with direction OUT" in caplog.text
-        # In case a non-empty sensitivity list got passed in, this shouldn't be
-        # propagated to the sub-ports
-        assert "Ignoring sensitive methods for port 'noName' with direction OUT" not in caplog.text
-

@@ -1,22 +1,24 @@
 import copy
+from typing import TypeVar, Generic, Type
 from pyv.defines import *
 import warnings
 import pyv.log as log
 
 logger = log.getLogger(__name__)
 
-class Port:
+T = TypeVar('T')
+
+class Port(Generic[T]):
     """Represents a single port."""
 
-    def __init__(self, direction: bool = IN, module = None, initVal = 0, sensitive_methods = []):
+    def __init__(self, type: Type[T], direction: bool = IN, module = None, sensitive_methods = []):
         """Create a new Port object.
 
         Args:
+            type: Data type for this Port.
             direction (bool): Direction of this Port.
                 Defaults to Input.
             module (Module): The module this port belongs to.
-            initVal (int, optional): Value to initialize Port output with.
-                Defaults to None.
             sensitive_methods (list, optional): List of methods to trigger when
                 a write to this port changes it current value. Only valid for
                 INPUT ports. If omitted, only the parent module's process()
@@ -24,13 +26,11 @@ class Port:
         """
         self.name = 'noName'
 
+        self._type = type
         self._direction = direction
-        self._val = initVal
+        self._val = self._type()
 
-        if module is not None:
-            self._module = module
-        else:
-            self._module = None
+        self._module = module
 
         # Is this port the root driver?
         self._is_root_driver = True
@@ -46,17 +46,17 @@ class Port:
         self._isUntouched = True
 
         # Setup sensitivity list
+        self._processMethods = []
         if self._direction == IN:
-            self._processMethods = []
             if self._module is not None and len(sensitive_methods) == 0:
                 self._addProcessMethod(self._module.process)
             else:
                 for m in sensitive_methods:
                     self._addProcessMethod(m)
         elif len(sensitive_methods) > 0:
-            logger.info(f"Ignoring sensitive methods for port '{self.name}' with direction OUT")
+            raise Exception(f"Port '{self.name}' with direction OUT cannot have sensitive methods.")
 
-    def read(self):
+    def read(self) -> T:
         """Reads the current value of the port.
 
         Returns:
@@ -68,7 +68,7 @@ class Port:
 
         return copy.deepcopy(self._val)
 
-    def write(self, val):
+    def write(self, val: T):
         """Writes a new value to the port.
 
         Args:
@@ -77,11 +77,16 @@ class Port:
         Raises:
             Exception: A port that is driven by another port has called
             `write()`.
+            TypeError: Invalid write value type.
         """
 
         if self._is_root_driver:
             # If the value is different from the current value we have to
             # propagate the change to all children ports.
+
+            # Make sure the type is correct
+            if type(val) != self._type:
+                raise TypeError(f"ERROR: Cannot write value of type {type(val)} to Port {self.name} which is of type {self._type}.")
 
             # When the port has not been written to yet, force a propagation
             # even if the new value is the same as the default value
@@ -96,13 +101,13 @@ class Port:
         else:
             raise Exception("ERROR (Port): Only root driver port allowed to write!")
 
-    def _propagate(self, val):
+    def _propagate(self, val: T):
         """Propagate a new value to all children ports.
 
         Args:
             val (int): The new value.
         """
-        logger.debug("Port {} changed from 0x{:08X} to 0x{:08X}.".format(self.name, self._val, val))
+        logger.debug(f"Port {self.name} changed from {self._val} to {val}.")
 
         self._val = copy.deepcopy(val)
 
@@ -126,13 +131,16 @@ class Port:
             Exception: The port attempted to connect to itself.
             TypeError: The `driver` was not of type `Port`.
             Exception: The port is already connected to another port.
+            TypeError: Driver port is of different type.
         """
 
         # Check whether an illegal self-connection was attempted.
         if driver == self:
             raise Exception("ERROR (Port): Cannot connect port to itself!")
         if not isinstance(driver, Port):
-            raise TypeError("{} is not a Port!".format(driver))
+            raise TypeError(f"{driver} is not a Port!")
+        if self._type != driver._type:
+            raise TypeError(f"Port type mismatch: This port is of type {self._type}, while driver is of type {driver._type}.")
 
         # Make the driver this port's parent.
         # Add this port to the list of the driver's children.
@@ -143,162 +151,21 @@ class Port:
             # This variable is only needed for the root driver
             del self._isUntouched
         else:
-            raise Exception("ERROR (Port): Port already has a parent!")
+            raise Exception(f"ERROR (Port): Port {self.name} already has a parent!")
 
     def _addProcessMethod(self, func):
         if func not in self._processMethods:
             self._processMethods.append(func)
 
-class PortX(Port):
-    """Represents a collection of Ports."""
-
-    def __init__(self, direction: bool = IN, module = None, *ports, sensitive_methods = []):
-        """Creates a new PortX object.
-
-        A dictionary of `Port` objects will be created.
-
-        Each port within that dict is considered a sub-port of the PortX
-        object.
-
-        Args:
-            direction: Port direction. Default: Input
-                All sub-ports will have the same direction.
-            module: The parent module of this port.
-            *ports: The names of the sub-ports.
-            sensitive_methods (list, optional): List of methods to trigger when
-                a write to a sub-port of this PortX occurs. Only valid for
-                INPUT PortX. All sub-ports of this PortX will have the same
-                sensitive_methods list.
-        """
-        self.name = 'noName'
-
-        # Build dict of ports
-        if direction == OUT and len(sensitive_methods) > 0:
-            logger.info(f"Ignoring sensitive methods for PortX '{self.name}' with direction OUT")
-            sensitive_methods = []
-        self._val = { port: Port(direction, module, sensitive_methods=sensitive_methods)  for port in ports }
-
-    def read(self, *ports):
-        """Reads the current value(s) of one or more sub-ports.
-
-        Args:
-            *ports: The name(s) of the sub-port(s) to read values from.
-
-        Returns:
-            Depending on the number n of sub-port names given:
-            * n=0: Return values of all sub-ports as `dict`.
-            * n=1: Return value of the single sub-port.
-            * otherwise: Return values of the n provided sub-ports in a list.
-        """
-
-        if len(ports) == 0:
-            # If no specific port name is given, return values of all ports (as dict)
-            return { port: p.read()  for port, p in self._val.items() }
-        elif len(ports) == 1:
-            return self._val[ports[0]].read()
-        else:
-            port_vals = (self._val[ports[0]].read(),)
-            for i in range(1, len(ports)):
-                port_vals = port_vals+(self._val[ports[i]].read(),)
-
-            return port_vals
-
-    def write(self, *args):
-        """Writes new values to one or more sub-ports.
-
-        Args:
-            *args: A single integer value,
-                OR dict of Ports,
-                OR a list of key-value pairs.
-
-        If a single integer value is passed, all sub-ports will receive that value.
-
-        A `dict` of ports is usually passed as part of some automatic write
-        (e.g. in a `RegX`).
-
-        For writing values to a subset of the sub-ports, use a *key-value* pair list.
-        For example:
-        ```
-        p.write('foo', 42, 'bar', 99)
-        ```
-        will write 42 to the sub-port named "foo", and 99 to the sub-port named "bar".
-        """
-
-        # If a single integer value is passed to this function,
-        # all subports will get this value.
-        if type(args[0]) is int:
-            for port in self._val:
-                self._val[port].write(args[0])
-            return
-
-        # If a dict of ports is passed to this function,
-        # this usually means that we want to copy the values
-        # of some other PortX to this PortX (e.g. inside a RegX).
-        if type(args[0]) is dict:
-            ports = args[0]
-            # self._val.update(args[0])
-            for port in ports.keys():
-                self._val[port].write(ports[port])
-            return
-
-        # Even indices: sub-port names
-        # Odd indices: values
-        for i in range(0, len(args), 2):
-            self._val[args[i]].write(args[i+1])
-
-    def connect(self, driver):
-        """Connects the current PortX to a driver PortX.
-
-        Args:
-            driver (PortX): The new driver port for this port.
-
-        Raises:
-            TypeError: The `driver` was not a PortX object.
-        """
-
-        if not isinstance(driver, PortX):
-            raise TypeError("{} is not a PortX!".format(driver))
-
-        # Iterate over port names (keys) and
-        # Connect each sub-port to their new drivers.
-        for port in self._val:
-            self._val[port].connect(driver._val[port])
-
-    # These two overrides are necessary when we want to connect two sub-ports
-    # directly by applying [] to the PortX object, instead of PortX._val[..].
-    def __getitem__(self, key):
-        # `key` is the name of a sub-port
-        return self._val[key]
-
-    # TODO: Is this method necessary??
-    def __setitem__(self, key, value):
-        if not isinstance(value, Port):
-            raise TypeError("{} is not of type Port!".format(value))
-
-        self._val[key] = value
-        # self._val[key].connect(value)
-
-    def _namePorts(self):
-        """Name all subports with portxName.subportName format.
-
-        This requires a name to be set for the PortX (usually in Module.init()).
-        """
-        for port in self._val:
-            self._val[port].name = self.name+"."+port
-
 # A Wire has the same methods and attributes as a Port.
-class Wire(Port):
-    """Represents a single-valued wire.
+class Wire(Port[T]):
+    """Represents a wire.
 
     A wire can be written to and read from just like a regular `Port`.
 
     A wire can be connected to other wires or ports.
-    """
-    pass
 
-class WireX(PortX):
-    """Represents a multi-valued wire.
-
-    Can be connected to PortX ports.
+    If wire value changes, sensitive methods are triggered.
     """
-    pass
+    def __init__(self, type: Type[T], module = None, sensitive_methods = []):
+        super().__init__(type, IN, module, sensitive_methods)
