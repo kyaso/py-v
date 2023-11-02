@@ -4,13 +4,8 @@ from pyv.reg import *
 from pyv.util import MASK_32
 from pyv.mem import Memory
 from pyv.simulator import Simulator
+from .fixtures import sim
 
-# sim = Simulator()
-
-@pytest.fixture
-def sim():
-    # do some init stuff
-    return Simulator()
 
 def test_sanity():
     assert True

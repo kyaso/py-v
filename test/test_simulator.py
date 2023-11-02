@@ -6,6 +6,7 @@ from pyv.defines import *
 from pyv.reg import Reg, RegBase
 from pyv.clocked import Clock
 from collections import deque
+from .fixtures import sim
 
 # Build a simple example circuit
 class A(Module):
@@ -106,20 +107,17 @@ class ExampleTop2(Module):
         pass
 
 
-def test_init():
-    sim = Simulator()
-
+def test_init(sim):
     assert sim._queue == deque([])
     assert sim._cycles == 0
     assert Simulator.globalSim == sim
 
-def test_queue():
+def test_queue(sim):
     Clock.clear()
 
     dut = ExampleTop()
     dut.name = 'ExampleTop'
     dut.init()
-    sim = Simulator()
     Clock.reset()
 
     dut.inA.write(42)
@@ -147,10 +145,9 @@ def test_queue():
     assert sim._queue == deque([])
     assert dut.out.read() == 42+43
 
-def test_run():
+def test_run(sim):
     Clock.clear()
 
-    sim = Simulator()
     dut = ExampleTop2()
     dut.name = 'ExampleTop2'
     dut.init()
