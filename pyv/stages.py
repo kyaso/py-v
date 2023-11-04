@@ -34,7 +34,7 @@ class EXMEM_t:
     rd: int = 0
     we: int = 0
     wb_sel: int = 0
-    take_branch: int = 0
+    take_branch: bool = False
     alu_res: int = 0
     pc4: int = 0
     rs2: int = 0
@@ -741,7 +741,7 @@ class BranchUnit(Module):
     """
     def __init__(self):
         self.pc_i = Port(int, IN, self)
-        self.take_branch_i = Port(int, IN, self)
+        self.take_branch_i = Port(bool, IN, self)
         self.target_i = Port(int, IN, self)
         self.npc_o = Port(int, OUT, self)
 

@@ -1261,20 +1261,20 @@ def test_branch_unit(sim):
 
     # Test ports
     assert bu.pc_i._type == int
-    assert bu.take_branch_i._type == int
+    assert bu.take_branch_i._type == bool
     assert bu.target_i._type == int
     assert bu.npc_o._type == int
 
     # Test regular PC increment
     bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(0)
+    bu.take_branch_i.write(False)
     bu.target_i.write(0x40000000)
     sim._process_queue()
     assert bu.npc_o.read() == 0x80000004 
 
     # Test taken branch
     bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(1)
+    bu.take_branch_i.write(True)
     bu.target_i.write(0x40000000)
     sim._process_queue()
     assert bu.npc_o.read() == 0x40000000
