@@ -58,6 +58,10 @@
 - **New**: Added **synchronous resets**
   - Registers now have a second input port `rst`
     - If asserted, the register will be reset to its `resetVal` with the next tick
+- **New**: Added **Events**
+  - An event can be posted in absolute or relative time
+  - An event triggers when the current cycle matches the event time
+  - Upon trigger a user-defined callback function will be called
 
 # 0.1.0
 
