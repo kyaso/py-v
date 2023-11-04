@@ -47,9 +47,9 @@ def test_IFStage(sim):
     fetch.imem._tick()
     fetch.npc_i.write(0x00000000)
 
-    sim.process_queue()
+    sim._process_queue()
     RegBase.tick()
-    sim.process_queue()
+    sim._process_queue()
 
     out = fetch.IFID_o.read()
     assert out.inst == 0xfea42623
@@ -138,27 +138,27 @@ class TestIDStage:
         # No exception for valid instruction
         inst = 0x23 # store
         dec.IFID_i.write(IFID_t(inst, pc))
-        sim.process_queue()
+        sim._process_queue()
 
         ## Inst[1:0] != 2'b11
         inst = 0x10
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
 
         ## Unsupported RV32base Opcodes
         inst = 0x1F # opcode = 0011111
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
-            sim.process_queue()
+            sim._process_queue()
 
         inst = 0x73 # opcode = 1110011
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
-            sim.process_queue()
+            sim._process_queue()
 
         ## Illegal combinations of funct3, funct7
 
@@ -168,13 +168,13 @@ class TestIDStage:
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013 # funct7 = 1100000
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
 
         # ADD - AND -> opcode = 0110011
         # If funct7 != {0, 0100000} -> illegal
@@ -182,20 +182,20 @@ class TestIDStage:
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033 # funct3 = 2
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067 # funct3 = 5
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-            sim.process_queue()
+            sim._process_queue()
 
         # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
         funct3 = [2,3]
@@ -204,7 +204,7 @@ class TestIDStage:
             inst = 0x63 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-                sim.process_queue()
+                sim._process_queue()
 
         # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
         funct3 = [3,6,7]
@@ -213,7 +213,7 @@ class TestIDStage:
             inst = 0x3 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-                sim.process_queue()
+                sim._process_queue()
 
         # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
         funct3 = [3,4,5,6,7]
@@ -222,7 +222,7 @@ class TestIDStage:
             inst = 0x23 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
-                sim.process_queue()
+                sim._process_queue()
 
     def test_IDStage(self, sim):
         regf = Regfile()
@@ -237,7 +237,7 @@ class TestIDStage:
 
         # Set inputs
         decode.IFID_i.write(IFID_t(0xfea42623, 0x80000004))
-        sim.process_queue()
+        sim._process_queue()
 
         # Validate outputs
         out = decode.IDEX_o.read()
@@ -254,7 +254,7 @@ class TestIDStage:
         # Test instruction with register write
         # ADDI x0, x0, 0
         decode.IFID_i.write(IFID_t(0x00000013, 0x80000004))
-        sim.process_queue()
+        sim._process_queue()
         out = decode.IDEX_o.read()
         assert out.rs1 == 0
         assert out.rs2 == 0
@@ -275,7 +275,7 @@ class TestIDStage:
         regf._tick()
 
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
-        sim.process_queue()
+        sim._process_queue()
         out = decode.IDEX_o.read()
         assert out.rs1 == 43
         assert out.rs2 == 12
@@ -301,7 +301,7 @@ class TestIDStage:
         regf.writeRequest(8, 0x40000000)
         regf._tick()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
-        sim.process_queue()
+        sim._process_queue()
         out = decode.IDEX_o.read()
         assert out.rs1 == 0x40000000
         assert out.imm == 0x456
@@ -328,7 +328,7 @@ class TestEXStage:
 
         ex.IDEX_i.write(IDEX_t(rd=1, we=1, wb_sel=2, rs2=23, mem=1, funct3=5))
 
-        sim.process_queue()
+        sim._process_queue()
 
         out = ex.EXMEM_o.read()
         assert out.rd == 1
@@ -792,7 +792,7 @@ class TestEXStage:
             wb_sel=0,
             opcode=0b01101
         ))
-        sim.process_queue()
+        sim._process_queue()
         out = ex.EXMEM_o.read()
         assert out.take_branch == False
         assert out.alu_res == 0xaffe<<12
@@ -811,7 +811,7 @@ class TestEXStage:
             wb_sel=0,
             opcode=0b00101
         ))
-        sim.process_queue()
+        sim._process_queue()
         out = ex.EXMEM_o.read()
         assert out.take_branch == False
         assert out.alu_res == 0x8AFFE000
@@ -830,7 +830,7 @@ class TestEXStage:
             wb_sel=1,
             opcode=0b11011
         ))
-        sim.process_queue()
+        sim._process_queue()
         out = ex.EXMEM_o.read()
         assert out.take_branch == True
         assert out.alu_res == 0x8005F514
@@ -850,7 +850,7 @@ class TestEXStage:
             wb_sel=1,
             opcode=0b11001
         ))
-        sim.process_queue()
+        sim._process_queue()
         out = ex.EXMEM_o.read()
         assert out.take_branch == True
         assert out.alu_res == 0x4600
@@ -875,7 +875,7 @@ class TestEXStage:
             opcode=0b11011
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # JALR x13, rs1, 0xA8A
@@ -888,7 +888,7 @@ class TestEXStage:
             opcode=0b11001
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BEQ
@@ -901,7 +901,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BNE
@@ -914,7 +914,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BLT
@@ -927,7 +927,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BGE
@@ -940,7 +940,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BLTU
@@ -953,7 +953,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # BGEU
@@ -966,7 +966,7 @@ class TestEXStage:
             opcode=0b11000
         ))
         with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
-            sim.process_queue()
+            sim._process_queue()
         pc += 4
 
         # No exception for not-taken branch
@@ -979,7 +979,7 @@ class TestEXStage:
             funct3=0,
             opcode=0b11000
         ))
-        sim.process_queue()
+        sim._process_queue()
         pc += 4
 
 
@@ -1005,7 +1005,7 @@ class TestMEMStage:
             pc4=0xdeadbeef,
             alu_res=0xaffeaffe
         ))
-        sim.process_queue()
+        sim._process_queue()
         out = mem.MEMWB_o.read()
         assert out.rd == 1
         assert out.we == 1
@@ -1027,7 +1027,7 @@ class TestMEMStage:
             alu_res=2, # addr
             funct3=0 #lb
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0xffffffad
 
         mem.EXMEM_i.write(EXMEM_t(
@@ -1035,7 +1035,7 @@ class TestMEMStage:
             alu_res=5, # addr
             funct3=0 #lb
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0x00000001 
 
         # LH
@@ -1044,7 +1044,7 @@ class TestMEMStage:
             alu_res=2, # addr
             funct3=1 # lh
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0xffffdead
 
         mem.EXMEM_i.write(EXMEM_t(
@@ -1052,7 +1052,7 @@ class TestMEMStage:
             alu_res=4, # addr
             funct3=1 # lh
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0x00000123 
 
         # LW
@@ -1061,7 +1061,7 @@ class TestMEMStage:
             alu_res=0, # addr
             funct3=2 # lw
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0xdeadbeef
 
         # LBU
@@ -1070,7 +1070,7 @@ class TestMEMStage:
             alu_res=2, # addr
             funct3=4 # lbu
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0xad
 
         # LHU
@@ -1079,7 +1079,7 @@ class TestMEMStage:
             alu_res=2, # addr
             funct3=5 # lbu
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert mem.MEMWB_o.read().mem_rdata == 0xdead
 
     def test_store(self, sim):
@@ -1092,7 +1092,7 @@ class TestMEMStage:
             rs2=0xabadbabe, # wdata
             funct3=0 # sb
         ))
-        sim.process_queue()
+        sim._process_queue()
         mem.mem._tick()
         assert mem.mem.read(3, 1) == 0xbe
 
@@ -1106,7 +1106,7 @@ class TestMEMStage:
             rs2=0xabadbabe, # wdata
             funct3=1 # sh
         ))
-        sim.process_queue()
+        sim._process_queue()
         mem.mem._tick()
         assert mem.mem.read(0, 2) == 0xbabe
 
@@ -1117,7 +1117,7 @@ class TestMEMStage:
             rs2=0xabadbabe, # wdata
             funct3=2 # sw
         ))
-        sim.process_queue()
+        sim._process_queue()
         mem.mem._tick()
         assert mem.mem.read(0, 4) == 0xabadbabe
 
@@ -1131,7 +1131,7 @@ class TestMEMStage:
             alu_res=1, # addr
             funct3=1 # lh
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert f"Misaligned load from address 0x00000001" in caplog.text
         caplog.clear()
 
@@ -1141,7 +1141,7 @@ class TestMEMStage:
             alu_res=3, # addr
             funct3=2 # lw
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert f"Misaligned load from address 0x00000003" in caplog.text
         caplog.clear()
 
@@ -1152,7 +1152,7 @@ class TestMEMStage:
             alu_res=1, # addr
             funct3=1 # sh
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert f"Misaligned store to address 0x00000001" in caplog.text
         caplog.clear()
 
@@ -1162,7 +1162,7 @@ class TestMEMStage:
             alu_res=3, # addr
             funct3=2 # sw
         ))
-        sim.process_queue()
+        sim._process_queue()
         assert f"Misaligned store to address 0x00000003" in caplog.text
         caplog.clear()
 
@@ -1188,7 +1188,7 @@ class TestWBStage:
             mem_rdata=0xdeadbeef,
             wb_sel=0
         ))
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(18) == 42
 
@@ -1201,7 +1201,7 @@ class TestWBStage:
             mem_rdata=0xdeadbeef,
             wb_sel=1
         ))
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(31) == 87
 
@@ -1214,7 +1214,7 @@ class TestWBStage:
             mem_rdata=0xdeadbeef,
             wb_sel=2
         ))
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(4) == 0xdeadbeef
 
@@ -1235,21 +1235,21 @@ class TestWBStage:
         # ALU op
         val.wb_sel = 0
         wb.MEMWB_i.write(val)
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
         # PC+4 (JAL)
         val.wb_sel = 1
         wb.MEMWB_i.write(val)
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
         # Memory load
         val.wb_sel = 2
         wb.MEMWB_i.write(val)
-        sim.process_queue()
+        sim._process_queue()
         wb.regfile._tick()
         assert wb.regfile.read(25) == 1234
 
@@ -1269,12 +1269,12 @@ def test_branch_unit(sim):
     bu.pc_i.write(0x80000000)
     bu.take_branch_i.write(0)
     bu.target_i.write(0x40000000)
-    sim.process_queue()
+    sim._process_queue()
     assert bu.npc_o.read() == 0x80000004 
 
     # Test taken branch
     bu.pc_i.write(0x80000000)
     bu.take_branch_i.write(1)
     bu.target_i.write(0x40000000)
-    sim.process_queue()
+    sim._process_queue()
     assert bu.npc_o.read() == 0x40000000

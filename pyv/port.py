@@ -16,9 +16,9 @@ class Port(Generic[T]):
 
         Args:
             type: Data type for this Port.
-            direction (bool): Direction of this Port.
+            direction (bool, optional): Direction of this Port.
                 Defaults to Input.
-            module (Module): The module this port belongs to.
+            module (Module, optional): The module this port belongs to.
             sensitive_methods (list, optional): List of methods to trigger when
                 a write to this port changes it current value. Only valid for
                 INPUT ports. If omitted, only the parent module's process()
@@ -115,7 +115,7 @@ class Port(Generic[T]):
         if self._direction == IN:
             import pyv.simulator as simulator
             for func in self._processMethods:
-                simulator.Simulator.globalSim.addToSimQ(func)
+                simulator.Simulator.globalSim._addToProcessQueue(func)
 
         # Now call propagate change to children as well.
         for p in self._children:
@@ -130,8 +130,8 @@ class Port(Generic[T]):
         Raises:
             Exception: The port attempted to connect to itself.
             TypeError: The `driver` was not of type `Port`.
-            Exception: The port is already connected to another port.
             TypeError: Driver port is of different type.
+            Exception: The port is already connected to another port.
         """
 
         # Check whether an illegal self-connection was attempted.
@@ -168,4 +168,11 @@ class Wire(Port[T]):
     If wire value changes, sensitive methods are triggered.
     """
     def __init__(self, type: Type[T], module = None, sensitive_methods = []):
+        """Create a new wire.
+
+        Args:
+            type: Data type of wire value
+            module (optional): Module this wire belongs to. Defaults to None.
+            sensitive_methods (list, optional): Same as for Port.
+        """
         super().__init__(type, IN, module, sensitive_methods)

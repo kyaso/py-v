@@ -213,4 +213,4 @@ class TestPort:
         sim = Simulator()
 
         p.write(42)
-        assert sim._queue == deque([foo, bar])
+        assert sim._process_q == deque([foo, bar])
