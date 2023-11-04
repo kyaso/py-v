@@ -1,8 +1,9 @@
-from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
+from pyv.stages import EXMEM_t, IFID_t, IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
 from pyv.mem import Memory
 from pyv.reg import Regfile
 from pyv.module import Module
 from pyv.models.model import Model
+from pyv.port import Wire
 
 class SingleCycle(Module):
     """Implements a simple, 5-stage, single cylce RISC-V CPU.
@@ -20,15 +21,34 @@ class SingleCycle(Module):
         self.wb_stg = WBStage(self.regf)
         self.bu = BranchUnit()
 
+        # Wires
+        self.IFID = Wire(IFID_t, self, sensitive_methods=[self.connects])
+        self.EXMEM = Wire(EXMEM_t, self, sensitive_methods=[self.connects])
+        self.pc = Wire(int)
+        self.take_branch = Wire(bool)
+        self.alu_res = Wire(int)
+
+        self.IFID.connect(self.if_stg.IFID_o)
+        self.EXMEM.connect(self.ex_stg.EXMEM_o)
+
         # Connect stages
         self.if_stg.npc_i        .connect(self.bu.npc_o)
         self.id_stg.IFID_i       .connect(self.if_stg.IFID_o)
         self.ex_stg.IDEX_i       .connect(self.id_stg.IDEX_o)
         self.mem_stg.EXMEM_i     .connect(self.ex_stg.EXMEM_o)
         self.wb_stg.MEMWB_i      .connect(self.mem_stg.MEMWB_o)
-        self.bu.pc_i             .connect(self.if_stg.IFID_o['pc'])
-        self.bu.take_branch_i    .connect(self.ex_stg.EXMEM_o['take_branch'])
-        self.bu.target_i         .connect(self.ex_stg.EXMEM_o['alu_res']) 
+        self.bu.pc_i             .connect(self.pc)
+        self.bu.take_branch_i    .connect(self.take_branch)
+        self.bu.target_i         .connect(self.alu_res)
+
+    def connects(self):
+        val = self.IFID.read().pc
+        self.pc.write(val)
+
+        val = self.EXMEM.read()
+        self.take_branch.write(val.take_branch)
+        self.alu_res.write(val.alu_res)
+
 
 class SingleCycleModel(Model):
     """Model wrapper for SingleCycle."""
