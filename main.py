@@ -53,9 +53,18 @@ def fibonacci():
   print("Result = ", core.readDataMem(2048, 4))
   print("")
 
+def endless_loop():
+  core_type = 'single'
+  program_name = 'ENDLESS_LOOP'
+  path_to_bin = 'programs/endless_loop/endless_loop.bin'
+  num_cycles = 10000
+
+  core = execute_bin(core_type, program_name, path_to_bin, num_cycles)
+
 def main():
   loop_acc()
   fibonacci()
+  endless_loop()
 
 if __name__ == '__main__':
   main()
