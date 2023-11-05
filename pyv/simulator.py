@@ -90,7 +90,7 @@ class Simulator:
         while self._events_pending():
             event: Event = self._event_q.get_next_event()
             callback = event[2]
-            logger.info(f"Triggering event -> {callback.__qualname__}()")
+            logger.debug(f"Triggering event -> {callback.__qualname__}()")
             callback()
 
     def _customLog(self):
