@@ -33,7 +33,7 @@ class Reg(RegBase, Generic[T]):
         if self.rst.read() == 1:
             self._doReset = True
         elif self.rst.read() == 0:
-            self.nextv = self.next.read()
+            self.nextv = copy.deepcopy(self.next.read())
         else:
             raise Exception("Error: Invalid rst signal!")
 

@@ -331,7 +331,17 @@ class EXStage(Module):
         self.exmem_val = EXMEM_t()
 
     def writeOutput(self):
-        self.EXMEM_o.write(self.exmem_val)
+        self.EXMEM_o.write(EXMEM_t(
+            self.exmem_val.rd,
+            self.exmem_val.we,
+            self.exmem_val.wb_sel,
+            self.exmem_val.take_branch,
+            self.exmem_val.alu_res,
+            self.exmem_val.pc4,
+            self.exmem_val.rs2,
+            self.exmem_val.mem,
+            self.exmem_val.funct3
+        ))
 
     def passThrough(self):
         val = self.IDEX_i.read()

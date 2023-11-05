@@ -66,7 +66,7 @@ class Port(Generic[T]):
         if self._direction == OUT:
             warnings.warn("Reading output ports directly in process methods is not recommended. If you are reading a top-level output port, you can ignore this warning.")
 
-        return copy.deepcopy(self._val)
+        return self._val
 
     def write(self, val: T):
         """Writes a new value to the port.
@@ -109,7 +109,7 @@ class Port(Generic[T]):
         """
         logger.debug(f"Port {self.name} changed from {self._val} to {val}.")
 
-        self._val = copy.deepcopy(val)
+        self._val = val
 
         # Add this port's sensitive methods to the simulation queue
         if self._direction == IN:

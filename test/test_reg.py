@@ -37,7 +37,7 @@ def test_regbase():
     reg = myReg(0)
     with pytest.raises(NotImplementedError):
         reg._prepareNextVal()
-    
+
     with pytest.raises(NotImplementedError):
         reg._tick()
 
@@ -123,6 +123,19 @@ def test_regChain():
     assert B.cur.read() == 0
     assert C.cur.read() == 0
     assert D.cur.read() == 0x42
+
+def test_next_value_does_not_propagate():
+    RegBase.clear()
+
+    A = Reg(list)
+
+    foo = [1,2]
+
+    A.next.write(foo)
+    RegBase.tick()
+
+    foo[0] = 3
+    assert A.cur._val == [1,2]
 
 def test_shiftReg():
     RegBase.clear()
