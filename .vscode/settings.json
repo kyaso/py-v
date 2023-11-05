@@ -2,5 +2,11 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.testing.pytestPath": "pytest",
+    "python.defaultInterpreterPath": "/home/kyaso/projects/py-v/venv/bin/python",
+    "python.testing.pytestArgs": [
+        "--ignore=pyv/serial",
+        "-s"
+    ],
     //"python.testing.cwd": "./test"
 }
