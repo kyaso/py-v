@@ -51,6 +51,23 @@ class Simulator:
         # Custom log function
         self.customLog = customLog
 
+    def step(self):
+        """Perform one simulation step (cycle).
+        """
+        #print("")
+        #print("**** Cycle {} ****".format(self._cycles))
+        logger.debug("**** Cycle {} ****".format(self._cycles))
+        #print("")
+
+        self._process_events()
+        self._process_queue()
+
+        self._customLog()
+
+        Clock.tick()
+        self._customLog()
+        self._cycles += 1
+
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
 
@@ -63,19 +80,7 @@ class Simulator:
             Clock.reset()
 
         for i in range(0, num_cycles):
-            #print("")
-            #print("**** Cycle {} ****".format(self._cycles))
-            logger.debug("**** Cycle {} ****".format(self._cycles))
-            #print("")
-
-            self._process_events()
-            self._process_queue()
-
-            self._customLog()
-
-            Clock.tick()
-            self._customLog()
-            self._cycles += 1
+            self.step()
 
     def _process_queue(self):
         while len(self._process_q) > 0:

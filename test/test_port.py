@@ -157,13 +157,13 @@ class TestPort:
         # However, since this is the first write, the
         # propagation should be forced.
         A_i.pi.write(0)
-        sim.run(1)
+        sim.step()
         assert A_i.po.read() == 3
 
         # Now, we write the same value again, but this time
         # the output shouldn't change.
         A_i.pi.write(0)
-        sim.run(1)
+        sim.step()
         assert A_i.po.read() == 3
 
     def test_readOutput(self):

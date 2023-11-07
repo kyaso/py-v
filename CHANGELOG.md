@@ -64,6 +64,9 @@
   - An event can be posted in absolute or relative time
   - An event triggers when the current cycle matches the event time
   - Upon trigger a user-defined callback function will be called
+- Changes to **Simulator**
+  - Added `step()` method
+    - This method advanced the simulation by one cycle
 
 # 0.1.0
 

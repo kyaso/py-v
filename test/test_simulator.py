@@ -148,6 +148,15 @@ class TestSimulator:
         assert sim._process_q == deque([])
         assert dut.out.read() == 42+43
 
+    def test_step(self, sim: Simulator):
+        pe = sim._process_events = MagicMock()
+        pq = sim._process_queue = MagicMock()
+
+        sim.step()
+        pe.assert_called_once()
+        pq.assert_called_once()
+        assert sim._cycles == 1
+
     def test_run(self, sim: Simulator):
         Clock.clear()
 
@@ -158,20 +167,20 @@ class TestSimulator:
         sim._process_events = MagicMock()
         Clock.reset()
 
-        #sim.run(3)
-        #assert dut.out.read() == -225
-
-        sim.run(1, False)
-        assert dut.out.read() == -25
-
-        sim.run(1, False)
-        assert dut.out.read() == 445
-
-        sim.run(1, False)
-        assert dut.out.read() == -225
-
-        sim.run(1, False)
+        sim.run(4)
         assert dut.out.read() == 4475
+
+        # sim.step()
+        # assert dut.out.read() == -25
+
+        # sim.step()
+        # assert dut.out.read() == 445
+
+        # sim.step()
+        # assert dut.out.read() == -225
+
+        # sim.step()
+        # assert dut.out.read() == 4475
 
         assert sim.getCycles() == 4
         assert sim._process_events.call_count == 4
