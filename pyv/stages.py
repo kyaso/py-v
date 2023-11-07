@@ -65,8 +65,8 @@ class IFStage(Module):
 
     def __init__(self, imem: Memory):
         # Next PC
-        self.npc_i = Port(int, IN, self)
-        self.IFID_o = Port(IFID_t, OUT, self)
+        self.npc_i = Input(int, self)
+        self.IFID_o = Output(IFID_t, self)
 
         # Program counter (PC)
         self.pc_reg = Reg(int, -4)
@@ -111,10 +111,10 @@ class IDStage(Module):
         self.regfile = regf
 
         # Inputs
-        self.IFID_i = Port(IFID_t, IN, self)
+        self.IFID_i = Input(IFID_t, self)
 
         # Outputs
-        self.IDEX_o = Port(IDEX_t, OUT, self)
+        self.IDEX_o = Output(IDEX_t, self)
 
     def process(self):
         # Read inputs
@@ -325,9 +325,9 @@ class EXStage(Module):
         EXMEM_o: Interface to MEMStage.
     """
     def __init__(self):
-        self.IDEX_i = Port(IDEX_t, IN, self, sensitive_methods=[self.process, self.passThrough])
+        self.IDEX_i = Input(IDEX_t, self, sensitive_methods=[self.process, self.passThrough])
 
-        self.EXMEM_o = Port(EXMEM_t, OUT, self)
+        self.EXMEM_o = Output(EXMEM_t, self)
         self.exmem_val = EXMEM_t()
 
     def writeOutput(self):
@@ -627,8 +627,8 @@ class MEMStage(Module):
         MEMWB_o: Interface to WBStage.
     """
     def __init__(self, dmem: Memory):
-        self.EXMEM_i = Port(EXMEM_t, IN, self)
-        self.MEMWB_o = Port(MEMWB_t, OUT, self)
+        self.EXMEM_i = Input(EXMEM_t, self)
+        self.MEMWB_o = Output(MEMWB_t, self)
 
         # Main memory
         self.mem = dmem
@@ -708,7 +708,7 @@ class WBStage(Module):
     def __init__(self, regf: Regfile):
         self.regfile = regf
 
-        self.MEMWB_i = Port(MEMWB_t, IN, self)
+        self.MEMWB_i = Input(MEMWB_t, self)
 
     def process(self):
         # Read inputs
@@ -750,10 +750,10 @@ class BranchUnit(Module):
         npc_o: Next PC
     """
     def __init__(self):
-        self.pc_i = Port(int, IN, self)
-        self.take_branch_i = Port(bool, IN, self)
-        self.target_i = Port(int, IN, self)
-        self.npc_o = Port(int, OUT, self)
+        self.pc_i = Input(int, self)
+        self.take_branch_i = Input(bool, self)
+        self.target_i = Input(int, self)
+        self.npc_o = Output(int, self)
 
     def process(self):
         # Read inputs

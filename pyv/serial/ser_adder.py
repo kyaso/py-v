@@ -6,12 +6,12 @@ from reg import Reg
 class SerAdder(Module):
     def __init__(self):
         # Inputs
-        self.A_i = Port()
-        self.B_i = Port()
-        self.C_rst_i = Port()
+        self.A_i = Input(int)
+        self.B_i = Input(int)
+        self.C_rst_i = Input(int)
 
         # Outputs
-        self.S_o = Port()
+        self.S_o = Input(int)
 
         # Internal carry register
         self.carry = 0

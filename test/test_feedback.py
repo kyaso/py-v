@@ -1,22 +1,21 @@
 from pyv.module import Module
-from pyv.port import Port
-from pyv.defines import IN, OUT
+from pyv.port import Input, Output
 from pyv.simulator import Simulator
 
 class A(Module):
     def __init__(self):
-        self.IN = Port(int, IN, self)
-        self.OUT = Port(int, OUT, self)
+        self.IN = Input(int, self)
+        self.OUT = Output(int, self)
 
     def process(self):
         self.OUT.write(self.IN.read() * 2)
 
 class B(Module):
     def __init__(self):
-        self.IN1 = Port(int, IN, self)
-        self.IN2 = Port(int, IN, self)
-        self.OUT1 = Port(int, OUT, self)
-        self.OUT2 = Port(int, OUT, self)
+        self.IN1 = Input(int, self)
+        self.IN2 = Input(int, self)
+        self.OUT1 = Output(int, self)
+        self.OUT2 = Output(int, self)
 
     def process(self):
         in1 = self.IN1.read()
@@ -27,10 +26,10 @@ class B(Module):
 
 class C(Module):
     def __init__(self):
-        self.IN1 = Port(int, IN, self)
-        self.IN2 = Port(int, IN, self)
-        self.OUT1 = Port(int, OUT, self)
-        self.OUT2 = Port(int, OUT, self)
+        self.IN1 = Input(int, self)
+        self.IN2 = Input(int, self)
+        self.OUT1 = Output(int, self)
+        self.OUT2 = Output(int, self)
 
     def process(self):
         in1 = self.IN1.read()
@@ -41,8 +40,8 @@ class C(Module):
 
 class Top(Module):
     def __init__(self):
-        self.IN = Port(int, IN, self)
-        self.OUT = Port(int, OUT, self)
+        self.IN = Input(int, self)
+        self.OUT = Output(int, self)
 
         self.A_i = A()
         self.B_i = B()

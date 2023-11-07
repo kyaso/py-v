@@ -1,6 +1,6 @@
 from collections import deque
 import pytest
-from pyv.port import Port, Wire
+from pyv.port import Input, Output, Wire
 from pyv.defines import *
 from pyv.module import Module
 from pyv.simulator import Simulator
@@ -12,33 +12,33 @@ class TestPort:
 
         foo = mod()
 
-        A = Port(int, IN, foo)
+        A = Input(int, foo)
         assert A._direction == IN
         assert A._module == foo
         assert type(A._val) == int
         assert A._val == 0
 
-        A = Port(float, OUT)
+        A = Output(float)
         assert A._direction == OUT
         assert A._module is None
         assert type(A._val) == float
         assert A._val == 0
 
     def test_read(self):
-        A = Port(int)
+        A = Input(int)
         A._val = 42
         assert A.read() == 42
 
     def test_write(self):
-        A = Port(int)
+        A = Input(int)
         A.write(123)
         assert A._val == 123
 
     def test_connect(self):
-        A = Port(int)
-        B = Port(int)
-        C = Port(int)
-        D = Port(int)
+        A = Input(int)
+        B = Input(int)
+        C = Input(int)
+        D = Input(int)
         B.connect(A)
         C.connect(B)
         D.connect(B)
@@ -68,9 +68,9 @@ class TestPort:
         assert D.read() == 410
 
         # Test reverse connect order
-        A = Port(int)
-        B = Port(int)
-        C = Port(int)
+        A = Input(int)
+        B = Input(int)
+        C = Input(int)
         C.connect(B)
         B.connect(A)
         assert A._children == [B]
@@ -80,10 +80,10 @@ class TestPort:
         assert C.read() == 420
 
     def test_wire(self):
-        A = Port(int)
-        B = Port(int)
-        C = Port(int)
-        D = Port(int)
+        A = Input(int)
+        B = Input(int)
+        C = Input(int)
+        D = Input(int)
         W = Wire(int)
 
         # Connect wire W to port A
@@ -102,11 +102,11 @@ class TestPort:
         assert D.read() == 42
 
     def test_errors(self):
-        A = Port(int)
+        A = Input(int)
 
         # Connecting a port to two parents
-        B = Port(int)
-        C = Port(int)
+        B = Input(int)
+        C = Input(int)
         A.connect(B)
         with pytest.raises(Exception):
             A.connect(C)
@@ -116,7 +116,7 @@ class TestPort:
             A.write(42)
 
         # Wrong type write
-        D = Port(float)
+        D = Input(float)
         with pytest.raises(TypeError):
             D.write("hello")
 
@@ -129,8 +129,8 @@ class TestPort:
             D.connect("foo")
 
     def test_connect_wrong_type(self):
-        A = Port(int)
-        B = Port(float)
+        A = Input(int)
+        B = Input(float)
 
         with pytest.raises(Exception):
             B.connect(A)
@@ -141,8 +141,8 @@ class TestPort:
         sim = Simulator()
         class modA(Module):
             def __init__(self):
-                self.pi = Port(int, IN, self, sensitive_methods=[self.process]) # Default value: 0
-                self.po = Port(int, OUT, self)
+                self.pi = Input(int, self, sensitive_methods=[self.process]) # Default value: 0
+                self.po = Output(int, self)
 
             def process(self):
                 # Simply add 3 to the input
@@ -167,7 +167,7 @@ class TestPort:
         assert A_i.po.read() == 3
 
     def test_readOutput(self):
-        p = Port(int, OUT)
+        p = Output(int)
         p.write(4)
 
         with pytest.warns(UserWarning):
@@ -180,12 +180,12 @@ class TestPort:
             pass
 
         # (also don't allow any duplicates)
-        p = Port(int, IN, sensitive_methods=[foo, bar, bar])
+        p = Input(int, sensitive_methods=[foo, bar, bar])
         assert p._processMethods == [foo, bar]
 
         # Output ports shouldn't have any sensitive methods
         with pytest.raises(Exception):
-            p2 = Port(int, OUT, sensitive_methods=[foo])
+            p2 = Output(int, sensitive_methods=[foo])
 
         # Default sensitive method
         class modA(Module):
@@ -194,11 +194,11 @@ class TestPort:
 
         A = modA()
         # When no sens list, default to parent module's process method
-        p3 = Port(int, IN, A)
+        p3 = Input(int, A)
         assert p3._processMethods == [A.process]
 
         # When sens list AND module given, only take the sens list
-        p4 = Port(int, IN, A, sensitive_methods=[bar, foo])
+        p4 = Input(int, A, sensitive_methods=[bar, foo])
         assert p4._processMethods == [bar, foo]
 
 
@@ -208,7 +208,7 @@ class TestPort:
         def bar():
             pass
 
-        p = Port(int, IN, sensitive_methods = [foo, bar])
+        p = Input(int, sensitive_methods = [foo, bar])
 
         sim = Simulator()
 

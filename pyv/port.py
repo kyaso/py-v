@@ -1,4 +1,3 @@
-import copy
 from typing import TypeVar, Generic, Type
 from pyv.defines import *
 import warnings
@@ -8,15 +7,15 @@ logger = log.getLogger(__name__)
 
 T = TypeVar('T')
 
-class Port(Generic[T]):
+class _Port(Generic[T]):
     """Represents a single port."""
 
     def __init__(self, type: Type[T], direction: bool = IN, module = None, sensitive_methods = []):
-        """Create a new Port object.
+        """Create a new _Port object.
 
         Args:
-            type: Data type for this Port.
-            direction (bool, optional): Direction of this Port.
+            type: Data type for this _Port.
+            direction (bool, optional): Direction of this _Port.
                 Defaults to Input.
             module (Module, optional): The module this port belongs to.
             sensitive_methods (list, optional): List of methods to trigger when
@@ -125,11 +124,11 @@ class Port(Generic[T]):
         """Connects the current port to a driver port.
 
         Args:
-            driver (Port): The new driving port for this port.
+            driver (_Port): The new driving port for this port.
 
         Raises:
             Exception: The port attempted to connect to itself.
-            TypeError: The `driver` was not of type `Port`.
+            TypeError: The `driver` was not of type `_Port`.
             TypeError: Driver port is of different type.
             Exception: The port is already connected to another port.
         """
@@ -137,7 +136,7 @@ class Port(Generic[T]):
         # Check whether an illegal self-connection was attempted.
         if driver == self:
             raise Exception("ERROR (Port): Cannot connect port to itself!")
-        if not isinstance(driver, Port):
+        if not isinstance(driver, _Port):
             raise TypeError(f"{driver} is not a Port!")
         if self._type != driver._type:
             raise TypeError(f"Port type mismatch: This port is of type {self._type}, while driver is of type {driver._type}.")
@@ -157,11 +156,21 @@ class Port(Generic[T]):
         if func not in self._processMethods:
             self._processMethods.append(func)
 
+
+class Input(_Port[T]):
+    def __init__(self, type: type[T], module=None, sensitive_methods=[]):
+        super().__init__(type, IN, module, sensitive_methods)
+
+
+class Output(_Port[T]):
+    def __init__(self, type: type[T], module=None):
+        super().__init__(type, OUT, module)
+
 # A Wire has the same methods and attributes as a Port.
-class Wire(Port[T]):
+class Wire(_Port[T]):
     """Represents a wire.
 
-    A wire can be written to and read from just like a regular `Port`.
+    A wire can be written to and read from just like a regular port.
 
     A wire can be connected to other wires or ports.
 

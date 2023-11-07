@@ -1,6 +1,6 @@
 import pytest
 from pyv.module import Module
-from pyv.port import Port
+from pyv.port import Input, Output
 from pyv.simulator import Simulator, _EventQueue
 from pyv.defines import *
 from pyv.reg import Reg, RegBase
@@ -13,11 +13,11 @@ from unittest.mock import MagicMock
 # Build a simple example circuit
 class A(Module):
     def __init__(self):
-        self.inA = Port(int, IN, self)
-        self.inB = Port(int, IN, self)
+        self.inA = Input(int, self)
+        self.inB = Input(int, self)
 
-        self.outA = Port(int, OUT, self)
-        self.outB = Port(int, OUT, self)
+        self.outA = Output(int, self)
+        self.outB = Output(int, self)
     
     def process(self):
         self.outA.write(self.inA.read())
@@ -25,17 +25,17 @@ class A(Module):
 
 class B(Module):
     def __init__(self):
-        self.inA = Port(int, IN, self)
-        self.outA = Port(int, OUT, self)
+        self.inA = Input(int, self)
+        self.outA = Output(int, self)
     
     def process(self):
         self.outA.write(self.inA.read())
 
 class C(Module):
     def __init__(self):
-        self.inA = Port(int, IN, self)
-        self.inB = Port(int, IN, self)
-        self.outA = Port(int, OUT, self)
+        self.inA = Input(int, self)
+        self.inB = Input(int, self)
+        self.outA = Output(int, self)
     
     def process(self):
         self.outA.write(self.inA.read() + self.inB.read())
@@ -44,9 +44,9 @@ class ExampleTop(Module):
     def __init__(self):
         super().__init__()
 
-        self.inA = Port(int, IN, self)
-        self.inB = Port(int, IN, self)
-        self.out = Port(int, OUT, self)
+        self.inA = Input(int, self)
+        self.inB = Input(int, self)
+        self.out = Output(int, self)
 
         self.A_i = A()
         self.B1_i = B()
@@ -86,7 +86,7 @@ class ExampleTop2(Module):
     def __init__(self):
         super().__init__()
 
-        self.out = Port(int, IN, self)
+        self.out = Input(int, self)
 
         self.reg1 = Reg(int, 42)
         self.reg2 = Reg(int, 0)

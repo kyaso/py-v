@@ -1,6 +1,6 @@
 import copy
 import warnings
-from pyv.port import Port
+from pyv.port import Input, Output
 from pyv.util import bitVector2num, getBitVector
 from pyv.defines import IN, OUT
 from pyv.clocked import MemBase, RegBase
@@ -23,9 +23,9 @@ class Reg(RegBase, Generic[T]):
         # Add this register to the global register list
         super().__init__(resetVal)
 
-        self.next = Port(type, IN)          # Next value input
-        self.cur = Port(type, OUT)          # Current value output
-        self.rst = Port(int, IN)           # Synchronous Reset in (active high)
+        self.next = Input(type)          # Next value input
+        self.cur = Output(type)          # Current value output
+        self.rst = Input(int)           # Synchronous Reset in (active high)
 
     def _prepareNextVal(self):
         self._doReset = False
@@ -60,9 +60,9 @@ class ShiftReg(RegBase):
 
         self.depth = depth
 
-        self.serIn = Port(int, IN)          # Serial input
-        self.serOut = Port(int, OUT)         # Serial output
-        self.rst = Port(int, IN)          # Synchronous reset (active high)
+        self.serIn = Input(int)          # Serial input
+        self.serOut = Output(int)         # Serial output
+        self.rst = Input(int)          # Synchronous reset (active high)
 
         # Initialize shift register
         self._reset()
@@ -115,9 +115,9 @@ class ShiftRegParallel(ShiftReg):
     def __init__(self, depth, resetVal = 0):
         super().__init__(depth, resetVal)
 
-        self.parEnable = Port(int, IN)
-        self.parIn = Port(int, IN)
-        self.parOut = Port(int, OUT)
+        self.parEnable = Input(int)
+        self.parIn = Input(int)
+        self.parOut = Output(int)
         self.depth = depth
         self.parInNext = 0
         self.parMask = 2**self.depth - 1
