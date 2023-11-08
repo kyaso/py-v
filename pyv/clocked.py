@@ -1,13 +1,9 @@
 class Clock:
-    """This class represents all clocked elements.
+    """This class represents the clock.
 
     For now, clocked elements are:
     - Registers
     - Memories
-
-    Raises:
-        NotImplementedError: Subclass did not implement _tick()
-        NotImplementedError: Subclass did not implement _reset()
     """
 
     def __init__(self):
@@ -33,7 +29,11 @@ class Clock:
         """Clears list of registers and memories."""
         RegBase.clear()
         MemBase.clear()
-    
+
+
+class Clocked():
+    """Base class for all clocked elements (Registers, Memories).
+    """
     def _tick(self):
         """Tick function of individual clocked element."""
         raise NotImplementedError
@@ -42,7 +42,8 @@ class Clock:
         """Reset function of individual clocked element."""
         raise NotImplementedError
 
-class RegBase(Clock):
+
+class RegBase(Clocked):
     """Base class for registers.
 
     This class keeps track of all instantiated registers.
@@ -100,7 +101,7 @@ class RegBase(Clock):
         """
         raise NotImplementedError
 
-class MemBase(Clock):
+class MemBase(Clocked):
     """Base class for all memories.
 
     This class keeps track of all memories.
