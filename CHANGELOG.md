@@ -67,6 +67,8 @@
 - Changes to **Simulator**
   - Added `step()` method
     - This method advanced the simulation by one cycle
+- Changes to **Modules**:
+  - Two ports can now be connected via the standard assignment operator
 
 # 0.1.0
 

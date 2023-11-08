@@ -53,14 +53,14 @@ class ExampleTop(Module):
         self.B2_i = B()
         self.C_i = C()
 
-        self.B1_i.inA.connect(self.A_i.outA)
-        self.B2_i.inA.connect(self.A_i.outB)
-        self.C_i.inA.connect(self.B1_i.outA)
-        self.C_i.inB.connect(self.B2_i.outA)
+        self.B1_i.inA = self.A_i.outA
+        self.B2_i.inA = self.A_i.outB
+        self.C_i.inA = self.B1_i.outA
+        self.C_i.inB = self.B2_i.outA
 
-        self.out.connect(self.C_i.outA)
-        self.A_i.inA.connect(self.inA)
-        self.A_i.inB.connect(self.inB) 
+        self.out = self.C_i.outA
+        self.A_i.inA = self.inA
+        self.A_i.inB = self.inB
 
     def process(self):
         pass
@@ -96,14 +96,14 @@ class ExampleTop2(Module):
         self.C_i = Add(-5)
         self.D_i = Mul(5)
 
-        self.reg1.next.connect(self.D_i.outA)
-        self.A_i.inA.connect(self.reg1.cur)
-        self.B_i.inA.connect(self.A_i.outA)
-        self.reg2.next.connect(self.B_i.outA)
-        self.C_i.inA.connect(self.reg2.cur)
-        self.D_i.inA.connect(self.C_i.outA)
+        self.reg1.next = self.D_i.outA
+        self.A_i.inA = self.reg1.cur
+        self.B_i.inA = self.A_i.outA
+        self.reg2.next = self.B_i.outA
+        self.C_i.inA = self.reg2.cur
+        self.D_i.inA = self.C_i.outA
 
-        self.out.connect(self.D_i.outA)
+        self.out = self.D_i.outA
 
     def process(self):
         pass

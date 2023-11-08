@@ -77,14 +77,14 @@ class IFStage(Module):
         # Helper wires
         self.pc_reg_w = Wire(int, self, [self.writeOutput])
         self.ir_reg_w = Wire(int, self, [self.writeOutput])
-        self.pc_reg_w.connect(self.pc_reg.cur)
-        self.ir_reg_w.connect(self.ir_reg.cur)
+        self.pc_reg_w = self.pc_reg.cur
+        self.ir_reg_w = self.ir_reg.cur
 
         # Instruction memory
         self.imem = imem
 
         # Connect next PC to input of PC reg
-        self.pc_reg.next.connect(self.npc_i)
+        self.pc_reg.next = self.npc_i
 
     def process(self):
         # Read inputs

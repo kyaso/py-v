@@ -1,3 +1,4 @@
+from typing import Any
 import pyv.simulator as simulator
 from pyv.clocked import RegBase
 from pyv.port import _Port
@@ -45,3 +46,19 @@ class Module:
         """Generates module's combinatorial outputs for current cycle based on inputs."""
 
         raise Exception('Please implement process() for this module')
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name not in self.__dict__.keys():
+            super().__setattr__(__name, __value)
+            return
+
+        attr = self.__dict__[__name]
+        if (isinstance(attr, _Port) and isinstance(__value, _Port)):
+            port: _Port = attr
+            driver: _Port = __value
+            port.connect(driver)
+            return
+        else:
+            super().__setattr__(__name, __value)
+            return
+
