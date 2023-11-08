@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 import pytest
 import random
 from pyv.reg import * 
@@ -29,6 +30,21 @@ def test_reg():
 
     RegBase.tick()
     assert reg.cur.read() == 0x69
+
+def test_reg_tick():
+    RegBase.clear()
+    reg = Reg(int)
+    reg.next.write(42)
+    RegBase.tick()
+    assert reg._doTick == True
+    assert reg.cur._val == 42
+
+    # Tick again, but as port value is unchanged, register should skip _tick
+    reg.cur.write = MagicMock()
+    RegBase.tick()
+    assert reg._doTick == False
+    reg.cur.write.assert_not_called()
+
 
 def test_regbase():
     class myReg(RegBase):

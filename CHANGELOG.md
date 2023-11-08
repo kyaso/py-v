@@ -72,6 +72,7 @@
   - Two ports can now be connected via the standard assignment operator
   - `process()` method is no longer mandatory
     - The facilitates having wrapper modules without their own logic
+- Registers now only tick when next value is different from current value
 
 # 0.1.0
 

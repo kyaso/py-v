@@ -29,11 +29,14 @@ class Reg(RegBase, Generic[T]):
 
     def _prepareNextVal(self):
         self._doReset = False
+        self._doTick = False
 
         if self.rst.read() == 1:
             self._doReset = True
         elif self.rst.read() == 0:
-            self._nextv = copy.deepcopy(self.next.read())
+            if self.cur._val != self.next._val:
+                self._nextv = copy.deepcopy(self.next.read())
+                self._doTick = True
         else:
             raise Exception("Error: Invalid rst signal!")
 
@@ -41,7 +44,7 @@ class Reg(RegBase, Generic[T]):
         if self._doReset:
             logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
             self._reset()
-        else:
+        elif self._doTick:
             self.cur.write(self._nextv)
 
     def _reset(self):
