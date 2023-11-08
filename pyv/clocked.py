@@ -61,8 +61,8 @@ class RegBase(Clocked):
         # Add register to register list
         self._reg_list.append(self)
 
-        self.nextv = 0
-        self.resetVal = resetVal
+        self._nextv = 0
+        self._resetVal = resetVal
 
         # Whether to do a reset on the next tick
         self._doReset = False

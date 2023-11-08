@@ -33,19 +33,19 @@ class Reg(RegBase, Generic[T]):
         if self.rst.read() == 1:
             self._doReset = True
         elif self.rst.read() == 0:
-            self.nextv = copy.deepcopy(self.next.read())
+            self._nextv = copy.deepcopy(self.next.read())
         else:
             raise Exception("Error: Invalid rst signal!")
 
     def _tick(self):
         if self._doReset:
-            logger.debug(f"Sync reset on register {self.name}. Reset value: {self.resetVal}.")
+            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
             self._reset()
         else:
-            self.cur.write(self.nextv)
+            self.cur.write(self._nextv)
 
     def _reset(self):
-        self.cur.write(self.resetVal)
+        self.cur.write(self._resetVal)
 
 
 class ShiftReg(RegBase):
@@ -69,7 +69,7 @@ class ShiftReg(RegBase):
         #self.regs = [initVal  for _ in range(0, depth)]
 
     def _reset(self):
-        self.regs = [self.resetVal  for _ in range(0, self.depth)]
+        self.regs = [self._resetVal  for _ in range(0, self.depth)]
         self.updateSerOut()
 
     def _prepareNextVal(self):
@@ -78,10 +78,10 @@ class ShiftReg(RegBase):
         if self.rst.read() == 1:
             self._doReset = True
         elif self.rst.read() == 0:
-            self.nextv = self.serIn.read()
-            if self.nextv.bit_length() > 1:
-                warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self.nextv))
-                self.nextv = self.nextv & 1
+            self._nextv = self.serIn.read()
+            if self._nextv.bit_length() > 1:
+                warnings.warn("ShiftReg serial input value ({}) is wider than 1 bit. Truncating to 1 bit.".format(self._nextv))
+                self._nextv = self._nextv & 1
 
     def _tick(self):
         """Shift elements. Or reset.
@@ -91,11 +91,11 @@ class ShiftReg(RegBase):
         """
 
         if self._doReset:
-            logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self.resetVal}.")
-            self.regs = [self.resetVal  for _ in range(0, self.depth)]
+            logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self._resetVal}.")
+            self.regs = [self._resetVal  for _ in range(0, self.depth)]
         else:
             # Fetch the new value
-            self.regs.append(self.nextv)
+            self.regs.append(self._nextv)
 
             # Perform shift
             # We move the list elements left by one

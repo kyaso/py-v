@@ -9,7 +9,7 @@ def test_reg_init():
     assert reg.next._type == float
     assert reg.cur._type == float
     assert reg.rst._type == int
-    assert reg.resetVal == 42
+    assert reg._resetVal == 42
 
 def test_reg():
     RegBase.clear()
