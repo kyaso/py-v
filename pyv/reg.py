@@ -14,7 +14,7 @@ logger = log.getLogger(__name__)
 class Reg(RegBase, Generic[T]):
     """Represents a single value register."""
 
-    def __init__(self, type: Type[T], resetVal = 0):
+    def __init__(self, type: Type[T], resetVal: T = 0):
         """Create a new register.
 
         Args:
