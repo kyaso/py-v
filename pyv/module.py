@@ -44,8 +44,8 @@ class Module:
 
     def process(self):
         """Generates module's combinatorial outputs for current cycle based on inputs."""
+        pass
 
-        raise Exception('Please implement process() for this module')
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name not in self.__dict__.keys():

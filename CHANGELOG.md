@@ -69,6 +69,8 @@
     - This method advanced the simulation by one cycle
 - Changes to **Modules**:
   - Two ports can now be connected via the standard assignment operator
+  - `process()` method is no longer mandatory
+    - The facilitates having wrapper modules without their own logic
 
 # 0.1.0
 
