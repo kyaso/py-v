@@ -41,31 +41,22 @@ class Simulator:
     # the need to know about the specific simulator instance.
     globalSim = None
 
-    def __init__(self, customLog = None):
+    def __init__(self):
         Simulator.globalSim = self
 
         self._process_q = deque()
         self._event_q = _EventQueue()
         self._cycles = 0
 
-        # Custom log function
-        self.customLog = customLog
-
     def step(self):
         """Perform one simulation step (cycle).
         """
-        #print("")
-        #print("**** Cycle {} ****".format(self._cycles))
         logger.debug("**** Cycle {} ****".format(self._cycles))
-        #print("")
 
         self._process_events()
         self._process_queue()
 
-        self._customLog()
-
         Clock.tick()
-        self._customLog()
         self._cycles += 1
 
     def run(self, num_cycles=1, reset_regs: bool = True):
@@ -97,11 +88,6 @@ class Simulator:
             callback = event[2]
             logger.debug(f"Triggering event -> {callback.__qualname__}()")
             callback()
-
-    def _customLog(self):
-        """Runs a custom logging function (if provided)."""
-        if self.customLog is not None:
-            self.customLog()
 
     def _addToProcessQueue(self, fn):
         """Add a function to the simulation queue.

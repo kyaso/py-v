@@ -5,13 +5,13 @@ import warnings
 class Model:
     """Base class for all core models.
     """
-    def __init__(self, customLog = None):
+    def __init__(self):
         print("Initializing model...")
 
         # TODO: unused
         self.cycles = 0
 
-        self.sim = Simulator(customLog)
+        self.sim = Simulator()
     
         # Initialize modules
         try:
