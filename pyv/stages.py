@@ -64,9 +64,10 @@ class IFStage(Module):
     """
 
     def __init__(self, imem: Memory):
+        super().__init__()
         # Next PC
-        self.npc_i = Input(int, self)
-        self.IFID_o = Output(IFID_t, self)
+        self.npc_i = Input(int)
+        self.IFID_o = Output(IFID_t)
 
         # Program counter (PC)
         self.pc_reg = Reg(int, -4)
@@ -75,8 +76,8 @@ class IFStage(Module):
         self.ir_reg = Reg(int, 0x00000013)
 
         # Helper wires
-        self.pc_reg_w = Wire(int, self, [self.writeOutput])
-        self.ir_reg_w = Wire(int, self, [self.writeOutput])
+        self.pc_reg_w = Wire(int, [self.writeOutput])
+        self.ir_reg_w = Wire(int, [self.writeOutput])
         self.pc_reg_w = self.pc_reg.cur
         self.ir_reg_w = self.ir_reg.cur
 
@@ -108,13 +109,14 @@ class IDStage(Module):
     """
 
     def __init__(self, regf: Regfile):
+        super().__init__()
         self.regfile = regf
 
         # Inputs
-        self.IFID_i = Input(IFID_t, self)
+        self.IFID_i = Input(IFID_t)
 
         # Outputs
-        self.IDEX_o = Output(IDEX_t, self)
+        self.IDEX_o = Output(IDEX_t)
 
     def process(self):
         # Read inputs
@@ -325,9 +327,10 @@ class EXStage(Module):
         EXMEM_o: Interface to MEMStage.
     """
     def __init__(self):
-        self.IDEX_i = Input(IDEX_t, self, sensitive_methods=[self.process, self.passThrough])
+        super().__init__()
+        self.IDEX_i = Input(IDEX_t, sensitive_methods=[self.process, self.passThrough])
 
-        self.EXMEM_o = Output(EXMEM_t, self)
+        self.EXMEM_o = Output(EXMEM_t)
         self.exmem_val = EXMEM_t()
 
     def writeOutput(self):
@@ -627,8 +630,9 @@ class MEMStage(Module):
         MEMWB_o: Interface to WBStage.
     """
     def __init__(self, dmem: Memory):
-        self.EXMEM_i = Input(EXMEM_t, self)
-        self.MEMWB_o = Output(MEMWB_t, self)
+        super().__init__()
+        self.EXMEM_i = Input(EXMEM_t)
+        self.MEMWB_o = Output(MEMWB_t)
 
         # Main memory
         self.mem = dmem
@@ -706,9 +710,10 @@ class WBStage(Module):
         MEMWB_i: Interface from MEMStage.
     """
     def __init__(self, regf: Regfile):
+        super().__init__()
         self.regfile = regf
 
-        self.MEMWB_i = Input(MEMWB_t, self)
+        self.MEMWB_i = Input(MEMWB_t)
 
     def process(self):
         # Read inputs
@@ -750,10 +755,11 @@ class BranchUnit(Module):
         npc_o: Next PC
     """
     def __init__(self):
-        self.pc_i = Input(int, self)
-        self.take_branch_i = Input(bool, self)
-        self.target_i = Input(int, self)
-        self.npc_o = Output(int, self)
+        super().__init__()
+        self.pc_i = Input(int)
+        self.take_branch_i = Input(bool)
+        self.target_i = Input(int)
+        self.npc_o = Output(int)
 
     def process(self):
         # Read inputs

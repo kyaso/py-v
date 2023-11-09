@@ -22,8 +22,8 @@ class SingleCycle(Module):
         self.bu = BranchUnit()
 
         # Wires
-        self.IFID = Wire(IFID_t, self, sensitive_methods=[self.connects])
-        self.EXMEM = Wire(EXMEM_t, self, sensitive_methods=[self.connects])
+        self.IFID = Wire(IFID_t, sensitive_methods=[self.connects])
+        self.EXMEM = Wire(EXMEM_t, sensitive_methods=[self.connects])
         self.pc = Wire(int)
         self.take_branch = Wire(bool)
         self.alu_res = Wire(int)

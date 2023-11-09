@@ -4,18 +4,18 @@ from pyv.simulator import Simulator
 
 class A(Module):
     def __init__(self):
-        self.IN = Input(int, self)
-        self.OUT = Output(int, self)
+        self.IN = Input(int)
+        self.OUT = Output(int)
 
     def process(self):
         self.OUT.write(self.IN.read() * 2)
 
 class B(Module):
     def __init__(self):
-        self.IN1 = Input(int, self)
-        self.IN2 = Input(int, self)
-        self.OUT1 = Output(int, self)
-        self.OUT2 = Output(int, self)
+        self.IN1 = Input(int)
+        self.IN2 = Input(int)
+        self.OUT1 = Output(int)
+        self.OUT2 = Output(int)
 
     def process(self):
         in1 = self.IN1.read()
@@ -26,10 +26,10 @@ class B(Module):
 
 class C(Module):
     def __init__(self):
-        self.IN1 = Input(int, self)
-        self.IN2 = Input(int, self)
-        self.OUT1 = Output(int, self)
-        self.OUT2 = Output(int, self)
+        self.IN1 = Input(int)
+        self.IN2 = Input(int)
+        self.OUT1 = Output(int)
+        self.OUT2 = Output(int)
 
     def process(self):
         in1 = self.IN1.read()
@@ -40,8 +40,8 @@ class C(Module):
 
 class Top(Module):
     def __init__(self):
-        self.IN = Input(int, self)
-        self.OUT = Output(int, self)
+        self.IN = Input(int)
+        self.OUT = Output(int)
 
         self.A_i = A()
         self.B_i = B()

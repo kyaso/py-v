@@ -36,6 +36,8 @@
     - This feature closes issue #10
   - Directly reading an _output_ port now issues a warning to the user
     - For more details, see issue #5
+  - Removed module reference from ports
+    - In case no sensitivity list is given, the Module.init() method will add the default `process()` method
 - Changes to **Memories/Register files**:
   - Illegal indeces (aka address) for memories and register files, will no longer cause an `IndexError` exception (see issue #6)
     - When a module is processed multiple times during a cycle, it could happen that an unstable port

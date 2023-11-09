@@ -41,6 +41,7 @@ def test_IFStage(sim):
     RegBase.clear()
 
     fetch = IFStage(Memory(1024))
+    fetch.init()
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
     fetch.imem.writeRequest(0, 0xfea42623, 4)
@@ -130,6 +131,7 @@ class TestIDStage:
 
     def test_exception(self, caplog, sim):
         dec = IDStage(Regfile())
+        dec.init()
 
         # --- Illegal Instruction -----------------
         pc = 0
@@ -226,6 +228,7 @@ class TestIDStage:
     def test_IDStage(self, sim):
         regf = Regfile()
         decode = IDStage(regf)
+        decode.init()
 
         # SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
         # Write some values into the relevant registers
@@ -997,6 +1000,8 @@ class TestMEMStage:
         
     def test_passThrough(self, sim):
         mem = MEMStage(Memory(1024))
+        mem.init()
+
         mem.EXMEM_i.write(EXMEM_t(
             rd=1,
             we=1,
@@ -1014,6 +1019,8 @@ class TestMEMStage:
 
     def test_load(self, sim):
         mem = MEMStage(Memory(1024))
+        mem.init()
+
         # Load memory
         mem.mem.writeRequest(0, 0xdeadbeef, 4)
         sim.step()
@@ -1083,6 +1090,7 @@ class TestMEMStage:
 
     def test_store(self, sim):
         mem = MEMStage(Memory(1024))
+        mem.init()
 
         # SB
         mem.EXMEM_i.write(EXMEM_t(
@@ -1119,6 +1127,7 @@ class TestMEMStage:
 
     def test_exception(self, caplog, sim):
         mem = MEMStage(Memory(16))
+        mem.init()
 
         # --- Load address misaligned ---------------
         # LH/LHU
@@ -1174,6 +1183,7 @@ class TestWBStage:
 
     def test_wb(self, sim):
         wb = WBStage(Regfile())
+        wb.init()
 
         # ALU op
         wb.MEMWB_i.write(MEMWB_t(
@@ -1248,6 +1258,7 @@ class TestWBStage:
 # ---------------------------------------
 def test_branch_unit(sim):
     bu = BranchUnit()
+    bu.init()
 
     # Test ports
     assert bu.pc_i._type == int

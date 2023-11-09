@@ -10,26 +10,24 @@ T = TypeVar('T')
 class _Port(Generic[T]):
     """Represents a single port."""
 
-    def __init__(self, type: Type[T], direction: bool = IN, module = None, sensitive_methods = []):
+    def __init__(self, type: Type[T], direction: bool = IN, sensitive_methods = []):
         """Create a new _Port object.
 
         Args:
             type: Data type for this _Port.
             direction (bool, optional): Direction of this _Port.
                 Defaults to Input.
-            module (Module, optional): The module this port belongs to.
             sensitive_methods (list, optional): List of methods to trigger when
                 a write to this port changes it current value. Only valid for
                 INPUT ports. If omitted, only the parent module's process()
-                method is taken.
+                method is taken. If [None] is passed, no sensitive method will
+                be associated with this port.
         """
         self.name = 'noName'
 
         self._type = type
         self._direction = direction
         self._val = self._type()
-
-        self._module = module
 
         # Is this port the root driver?
         self._is_root_driver = True
@@ -47,11 +45,8 @@ class _Port(Generic[T]):
         # Setup sensitivity list
         self._processMethods = []
         if self._direction == IN:
-            if self._module is not None and len(sensitive_methods) == 0:
-                self._addProcessMethod(self._module.process)
-            else:
-                for m in sensitive_methods:
-                    self._addProcessMethod(m)
+            for m in sensitive_methods:
+                self._addProcessMethod(m)
         elif len(sensitive_methods) > 0:
             raise Exception(f"Port '{self.name}' with direction OUT cannot have sensitive methods.")
 
@@ -158,13 +153,24 @@ class _Port(Generic[T]):
 
 
 class Input(_Port[T]):
-    def __init__(self, type: type[T], module=None, sensitive_methods=[]):
-        super().__init__(type, IN, module, sensitive_methods)
+    def __init__(self, type: type[T], sensitive_methods=[]):
+        """Create a new input port.
+
+        Args:
+            type (type[T]): Data type of this input
+            sensitive_methods (list, optional): see _Port.
+        """
+        super().__init__(type, IN, sensitive_methods)
 
 
 class Output(_Port[T]):
-    def __init__(self, type: type[T], module=None):
-        super().__init__(type, OUT, module)
+    def __init__(self, type: type[T]):
+        """Create a new ouput port.
+
+        Args:
+            type (type[T]): Data type of this output
+        """
+        super().__init__(type, OUT)
 
 # A Wire has the same methods and attributes as a Port.
 class Wire(_Port[T]):
@@ -176,12 +182,11 @@ class Wire(_Port[T]):
 
     If wire value changes, sensitive methods are triggered.
     """
-    def __init__(self, type: Type[T], module = None, sensitive_methods = []):
+    def __init__(self, type: Type[T], sensitive_methods = []):
         """Create a new wire.
 
         Args:
             type: Data type of wire value
-            module (optional): Module this wire belongs to. Defaults to None.
             sensitive_methods (list, optional): Same as for Port.
         """
-        super().__init__(type, IN, module, sensitive_methods)
+        super().__init__(type, IN, sensitive_methods)

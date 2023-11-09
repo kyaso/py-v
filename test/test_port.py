@@ -1,4 +1,5 @@
 from collections import deque
+from unittest.mock import MagicMock
 import pytest
 from pyv.port import Input, Output, Wire
 from pyv.defines import *
@@ -7,22 +8,17 @@ from pyv.simulator import Simulator
 
 class TestPort:
     def test_init(self):
-        class mod(Module):
-            pass
-
-        foo = mod()
-
-        A = Input(int, foo)
+        A = Input(int)
         assert A._direction == IN
-        assert A._module == foo
         assert type(A._val) == int
         assert A._val == 0
+        assert A._processMethods == []
 
         A = Output(float)
         assert A._direction == OUT
-        assert A._module is None
         assert type(A._val) == float
         assert A._val == 0
+        assert A._processMethods == []
 
     def test_read(self):
         A = Input(int)
@@ -141,30 +137,31 @@ class TestPort:
         sim = Simulator()
         class modA(Module):
             def __init__(self):
-                self.pi = Input(int, self, sensitive_methods=[self.process]) # Default value: 0
-                self.po = Output(int, self)
+                self.pi = Input(int) # Default value: 0
+                self.po = Output(int)
 
             def process(self):
                 # Simply add 3 to the input
                 self.po.write(self.pi.read()+3)
 
         # Initialize module
-        A_i = modA()
-        A_i.name = 'A_i'
-        A_i.init()
+        A = modA()
+        A.name = 'A'
+        A.init()
 
         # Write 0. The port has the same default value.
         # However, since this is the first write, the
         # propagation should be forced.
-        A_i.pi.write(0)
+        A.pi.write(0)
         sim.step()
-        assert A_i.po.read() == 3
+        assert A.po.read() == 3
 
         # Now, we write the same value again, but this time
-        # the output shouldn't change.
-        A_i.pi.write(0)
+        # the process method shouldn't have been called.
+        A.process = MagicMock()
+        A.pi.write(0)
         sim.step()
-        assert A_i.po.read() == 3
+        A.process.assert_not_called()
 
     def test_readOutput(self):
         p = Output(int)
@@ -187,28 +184,13 @@ class TestPort:
         with pytest.raises(Exception):
             p2 = Output(int, sensitive_methods=[foo])
 
-        # Default sensitive method
-        class modA(Module):
-            def process(self):
-                pass
-
-        A = modA()
-        # When no sens list, default to parent module's process method
-        p3 = Input(int, A)
-        assert p3._processMethods == [A.process]
-
-        # When sens list AND module given, only take the sens list
-        p4 = Input(int, A, sensitive_methods=[bar, foo])
-        assert p4._processMethods == [bar, foo]
-
-
     def test_onChange(self):
         def foo():
             pass
         def bar():
             pass
 
-        p = Input(int, sensitive_methods = [foo, bar])
+        p = Input(int, sensitive_methods=[foo, bar])
 
         sim = Simulator()
 

@@ -1,7 +1,7 @@
 from typing import Any
 import pyv.simulator as simulator
 from pyv.clocked import RegBase
-from pyv.port import _Port
+from pyv.port import _Port, Input
 from pyv.reg import Reg
 import pyv.log as log
 
@@ -18,6 +18,8 @@ class Module:
 
     All modules have to implement the `process()` method.
     """
+    def __init__(self, name = 'UnnamedModule'):
+        self.name = name
 
     def init(self):
         """Initializes the module.
@@ -37,6 +39,12 @@ class Module:
                 if isinstance(obj, (Reg)):
                     obj.next.name = obj.name+".next"
                     obj.cur.name = obj.name+".cur"
+
+                if isinstance(obj, Input):
+                    if obj._processMethods == []:
+                        obj._addProcessMethod(self.process)
+                    elif obj._processMethods == [None]:
+                        obj._processMethods = []
 
                 if isinstance(obj, Module):
                     obj.init()

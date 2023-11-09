@@ -13,11 +13,11 @@ from unittest.mock import MagicMock
 # Build a simple example circuit
 class A(Module):
     def __init__(self):
-        self.inA = Input(int, self)
-        self.inB = Input(int, self)
+        self.inA = Input(int)
+        self.inB = Input(int)
 
-        self.outA = Output(int, self)
-        self.outB = Output(int, self)
+        self.outA = Output(int)
+        self.outB = Output(int)
     
     def process(self):
         self.outA.write(self.inA.read())
@@ -25,17 +25,17 @@ class A(Module):
 
 class B(Module):
     def __init__(self):
-        self.inA = Input(int, self)
-        self.outA = Output(int, self)
+        self.inA = Input(int)
+        self.outA = Output(int)
     
     def process(self):
         self.outA.write(self.inA.read())
 
 class C(Module):
     def __init__(self):
-        self.inA = Input(int, self)
-        self.inB = Input(int, self)
-        self.outA = Output(int, self)
+        self.inA = Input(int)
+        self.inB = Input(int)
+        self.outA = Output(int)
     
     def process(self):
         self.outA.write(self.inA.read() + self.inB.read())
@@ -44,9 +44,9 @@ class ExampleTop(Module):
     def __init__(self):
         super().__init__()
 
-        self.inA = Input(int, self)
-        self.inB = Input(int, self)
-        self.out = Output(int, self)
+        self.inA = Input(int)
+        self.inB = Input(int)
+        self.out = Output(int)
 
         self.A_i = A()
         self.B1_i = B()
@@ -86,7 +86,7 @@ class ExampleTop2(Module):
     def __init__(self):
         super().__init__()
 
-        self.out = Input(int, self)
+        self.out = Input(int)
 
         self.reg1 = Reg(int, 42)
         self.reg2 = Reg(int, 0)
