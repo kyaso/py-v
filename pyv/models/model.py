@@ -8,9 +8,6 @@ class Model:
     def __init__(self):
         print("Initializing model...")
 
-        # TODO: unused
-        self.cycles = 0
-
         self.sim = Simulator()
     
         # Initialize modules

@@ -8,9 +8,6 @@ import pyv.log as log
 logger = log.getLogger(__name__)
 
 # TODO: Maybe make this abstract
-# TODO: Should process() really be mandatory for every module?
-#   e.g. what about a top module that just instantiates and
-#   connects several submodules.
 class Module:
     """Base class for Modules.
 
