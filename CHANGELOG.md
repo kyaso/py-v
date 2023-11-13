@@ -1,4 +1,4 @@
-# Next release (0.?.0)
+# 0.2.0
 
 - **Important**:
   - `PortX` and `RegX` have been removed
