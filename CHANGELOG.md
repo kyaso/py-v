@@ -70,6 +70,7 @@
 - Changes to **Simulator**
   - Added `step()` method
     - This method advanced the simulation by one cycle
+  - Removed custom log
 - Changes to **Modules**:
   - Two ports can now be connected via the standard assignment operator
   - `process()` method is no longer mandatory
