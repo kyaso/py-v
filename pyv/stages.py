@@ -526,14 +526,15 @@ class EXStage(Module):
         if opcode==isa.OPCODES['LUI']:
             alu_res = op2
 
-        elif opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
+        elif (opcode==isa.OPCODES['AUIPC']
+              or opcode==isa.OPCODES['JAL']
+              or opcode==isa.OPCODES['BRANCH']
+              or opcode==isa.OPCODES['LOAD']
+              or opcode==isa.OPCODES['STORE']):
             alu_res = op1 + op2
 
         elif opcode==isa.OPCODES['JALR']:
             alu_res = 0xfffffffe & (op1 + op2)
-
-        elif opcode==isa.OPCODES['LOAD'] or opcode==isa.OPCODES['STORE']: # TODO: Could be merged with the upper elif
-            alu_res = op1 + op2
 
         elif opcode==isa.OPCODES['OP-IMM']:
             if f3==0b000: # ADDI
