@@ -19,9 +19,10 @@ Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Py
 - I am doing this more as an experiment, to design an easy to use "hardware prototyping framework" with an integrated simulator
   - A CPU was an obvious choice to test this idea
   - Py-V can be used for _rapid prototyping_: High-level design flexibility by leveraging the language features of Python, with the possibility to go as low-level as Verilog/VHDL
-    - Similar projects are [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen), [PyMTL](https://github.com/pymtl/pymtl3), and [PyRTL](https://ucsbarchlab.github.io/PyRTL/)
+    - Similar projects are [PyRTL](https://ucsbarchlab.github.io/PyRTL/), [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen), and [PyMTL](https://github.com/pymtl/pymtl3)
   - I have not yet planned on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
-  - Once the hardware modelling framework behind Py-V is mature enough, I will put it into a separate library, and Py-V will just use the new library.
+  - Once the hardware modelling framework behind Py-V is mature enough, I am planning to put it into a separate library, and Py-V will just use the new library.
+    - For now, if you want to use the library to design your own systems, you have to clone this repo
 
 ## Core models
 
@@ -107,6 +108,8 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 
 This section is intended to explain how Py-V (and the language behind it) works internally. 🚧 I am still working on a proper documentation for Py-V, so currently there is no ETA on when this section will be finished.
 
+On the other hand, you can have a look into the source code as I tried to reduce complexity as much as possible, so the code should be almost self-documenting (otherwise please let me know!).
+
 ### Source files
 
 `pyv/`. This is the package where the source files of Py-V are located.
@@ -118,10 +121,10 @@ This section is intended to explain how Py-V (and the language behind it) works 
 - `mem.py`: Contains a simple behavioral memory model
 - `models/`: Contains different core models
   - `model.py`: Base class for core models
+  - `singlecycle.py`: A basic 5-stage single-cycle RISC-V CPU
 - `module.py`: Abstract base class for all modules
-- `port.py`: Contains definitions for ports
-  - Currently: single value `Port` and bus/interface `PortX`
-- `reg.py`: Contains definitions for register modules
+- `port.py`: Contains definitions for ports (Inputs, Outputs, Wires)
+- `reg.py`: Contains definitions for registers
   - Also defines register file
 - `simulator.py`: Contains the simulator
 - `stages.py`: Module definitions for the various pipeline stages
@@ -132,11 +135,13 @@ This section is intended to explain how Py-V (and the language behind it) works 
 `programs/`. This directory contains test programs that can be compiled, and later executed on a core model.
 
 - `common/`: Common source files needed for compiling
+- `endless_loop/`: As the name suggests
+  - Execution time is limited in `main.py` (see below)
 - `fibonacci/`: A non-recursive version of the Fibonacci algorithm.
 - `loop_acc/`: An assembly program that counts from 0 to 1000.
 
 `main.py`. Main execution file
 
-- Currently runs simulation using example binaries
+- Runs simulation using compiled binaries from `programs/`
 
 `doc/`. Contains documentation resources.
