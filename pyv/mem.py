@@ -21,6 +21,7 @@ class Memory(MemBase):
         """
         super().__init__()
         self.mem = [ 0 for i in range(0,size) ]
+        """Memory array. List of length `size`."""
 
         # For tick
         self._nextWaddr = 0
@@ -74,7 +75,7 @@ class Memory(MemBase):
     def writeRequest(self, addr: int, val: int, w: int):
         """Generate a write request to write data to memory.
 
-        The write is committed with the next _tick().
+        The write is committed with the next `_tick()`.
 
         Args:
             addr: Starting address for write operation.

@@ -13,13 +13,21 @@ class SingleCycle(Module):
     def __init__(self):
         # Stages/modules
         self.regf = Regfile()
+        """RISC-V 32-bit base register file"""
         self.mem = Memory(8*1024)
+        """Memory"""
         self.if_stg = IFStage(self.mem)
+        """Instruction Fetch"""
         self.id_stg = IDStage(self.regf)
+        """Instruction Decode"""
         self.ex_stg = EXStage()
+        """Execute"""
         self.mem_stg = MEMStage(self.mem)
+        """Mem stage"""
         self.wb_stg = WBStage(self.regf)
+        """Write-back"""
         self.bu = BranchUnit()
+        """Branch unit"""
 
         # Wires
         self.IFID = Wire(IFID_t, sensitive_methods=[self.connects])
@@ -55,10 +63,11 @@ class SingleCycleModel(Model):
 
     def __init__(self):
         self.core = SingleCycle()
+        """Module instance"""
         self.setTop(self.core, 'SingleCycleTop')
 
         super().__init__()
-    
+
     def log(self):
         """Custom log function.
 
@@ -66,7 +75,7 @@ class SingleCycleModel(Model):
         """
         print("PC = 0x%08X" % self.core.if_stg.pc_reg.cur.read())
         print("IR = 0x%08X" % self.core.if_stg.ir_reg.cur.read())
-        
+
     def load_instructions(self, instructions):
         """Load instructions into the instruction memory.
 

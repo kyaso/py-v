@@ -9,6 +9,7 @@ class Model:
         print("Initializing model...")
 
         self.sim = Simulator()
+        """Simulator instance"""
     
         # Initialize modules
         try:
@@ -32,14 +33,14 @@ class Model:
     
     @staticmethod
     def reset():
-        # Reset the top module pointer
+        """Resets the top module pointer."""
         module.Module.top = None
 
     def run(self, num_cycles=1):
         """Runs the simulation.
 
         Args:
-            num_cycles (int, optional): Number of clock cycles to simulate. Defaults to 1.
+            num_cycles (int, optional): Number of clock cycles to simulate.
         """
         self.sim.run(num_cycles)
     

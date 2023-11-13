@@ -1,7 +1,7 @@
 from typing import Any
 import pyv.simulator as simulator
 from pyv.clocked import RegBase
-from pyv.port import _Port, Input
+from pyv.port import Port, Input
 from pyv.reg import Reg
 import pyv.log as log
 
@@ -17,6 +17,7 @@ class Module:
     """
     def __init__(self, name = 'UnnamedModule'):
         self.name = name
+        """Name of module."""
 
     def init(self):
         """Initializes the module.
@@ -25,12 +26,12 @@ class Module:
         - Set name attributes for each port, register and submodule.
           The instance names are used. We need to access the names for
           logging and waveforms.
-        - For each submodule, its own init() method is called.
+        - For each submodule, its own `init()` method is called recursively.
         """
 
         for key in self.__dict__:
             obj = self.__dict__[key]
-            if isinstance(obj, (_Port, RegBase, Reg, Module)):
+            if isinstance(obj, (Port, RegBase, Reg, Module)):
                 obj.name = self.name+"."+key
 
                 if isinstance(obj, (Reg)):
@@ -58,9 +59,9 @@ class Module:
             return
 
         attr = self.__dict__[__name]
-        if (isinstance(attr, _Port) and isinstance(__value, _Port)):
-            port: _Port = attr
-            driver: _Port = __value
+        if (isinstance(attr, Port) and isinstance(__value, Port)):
+            port: Port = attr
+            driver: Port = __value
             port.connect(driver)
             return
         else:

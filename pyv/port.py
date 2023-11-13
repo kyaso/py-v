@@ -3,27 +3,29 @@ from pyv.defines import *
 import warnings
 import pyv.log as log
 
-logger = log.getLogger(__name__)
+_logger = log.getLogger(__name__)
 
 T = TypeVar('T')
 
-class _Port(Generic[T]):
-    """Represents a single port."""
-
+class Port(Generic[T]):
+    """Base class for ports."""
     def __init__(self, type: Type[T], direction: bool = IN, sensitive_methods = []):
-        """Create a new _Port object.
+        """Create a new `Port` object.
 
         Args:
-            type: Data type for this _Port.
-            direction (bool, optional): Direction of this _Port.
+            type: Data type for this `Port`.
+            direction (bool, optional): Direction of this Port.
                 Defaults to Input.
             sensitive_methods (list, optional): List of methods to trigger when
                 a write to this port changes it current value. Only valid for
-                INPUT ports. If omitted, only the parent module's process()
-                method is taken. If [None] is passed, no sensitive method will
-                be associated with this port.
+                `Input` ports. If omitted, only the parent module's `pyv.module.Module.process()`
+                method is taken. If `[None]` is passed, no sensitive method will
+                be associated with this port. **Important**: if you provide a custom sensitivity list,
+                but still want the default `process()` to be triggered as well, you have to
+                include it explicitly in the list.
         """
         self.name = 'noName'
+        """Name of this port. Is set automatically during `pyv.module.Module.init().`"""
 
         self._type = type
         self._direction = direction
@@ -65,12 +67,14 @@ class _Port(Generic[T]):
     def write(self, val: T):
         """Writes a new value to the port.
 
+        If multiple ports are connected together, only the *root* port, i.e.,
+        the one without a parent, can be written to.
+
         Args:
             val: The new value.
 
         Raises:
-            Exception: A port that is driven by another port has called
-            `write()`.
+            Exception: `write()` called on a *non-root* port.
             TypeError: Invalid write value type.
         """
 
@@ -101,7 +105,7 @@ class _Port(Generic[T]):
         Args:
             val (int): The new value.
         """
-        logger.debug(f"Port {self.name} changed from {self._val} to {val}.")
+        _logger.debug(f"Port {self.name} changed from {self._val} to {val}.")
 
         self._val = val
 
@@ -119,11 +123,11 @@ class _Port(Generic[T]):
         """Connects the current port to a driver port.
 
         Args:
-            driver (_Port): The new driving port for this port.
+            driver (Port): The new driving port (aka *parent*) for this port.
 
         Raises:
             Exception: The port attempted to connect to itself.
-            TypeError: The `driver` was not of type `_Port`.
+            TypeError: The `driver` was not of type `Port`.
             TypeError: Driver port is of different type.
             Exception: The port is already connected to another port.
         """
@@ -131,7 +135,7 @@ class _Port(Generic[T]):
         # Check whether an illegal self-connection was attempted.
         if driver == self:
             raise Exception("ERROR (Port): Cannot connect port to itself!")
-        if not isinstance(driver, _Port):
+        if not isinstance(driver, Port):
             raise TypeError(f"{driver} is not a Port!")
         if self._type != driver._type:
             raise TypeError(f"Port type mismatch: This port is of type {self._type}, while driver is of type {driver._type}.")
@@ -152,20 +156,26 @@ class _Port(Generic[T]):
             self._processMethods.append(func)
 
 
-class Input(_Port[T]):
+class Input(Port[T]):
+    """Represents an **Input** port."""
     def __init__(self, type: type[T], sensitive_methods=[]):
         """Create a new input port.
 
+        If the value of the input changes, sensitive method will be triggered.
+
         Args:
             type (type[T]): Data type of this input
-            sensitive_methods (list, optional): see _Port.
+            sensitive_methods (list, optional): See `Port.__init__()`.
         """
         super().__init__(type, IN, sensitive_methods)
 
 
-class Output(_Port[T]):
+class Output(Port[T]):
+    """Represents an **Output** port."""
     def __init__(self, type: type[T]):
         """Create a new ouput port.
+
+        Note that output port do not have any sensitive methods.
 
         Args:
             type (type[T]): Data type of this output
@@ -173,8 +183,8 @@ class Output(_Port[T]):
         super().__init__(type, OUT)
 
 # A Wire has the same methods and attributes as a Port.
-class Wire(_Port[T]):
-    """Represents a wire.
+class Wire(Port[T]):
+    """Represents a **Wire**.
 
     A wire can be written to and read from just like a regular port.
 
@@ -187,6 +197,6 @@ class Wire(_Port[T]):
 
         Args:
             type: Data type of wire value
-            sensitive_methods (list, optional): Same as for Port.
+            sensitive_methods (list, optional): See `Port.__init__()`.
         """
         super().__init__(type, IN, sensitive_methods)

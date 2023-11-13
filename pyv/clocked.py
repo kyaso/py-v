@@ -13,26 +13,30 @@ class Clock:
     def tick():
         """Performs a clock tick (rising edge).
 
-        Applies tick to all registers and memories.
+        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).
         """
         RegBase.tick()
         MemBase.tick()
 
     @staticmethod
     def reset():
-        """Resets registers and memories."""
+        """Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`)."""
         RegBase.reset()
         MemBase.reset()
 
     @staticmethod
     def clear():
-        """Clears list of registers and memories."""
+        """Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`)."""
         RegBase.clear()
         MemBase.clear()
 
 
 class Clocked():
     """Base class for all clocked elements (Registers, Memories).
+
+    Raises:
+        NotImplementedError: The clocked element did not implement `_tick()`
+        NotImplementedError: The clocked element did not implement `_reset()`
     """
     def _tick(self):
         """Tick function of individual clocked element."""
@@ -49,7 +53,7 @@ class RegBase(Clocked):
     This class keeps track of all instantiated registers.
 
     Raises:
-        NotImplementedError: The register did not implement _prepareNextVal()
+        NotImplementedError: The register did not implement `_prepareNextVal()`
     """
 
     # The list of instantiated registers
@@ -71,7 +75,7 @@ class RegBase(Clocked):
     def tick():
         """Ticks all registers.
 
-        First, their next values are saved.
+        First, their next values are saved (-> `_prepareNextVal()`).
 
         Then the next values are propagated to the current values.
         """
@@ -107,8 +111,8 @@ class MemBase(Clocked):
     This class keeps track of all memories.
 
     Raises:
-        NotImplementedError: The memory did not implement read()
-        NotImplementedError: The memory did not implement writeRequest()
+        NotImplementedError: The memory did not implement `read()`
+        NotImplementedError: The memory did not implement `writeRequest()`
     """
 
     # List of instantiated memories
@@ -119,8 +123,10 @@ class MemBase(Clocked):
         MemBase._mem_list.append(self)
         # Disable write by default
         self.we = False
+        """Write enable."""
         # Read enable
         self.re = False
+        """Read enable"""
     
     @staticmethod
     def tick():
@@ -146,7 +152,7 @@ class MemBase(Clocked):
     def writeRequest(self):
         """Generate a write request.
         
-        The write will be committed with the next tick.
+        The write will be committed with the next `tick()`.
         (Unless `we` is False)
         """
         raise NotImplementedError

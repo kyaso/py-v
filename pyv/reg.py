@@ -9,10 +9,10 @@ from typing import TypeVar, Generic, Type
 
 T = TypeVar('T')
 
-logger = log.getLogger(__name__)
+_logger = log.getLogger(__name__)
 
 class Reg(RegBase, Generic[T]):
-    """Represents a single value register."""
+    """Represents a register."""
 
     def __init__(self, type: Type[T], resetVal: T = 0):
         """Create a new register.
@@ -23,9 +23,12 @@ class Reg(RegBase, Generic[T]):
         # Add this register to the global register list
         super().__init__(resetVal)
 
-        self.next = Input(type)          # Next value input
-        self.cur = Output(type)          # Current value output
-        self.rst = Input(int)           # Synchronous Reset in (active high)
+        self.next: Input = Input(type)
+        """Next value input"""
+        self.cur: Output = Output(type)
+        """Current value output"""
+        self.rst: Input = Input(int)
+        """Synchronous Reset in (active high)"""
 
     def _prepareNextVal(self):
         self._doReset = False
@@ -42,7 +45,7 @@ class Reg(RegBase, Generic[T]):
 
     def _tick(self):
         if self._doReset:
-            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
+            _logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
             self._reset()
         elif self._doTick:
             self.cur.write(self._nextv)
@@ -94,7 +97,7 @@ class ShiftReg(RegBase):
         """
 
         if self._doReset:
-            logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self._resetVal}.")
+            _logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self._resetVal}.")
             self.regs = [self._resetVal  for _ in range(0, self.depth)]
         else:
             # Fetch the new value
@@ -190,7 +193,7 @@ class Regfile(MemBase):
             try:
                 val = self.regs[reg]
             except IndexError:
-                logger.warn("Potentially illegal register index 0x{:08X}. This might be normal during cycle processing.".format(reg))
+                _logger.warn("Potentially illegal register index 0x{:08X}. This might be normal during cycle processing.".format(reg))
                 val = 0
 
             return val
