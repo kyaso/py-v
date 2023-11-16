@@ -225,12 +225,40 @@ class TestIDStage:
             with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
                 sim.step()
 
+    def test_wbSel(self, sim):
+        decode = IDStage(None)
+        res = decode.wb_sel(0b11011)
+        assert res == 1
+        res = decode.wb_sel(0)
+        assert res == 2
+        res = decode.wb_sel(0b01100)
+        assert res == 0
+
     def test_IDStage(self, sim):
+        def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
+            if rs1 is not None:
+                assert out.rs1 == rs1
+            if rs2 is not None:
+                assert out.rs2 == rs2
+            if imm is not None:
+                assert out.imm == imm
+            assert out.pc == pc
+            if rd is not None:
+                assert out.rd == rd
+            assert out.we == we
+            assert out.wb_sel == wb_sel
+            assert out.opcode == opcode
+            if funct3 is not None:
+                assert out.funct3 == funct3
+            if funct7 is not None:
+                assert out.funct7 == funct7
+            assert out.mem == mem
+
         regf = Regfile()
         decode = IDStage(regf)
         decode.init()
 
-        # SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
+        # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
         # Write some values into the relevant registers
         regf.writeRequest(8, 0x80000000)
         sim.step()
@@ -243,33 +271,66 @@ class TestIDStage:
 
         # Validate outputs
         out = decode.IDEX_o.read()
-        assert out.rs1 == 0x80000000
-        assert out.rs2 == 42
-        assert out.imm == 0xffffffec
-        assert out.pc == 0x80000004
-        assert out.rd == 0x0C
-        assert out.we == False
-        assert out.opcode == 0b01000
-        assert out.funct3 == 2
-        assert out.mem == 2
+        validate(
+            out=out,
+            rs1=0x80000000,
+            rs2=42,
+            imm=0xffffffec,
+            pc=0x80000004,
+            rd=0x0C,
+            we=False,
+            wb_sel=0,
+            opcode=0b01000,
+            funct3=2,
+            funct7=None,
+            mem=2
+        )
 
-        # Test instruction with register write
-        # ADDI x0, x0, 0
-        decode.IFID_i.write(IFID_t(0x00000013, 0x80000004))
+        # ---- Test OP-IMM -----------------------------------
+        # addi x7, x3, 89
+        regf.regs[3] = 120
+        regf.we = False
+        decode.IFID_i.write(IFID_t(0x05918393, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
-        assert out.rs1 == 0
-        assert out.rs2 == 0
-        assert out.imm == 0
-        assert out.pc == 0x80000004
-        assert out.rd == 0
-        assert out.we == True
-        assert out.wb_sel == 0
-        assert out.opcode == 0b00100
-        assert out.funct3 == 0
-        assert out.mem == 0
+        validate(
+            out=out,
+            rs1=120,
+            rs2=None,
+            imm=89,
+            pc=0x80000004,
+            rd=7,
+            we=True,
+            wb_sel=0,
+            opcode=0b00100,
+            funct3=0,
+            funct7=None,
+            mem=0
+        )
 
-        # Test instruction with funct7 output
+        # ---- Test SHAMT -----------------------------------
+        # srli x8, x1, 8
+        regf.regs[1] = 120
+        regf.we = False
+        decode.IFID_i.write(IFID_t(0x0080d413, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=120,
+            rs2=None,
+            imm=8,
+            pc=0x80000004,
+            rd=8,
+            we=True,
+            wb_sel=0,
+            opcode=0b00100,
+            funct3=0b101,
+            funct7=0,
+            mem=0
+        )
+
+        # ---- Test OP -----------------------------------
         # SUB x14, x7, x5
         regf.writeRequest(7, 43)
         sim.step()
@@ -279,41 +340,151 @@ class TestIDStage:
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
-        assert out.rs1 == 43
-        assert out.rs2 == 12
-        assert out.pc == 0x80000004
-        assert out.rd == 14
-        assert out.we == True
-        assert out.wb_sel == 0
-        assert out.opcode == 0b01100
-        assert out.funct3 == 0
-        assert out.funct7 == 0b0100000
-        assert out.mem == 0
+        validate(
+            out=out,
+            rs1=43,
+            rs2=12,
+            imm=None,
+            pc=0x80000004,
+            rd=14,
+            we=True,
+            wb_sel=0,
+            opcode=0b01100,
+            funct3=0,
+            funct7=0b0100000,
+            mem=0
+        )
 
-        # Test wb_sel
-        res = decode.wb_sel(0b11011)
-        assert res == 1
-        res = decode.wb_sel(0)
-        assert res == 2
-        res = decode.wb_sel(0b01100)
-        assert res == 0
-
-        # Test LOAD
+        # ---- Test LOAD -----------------------------------
         # LW x15, x8, 0x456
         regf.writeRequest(8, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
-        assert out.rs1 == 0x40000000
-        assert out.imm == 0x456
-        assert out.pc == 0x80000004
-        assert out.rd == 15
-        assert out.we == True
-        assert out.wb_sel == 2
-        assert out.opcode == 0b00000
-        assert out.funct3 == 0b010
-        assert out.mem == 1
+        validate(
+            out=out,
+            rs1=0x40000000,
+            rs2=None,
+            imm=0x456,
+            pc=0x80000004,
+            rd=15,
+            we=True,
+            wb_sel=2,
+            opcode=0b00000,
+            funct3=0b010,
+            funct7=None,
+            mem=1
+        )
+
+        # ---- Test JALR -----------------------------------
+        # jalr x13, 1025(x28)
+        regf.writeRequest(28, 0x40000000)
+        sim.step()
+        decode.IFID_i.write(IFID_t(0x401e06e7, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=0x40000000,
+            rs2=None,
+            imm=1025,
+            pc=0x80000004,
+            rd=13,
+            we=True,
+            wb_sel=0,
+            opcode=0b11001,
+            funct3=0b000,
+            funct7=None,
+            mem=0
+        )
+
+        # ---- Test BRANCH -----------------------------------
+        # bne x4, x8, 564
+        regf.regs[4] = 42
+        regf.regs[8] = 12
+        regf.we = False
+        decode.IFID_i.write(IFID_t(0x22821a63, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=42,
+            rs2=12,
+            imm=564,
+            pc=0x80000004,
+            rd=None,
+            we=False,
+            wb_sel=0,
+            opcode=0b11000,
+            funct3=0b001,
+            funct7=None,
+            mem=0
+        )
+
+        # ---- Test AUIPC -----------------------------------
+        # auipc x6, 546
+        decode.IFID_i.write(IFID_t(0x00222317, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=None,
+            rs2=None,
+            imm=546<<12,
+            pc=0x80000004,
+            rd=6,
+            we=True,
+            wb_sel=0,
+            opcode=0b00101,
+            funct3=None,
+            funct7=None,
+            mem=0
+        )
+
+        # ---- Test LUI -----------------------------------
+        # lui x12, 123
+        decode.IFID_i.write(IFID_t(0x0007b637, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=None,
+            rs2=None,
+            imm=123<<12,
+            pc=0x80000004,
+            rd=12,
+            we=True,
+            wb_sel=0,
+            opcode=0b01101,
+            funct3=None,
+            funct7=None,
+            mem=0
+        )
+
+        # ---- Test JAL -----------------------------------
+        # jal x9, 122
+        decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
+        sim.step()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            rs1=None,
+            rs2=None,
+            imm=122,
+            pc=0x80000004,
+            rd=9,
+            we=True,
+            wb_sel=1,
+            opcode=0b11011,
+            funct3=None,
+            funct7=None,
+            mem=0
+        )
+
+        # TODO: Test FENCE
+
+        # TODO: Test ECALL / EBREAK
 
 # ---------------------------------------
 # Test EXECUTE
