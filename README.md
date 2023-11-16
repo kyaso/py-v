@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/github/license/kyaso/py-v">
 </p>
 
-Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Python.
+Py-V is a cycle-accurate simulator for RISC-V CPUs, written in pure Python. It is also a library for designing and modelling any digital hardware.
 
 ## Why Py-V?
 
@@ -22,7 +22,7 @@ Py-V is a cycle-accurate simulator for RISC-V CPUs. Py-V is written purely in Py
     - Similar projects are [PyRTL](https://ucsbarchlab.github.io/PyRTL/), [MyHDL](https://www.myhdl.org/), [nMigen](https://github.com/m-labs/nmigen), and [PyMTL](https://github.com/pymtl/pymtl3)
   - I have not yet planned on how to convert a Py-V model into Verilog/VHDL, but that might be something interesting for the future
   - Once the hardware modelling framework behind Py-V is mature enough, I am planning to put it into a separate library, and Py-V will just use the new library.
-    - For now, if you want to use the library to design your own systems, the easiest way to get started is to just clone this repo
+    - For now, if you want to use the library to design your own systems follow the steps [below](#designing-your-own-systems)
 
 ## Core models
 
@@ -98,9 +98,24 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
   - Partially implemented already!
 - [ ] ...
 
-## API documentation
+## Designing your own systems
 
-➔ https://kyaso.github.io/py-v/.
+Py-V also contains a library that can be used to model any digital hardware at RTL level. Although detailed documentation is currently underway, you can get started by cloning this repository and examining the examples in `pyv/stages.py` and `pyv/models`.
+
+Py-V is structured around the following building blocks:
+
+- **Modules**: Fundamental units of design encapsulating various hardware elements.
+  - Analogous to Verilog modules
+- **Ports**: Input and output interfaces connecting modules.
+- **Wires**: To connect ports
+  - Ports can also be connected *directly* without the need of a wire object (see examples)
+- **Registers**: Storage elements that capture and hold data.
+  - Yes, Py-V has *actual* register objects!
+- **Memories**: As the name suggests.
+
+Py-V currently supports one implicit global **clock**. On each clock tick, all registers and memories within the design are synchronized.
+
+Please refer to the API documentation for more information: https://kyaso.github.io/py-v/.
 
 ---
 
