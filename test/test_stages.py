@@ -950,30 +950,93 @@ class TestEXStage:
 
         res = ex.branch(f3=7, rs1=0x7fffffff, rs2=0x80000000)
         assert res == False
-    
+
+    def test_pc4(self, sim):
+        ex = EXStage()
+
+        ex.IDEX_i.write(IDEX_t(
+            pc=42
+        ))
+        sim.step()
+        assert ex.EXMEM_o.read().pc4 == (42+4)
+
+    def test_take_branch(self, sim):
+        def step_and_assert(expected):
+            sim.step()
+            assert ex.EXMEM_o.read().take_branch == expected
+
+        ex = EXStage()
+        # BEQ (B-type) -> take_branch should be set
+        ex.IDEX_i.write(IDEX_t(opcode=0b11000, funct3=0, rs1=42, rs2=42))
+        step_and_assert(True)
+
+        # JAL
+        ex.IDEX_i.write(IDEX_t(opcode=0b11011))
+        step_and_assert(True)
+
+        # JALR
+        ex.IDEX_i.write(IDEX_t(opcode=0b11001))
+        step_and_assert(True)
+
+        # LUI
+        ex.IDEX_i.write(IDEX_t(opcode=0b01101))
+        step_and_assert(False)
+
+        # AUIPC
+        ex.IDEX_i.write(IDEX_t(opcode=0b00101))
+        step_and_assert(False)
+
+        # LOAD
+        ex.IDEX_i.write(IDEX_t(opcode=0b00000))
+        step_and_assert(False)
+
+        # STORE
+        ex.IDEX_i.write(IDEX_t(opcode=0b01000))
+        step_and_assert(False)
+
+        # OP-IMM (I-type)
+        ex.IDEX_i.write(IDEX_t(opcode=0b00100))
+        step_and_assert(False)
+
+        # OP (R-type)
+        ex.IDEX_i.write(IDEX_t(opcode=0b01100))
+        step_and_assert(False)
+
+        # FENCE
+        ex.IDEX_i.write(IDEX_t(opcode=0b00011))
+        step_and_assert(False)
+
+        # ECALL / EBREAK
+        ex.IDEX_i.write(IDEX_t(opcode=0b11100))
+        step_and_assert(False)
+
     def test_EXStage(self, sim):
+        def validate(out: EXMEM_t, take_branch, alu_res, pc4, rd, we, wb_sel, rs2, mem, funct3):
+            # Generated outputs
+            assert out.take_branch == take_branch
+            assert out.alu_res == alu_res
+
+            # pc4 already covered by test_pc4, and is also independent from inst
+            if pc4 is not None:
+                assert out.pc4 == pc4
+
+            # Pass-throughs are optional
+            if rd is not None:
+                assert out.rd == rd
+            if we is not None:
+                assert out.we == we
+            if wb_sel is not None:
+                assert out.wb_sel == wb_sel
+            if rs2 is not None:
+                assert out.rs2 == rs2
+            if mem is not None:
+                assert out.mem == mem
+            if funct3 is not None:
+                assert out.funct3 == funct3
+
         ex = EXStage()
 
         # LUI x24, 0xaffe
-        ex.IDEX_i.write(IDEX_t(
-            rs1=0,
-            rs2=0,
-            imm=0xaffe<<12,
-            pc=0,
-            rd=24,
-            we=True,
-            wb_sel=0,
-            opcode=0b01101
-        ))
-        sim.step()
-        out = ex.EXMEM_o.read()
-        assert out.take_branch == False
-        assert out.alu_res == 0xaffe<<12
-        assert out.rd == 24
-        assert out.we == True
-        assert out.wb_sel == 0
-
-        # AUIPC x24, 0xaffe
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
@@ -982,22 +1045,55 @@ class TestEXStage:
             rd=24,
             we=True,
             wb_sel=0,
+            opcode=0b01101
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0xaffe<<12,
+            pc4=0x80000004,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # AUIPC x24, 0xaffe
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0,
+            rs2=0,
+            imm=0xaffe<<12,
+            pc=0x80000004,
+            rd=24,
+            we=True,
+            wb_sel=0,
             opcode=0b00101
         ))
         sim.step()
         out = ex.EXMEM_o.read()
-        assert out.take_branch == False
-        assert out.alu_res == 0x8AFFE000
-        assert out.rd == 24
-        assert out.we == True
-        assert out.wb_sel == 0
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0x8AFFE004,
+            pc4=0x80000008,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
 
         # JAL x13, 0x2DA89
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
             imm=0x2DA8A<<1,
-            pc=0x80004000,
+            pc=0x80000008,
             rd=13,
             we=True,
             wb_sel=1,
@@ -1005,19 +1101,25 @@ class TestEXStage:
         ))
         sim.step()
         out = ex.EXMEM_o.read()
-        assert out.take_branch == True
-        assert out.alu_res == 0x8005F514
-        assert out.rd == 13
-        assert out.we == True
-        assert out.wb_sel == 1
-        assert out.pc4 == 0x80004004
+        validate(
+            out=out,
+            take_branch=True,
+            alu_res=0x8005B51C,
+            pc4=0x8000000C,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
 
         # JALR x13, x28, 0x401 (note: reg x28 not explictly needed; EXStage receives value of rs1)
         ex.IDEX_i.write(IDEX_t(
             rs1=0x4200,
             rs2=0,
             imm=0x401,
-            pc=0x80004000,
+            pc=0x8000000C,
             rd=13,
             we=True,
             wb_sel=1,
@@ -1025,12 +1127,135 @@ class TestEXStage:
         ))
         sim.step()
         out = ex.EXMEM_o.read()
-        assert out.take_branch == True
-        assert out.alu_res == 0x4600
-        assert out.rd == 13
-        assert out.we == True
-        assert out.wb_sel == 1
-        assert out.pc4 == 0x80004004
+        validate(
+            out=out,
+            take_branch=True,
+            alu_res=0x4600,
+            pc4=0x80000010,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # B-type
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0,
+            rs2=0,
+            imm=32,
+            pc=0x80000010,
+            funct3=0,
+            opcode=0b11000
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=True,
+            alu_res=0x80000030,
+            pc4=0x80000014,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # LOAD
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1000,
+            imm=0x32,
+            pc=0x80000014,
+            funct3=0,
+            opcode=0b00000
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0x1032,
+            pc4=0x80000018,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # STORE
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1000,
+            rs2=0x2000,
+            imm=0x42,
+            pc=0x80000018,
+            funct3=0,
+            opcode=0b01000
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0x1042,
+            pc4=0x8000001C,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # I-type
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1000,
+            imm=0x52,
+            pc=0x8000001C,
+            funct3=0,
+            opcode=0b00100
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0x1052,
+            pc4=0x80000020,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
+
+        # R-type (OP)
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1000,
+            rs2=0x2000,
+            pc=0x80000020,
+            funct3=0,
+            opcode=0b01100
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        validate(
+            out=out,
+            take_branch=False,
+            alu_res=0x3000,
+            pc4=0x80000024,
+            rd=None,
+            we=None,
+            wb_sel=None,
+            rs2=None,
+            mem=None,
+            funct3=None
+        )
 
     def test_exception(self, caplog, sim):
         ex = EXStage()
