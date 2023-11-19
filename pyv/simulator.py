@@ -51,11 +51,12 @@ class Simulator:
     def step(self):
         """Perform one simulation step (cycle).
         """
-        _logger.debug("**** Cycle {} ****".format(self._cycles))
+        _logger.debug("\n**** Cycle {} ****".format(self._cycles))
 
         self._process_events()
         self._process_queue()
 
+        _logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
 

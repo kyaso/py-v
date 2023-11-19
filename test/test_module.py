@@ -38,8 +38,7 @@ class TestModule:
         assert connect.call_count == 1
 
     def test_port_init(self, modA: ModA):
-        modA.init()
-        assert modA.A_i._processMethods == [modA.process]
-        assert modA.A_o._processMethods == []
-        assert modA.B_i._processMethods == []
-        assert modA.C_i._processMethods == [modA.foo]
+        modA._init()
+        assert modA.A_i._processMethodHandler._processMethods == [modA.process]
+        assert modA.B_i._processMethodHandler._processMethods == []
+        assert modA.C_i._processMethodHandler._processMethods == [modA.foo]

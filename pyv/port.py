@@ -1,56 +1,74 @@
-from typing import TypeVar, Generic, Type
-from pyv.defines import *
-import warnings
+from abc import ABC, abstractmethod
+import copy
+from typing import Any, TypeVar, Generic, Type
 import pyv.log as log
+from pyv.util import PyVObj
 
 _logger = log.getLogger(__name__)
 
 T = TypeVar('T')
 
-class Port(Generic[T]):
-    """Base class for ports."""
-    def __init__(self, type: Type[T], direction: bool = IN, sensitive_methods = []):
-        """Create a new `Port` object.
-
-        Args:
-            type: Data type for this `Port`.
-            direction (bool, optional): Direction of this Port.
-                Defaults to Input.
-            sensitive_methods (list, optional): List of methods to trigger when
-                a write to this port changes it current value. Only valid for
-                `Input` ports. If omitted, only the parent module's `pyv.module.Module.process()`
-                method is taken. If `[None]` is passed, no sensitive method will
-                be associated with this port. **Important**: if you provide a custom sensitivity list,
-                but still want the default `process()` to be triggered as well, you have to
-                include it explicitly in the list.
-        """
-        self.name = 'noName'
-        """Name of this port. Is set automatically during `pyv.module.Module.init().`"""
-
+class Port(PyVObj, ABC):
+    """Abstract base class for ports."""
+    def __init__(self, type, val) -> None:
+        super().__init__()
         self._type = type
-        self._direction = direction
-        self._val = self._type()
-
-        # Is this port the root driver?
-        self._is_root_driver = True
+        if val is not None:
+            self._val = copy.deepcopy(val)
+        else:
+            # Take the type's default value
+            self._val = self._type()
+        self._root_driver = self
 
         # Who drives this port?
         self._parent = None
         # Which ports does this port drive?
         self._children = []
 
+    @abstractmethod
+    def read(self):
+        """Read the current port value"""
+
+    def _init(self, parent=None):
+        # Empty _init to prevent further processing
+        pass
+
+class ProcessMethodHandler():
+    def __init__(self, sensitive_methods) -> None:
+        # Setup sensitivity list
+        self._processMethods = []
+        for m in sensitive_methods:
+            self._addProcessMethod(m)
+
+    def _addProcessMethod(self, func):
+        if func not in self._processMethods:
+            self._processMethods.append(func)
+
+    def init_process_methods(self, parent: PyVObj):
+        if self._processMethods == []:
+            self._addProcessMethod(parent.process)
+        elif self._processMethods == [None]:
+            self._processMethods = []
+
+    def add_methods_to_sim_queue(self):
+        import pyv.simulator as simulator
+        for func in self._processMethods:
+            simulator.Simulator.globalSim._addToProcessQueue(func)
+
+class PortRW(Port, Generic[T]):
+    """Base class for read/write ports"""
+    def __init__(self, type: Type[T]):
+        """Create a new `PortRW` object.
+
+        Args:
+            type: Data type for this port.
+        """
+        super().__init__(type, None)
+
         # Whether the port has not been written to in the entire simulation.
         # For most (if not all) ports this will only be the case during the
         # first cycle.
         self._isUntouched = True
-
-        # Setup sensitivity list
-        self._processMethods = []
-        if self._direction == IN:
-            for m in sensitive_methods:
-                self._addProcessMethod(m)
-        elif len(sensitive_methods) > 0:
-            raise Exception(f"Port '{self.name}' with direction OUT cannot have sensitive methods.")
 
     def read(self) -> T:
         """Reads the current value of the port.
@@ -58,11 +76,10 @@ class Port(Generic[T]):
         Returns:
             The current value of the port.
         """
-
-        if self._direction == OUT:
-            warnings.warn("Reading output ports directly in process methods is not recommended. If you are reading a top-level output port, you can ignore this warning.")
-
-        return self._val
+        if self._root_driver is self:
+            return self._val
+        else:
+            return self._root_driver.read()
 
     def write(self, val: T):
         """Writes a new value to the port.
@@ -78,7 +95,13 @@ class Port(Generic[T]):
             TypeError: Invalid write value type.
         """
 
-        if self._is_root_driver:
+        if self._root_driver is self:
+            def update_val_and_propagate():
+                oldVal = self._val
+                newVal = val
+                self._val = newVal
+                self._propagate(oldVal, newVal)
+
             # If the value is different from the current value we have to
             # propagate the change to all children ports.
 
@@ -91,35 +114,29 @@ class Port(Generic[T]):
             if self._isUntouched:
                 # Port has been written to
                 self._isUntouched = False
-                self._propagate(val)
+                update_val_and_propagate()
             # This is the default behavior: Only propagate when the new value is different
             elif self._val != val:
-                self._propagate(val)
+                update_val_and_propagate()
 
         else:
-            raise Exception("ERROR (Port): Only root driver port allowed to write!")
+            raise Exception(f"ERROR (Port '{self.name}'): Only root driver port allowed to write!")
 
-    def _propagate(self, val: T):
-        """Propagate a new value to all children ports.
-
-        Args:
-            val (int): The new value.
+    def _propagate(self, oldVal: T, newVal: T):
+        """Propagate a value change.
         """
-        _logger.debug(f"Port {self.name} changed from {self._val} to {val}.")
+        _logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
-        self._val = val
-
-        # Add this port's sensitive methods to the simulation queue
-        if self._direction == IN:
-            import pyv.simulator as simulator
-            for func in self._processMethods:
-                simulator.Simulator.globalSim._addToProcessQueue(func)
-
-        # Now call propagate change to children as well.
+        # Propagate change to all children
         for p in self._children:
-            p._propagate(val)
+            p._propagate(oldVal, newVal)
 
-    def connect(self, driver):
+    def _update_root_driver(self, driver: Port):
+        self._root_driver = driver._root_driver
+        for child in self._children:
+            child._update_root_driver(self._root_driver)
+
+    def connect(self, driver: Port):
         """Connects the current port to a driver port.
 
         Args:
@@ -145,18 +162,13 @@ class Port(Generic[T]):
         if self._parent is None:
             self._parent = driver
             driver._children.append(self)
-            self._is_root_driver = False
-            # This variable is only needed for the root driver
-            del self._isUntouched
+            self._update_root_driver(driver)
+            del self._val
         else:
             raise Exception(f"ERROR (Port): Port {self.name} already has a parent!")
 
-    def _addProcessMethod(self, func):
-        if func not in self._processMethods:
-            self._processMethods.append(func)
 
-
-class Input(Port[T]):
+class Input(PortRW[T]):
     """Represents an **Input** port."""
     def __init__(self, type: type[T], sensitive_methods=[]):
         """Create a new input port.
@@ -165,12 +177,28 @@ class Input(Port[T]):
 
         Args:
             type (type[T]): Data type of this input
-            sensitive_methods (list, optional): See `Port.__init__()`.
+            sensitive_methods (list, optional): List of methods to trigger when
+                a write to this input changes its current value. If omitted, only the parent module's `pyv.module.Module.process()`
+                method is taken. If `[None]` is passed, no sensitive method will
+                be associated with this port. **Important**: if you provide a custom sensitivity list,
+                but still want the default `process()` to be triggered as well, you have to
+                include it explicitly in the list.
         """
-        super().__init__(type, IN, sensitive_methods)
+        super().__init__(type)
+        self._processMethodHandler = ProcessMethodHandler(sensitive_methods)
 
+    def _init(self, parent: PyVObj):
+        self._processMethodHandler.init_process_methods(parent)
 
-class Output(Port[T]):
+    def _propagate(self, oldVal: T, newVal: T):
+        # TODO: Figure out how to log the change before the log of process queue
+        # _logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
+
+        # Add this port's sensitive methods to the simulation queue
+        self._processMethodHandler.add_methods_to_sim_queue()
+        super()._propagate(oldVal, newVal)
+
+class Output(PortRW[T]):
     """Represents an **Output** port."""
     def __init__(self, type: type[T]):
         """Create a new ouput port.
@@ -180,10 +208,10 @@ class Output(Port[T]):
         Args:
             type (type[T]): Data type of this output
         """
-        super().__init__(type, OUT)
+        super().__init__(type)
 
 # A Wire has the same methods and attributes as a Port.
-class Wire(Port[T]):
+class Wire(Input[T]):
     """Represents a **Wire**.
 
     A wire can be written to and read from just like a regular port.
@@ -197,6 +225,20 @@ class Wire(Port[T]):
 
         Args:
             type: Data type of wire value
-            sensitive_methods (list, optional): See `Port.__init__()`.
+            sensitive_methods (list, optional): See `Input.__init__()`.
         """
-        super().__init__(type, IN, sensitive_methods)
+        super().__init__(type, sensitive_methods)
+
+class Constant(Port):
+    """Represents a constant signal. Once initialized, its value cannot be changed.
+    """
+    def __init__(self, constVal: Any):
+        """Create a new constant signal.
+
+        Args:
+            constVal (Any): Constant value
+        """
+        super().__init__(type(constVal), constVal)
+
+    def read(self):
+        return self._val

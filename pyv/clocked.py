@@ -1,3 +1,6 @@
+from abc import ABC, abstractmethod
+
+
 class Clock:
     """This class represents the clock.
 
@@ -31,23 +34,22 @@ class Clock:
         MemBase.clear()
 
 
-class Clocked():
+class Clocked(ABC):
     """Base class for all clocked elements (Registers, Memories).
 
-    Raises:
-        NotImplementedError: The clocked element did not implement `_tick()`
-        NotImplementedError: The clocked element did not implement `_reset()`
+    Methods `_tick()` and `_reset()` must be implemented by any class
+    inheriting.
     """
+    @abstractmethod
     def _tick(self):
         """Tick function of individual clocked element."""
-        raise NotImplementedError
 
+    @abstractmethod
     def _reset(self):
         """Reset function of individual clocked element."""
-        raise NotImplementedError
 
 
-class RegBase(Clocked):
+class RegBase():
     """Base class for registers.
 
     This class keeps track of all instantiated registers.
@@ -59,17 +61,16 @@ class RegBase(Clocked):
     # The list of instantiated registers
     _reg_list = []
 
-    def __init__(self, resetVal):
+    def __init__(self):
         self.name = 'noName'
 
         # Add register to register list
-        self._reg_list.append(self)
+        RegBase.add_to_reg_list(self)
 
-        self._nextv = 0
-        self._resetVal = resetVal
+    @staticmethod
+    def add_to_reg_list(obj):
+        RegBase._reg_list.append(obj)
 
-        # Whether to do a reset on the next tick
-        self._doReset = False
 
     @staticmethod
     def tick():
@@ -81,38 +82,25 @@ class RegBase(Clocked):
         """
         for r in RegBase._reg_list:
             r._prepareNextVal()
-        
+
         for r in RegBase._reg_list:
             r._tick()
-    
+
     @staticmethod
     def reset():
         """Resets all registers."""
         for r in RegBase._reg_list:
             r._reset()
-    
+
     @staticmethod
     def clear():
         """Clears the list of registers."""
         RegBase._reg_list = []
 
-    def _prepareNextVal(self):
-        """Copies the next value to an internal variable.
-
-        This method is required to prevent the next val input from being
-        overridden after the _propagateNextVal() of a potentially preceding register
-        has been called.
-        """
-        raise NotImplementedError
-
-class MemBase(Clocked):
+class MemBase():
     """Base class for all memories.
 
     This class keeps track of all memories.
-
-    Raises:
-        NotImplementedError: The memory did not implement `read()`
-        NotImplementedError: The memory did not implement `writeRequest()`
     """
 
     # List of instantiated memories
@@ -120,20 +108,18 @@ class MemBase(Clocked):
 
     def __init__(self):
         # Add to list of memories
-        MemBase._mem_list.append(self)
-        # Disable write by default
-        self.we = False
-        """Write enable."""
-        # Read enable
-        self.re = False
-        """Read enable"""
-    
+        MemBase.add_to_mem_list(self)
+
+    @staticmethod
+    def add_to_mem_list(obj):
+        MemBase._mem_list.append(obj)
+
     @staticmethod
     def tick():
         """Ticks all memories."""
         for m in MemBase._mem_list:
             m._tick()
-    
+
     @staticmethod
     def reset():
         """Resets all memories."""
@@ -144,15 +130,3 @@ class MemBase(Clocked):
     def clear():
         """Clears list of memories."""
         MemBase._mem_list = []
-    
-    def read(self):
-        """Read memory."""
-        raise NotImplementedError
-    
-    def writeRequest(self):
-        """Generate a write request.
-        
-        The write will be committed with the next `tick()`.
-        (Unless `we` is False)
-        """
-        raise NotImplementedError

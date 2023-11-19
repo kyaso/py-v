@@ -1,9 +1,8 @@
 import copy
 import warnings
 from pyv.port import Input, Output
-from pyv.util import bitVector2num, getBitVector
-from pyv.defines import IN, OUT
-from pyv.clocked import MemBase, RegBase
+from pyv.util import PyVObj, bitVector2num, getBitVector
+from pyv.clocked import Clocked, MemBase, RegBase
 import pyv.log as log
 from typing import TypeVar, Generic, Type
 
@@ -11,7 +10,7 @@ T = TypeVar('T')
 
 _logger = log.getLogger(__name__)
 
-class Reg(RegBase, Generic[T]):
+class Reg(PyVObj, Clocked, Generic[T]):
     """Represents a register."""
 
     def __init__(self, type: Type[T], resetVal: T = 0):
@@ -20,24 +19,38 @@ class Reg(RegBase, Generic[T]):
         Args:
             resetVal (int, optional): Reset value. Defaults to 0.
         """
-        # Add this register to the global register list
-        super().__init__(resetVal)
+        super().__init__()
 
-        self.next: Input = Input(type)
+        # Add this register to the global register list
+        RegBase.add_to_reg_list(self)
+
+        self.next: Input = Input(type, [None])
         """Next value input"""
         self.cur: Output = Output(type)
         """Current value output"""
-        self.rst: Input = Input(int)
+        self.rst: Input = Input(int, [None])
         """Synchronous Reset in (active high)"""
 
+        self._nextv = 0
+        self._resetVal = resetVal
+
+        # Whether to do a reset on the next tick
+        self._doReset = False
+
     def _prepareNextVal(self):
+        """Copies the next value to an internal variable.
+
+        This method is required to prevent the next val input from being
+        overridden after the _propagateNextVal() of a potentially preceding register
+        has been called.
+        """
         self._doReset = False
         self._doTick = False
 
         if self.rst.read() == 1:
             self._doReset = True
         elif self.rst.read() == 0:
-            if self.cur._val != self.next._val:
+            if self.cur.read() != self.next.read():
                 self._nextv = copy.deepcopy(self.next.read())
                 self._doTick = True
         else:
@@ -162,14 +175,19 @@ class ShiftRegParallel(ShiftReg):
         self.parOut.write(bitVector2num(self.regs))
 
 
-class Regfile(MemBase):
+class Regfile(Clocked):
     """RISC-V: Integer register file."""
 
     def __init__(self):
-        super().__init__()
+        MemBase.add_to_mem_list(self)
         self.regs = [0  for _ in range(0, 32)]
         self._nextWIdx = 0
         self._nextWval = 0
+        self.we = False
+        """Write enable."""
+        # Read enable
+        self.re = False
+        """Read enable"""
 
     def read(self, reg: int) -> int:
         """Reads a register.
@@ -192,6 +210,7 @@ class Regfile(MemBase):
             # because the decoder will only feed-in valid 5 bit indeces.
             try:
                 val = self.regs[reg]
+                _logger.debug(f"Regfile READ: x{reg} = {val}")
             except IndexError:
                 _logger.warn("Potentially illegal register index 0x{:08X}. This might be normal during cycle processing.".format(reg))
                 val = 0
@@ -221,6 +240,7 @@ class Regfile(MemBase):
         if not self.we:
             return
 
+        _logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")
         self.regs[self._nextWidx] = self._nextWval
 
         # TODO: Technically, it shouldn't be the regfile's responsibility to reset

@@ -1,5 +1,28 @@
 """Utility stuff."""
 
+class PyVObj:
+    def __init__(self, name = "noName") -> None:
+        self.name = name
+        """Name of this object"""
+        self._visited = False
+
+    def _init(self, parent = None):
+        """Initializes the object.
+
+        This includes the following steps:
+        - Set the name of each child PyVObj instance
+        - Recursively call `_init()` for each child `PyVObj` instance
+        """
+        if self._visited:
+            return
+        self._visited = True
+
+        for key in self.__dict__:
+            obj = self.__dict__[key]
+            if isinstance(obj, (PyVObj)):
+                obj.name = self.name+"."+key
+                obj._init(self)
+
 # XLEN
 import warnings
 

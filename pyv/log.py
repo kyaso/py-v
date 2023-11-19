@@ -5,7 +5,7 @@ def getLogger(name: str):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logging.disable()
+    # logging.disable()
 
     formatter = logging.Formatter('%(name)15s: %(message)s')
     stream_handler = logging.StreamHandler()

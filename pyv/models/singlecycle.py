@@ -11,18 +11,19 @@ class SingleCycle(Module):
     Default memory size: 8 KiB
     """
     def __init__(self):
+        super().__init__()
         # Stages/modules
         self.regf = Regfile()
         """RISC-V 32-bit base register file"""
         self.mem = Memory(8*1024)
-        """Memory"""
-        self.if_stg = IFStage(self.mem)
+        """Main Memory (for both instructions and data)"""
+        self.if_stg = IFStage(self.mem.read_port1)
         """Instruction Fetch"""
         self.id_stg = IDStage(self.regf)
         """Instruction Decode"""
         self.ex_stg = EXStage()
         """Execute"""
-        self.mem_stg = MEMStage(self.mem)
+        self.mem_stg = MEMStage(self.mem.read_port0, self.mem.write_port)
         """Mem stage"""
         self.wb_stg = WBStage(self.regf)
         """Write-back"""
@@ -82,11 +83,7 @@ class SingleCycleModel(Model):
         Args:
             instructions (list): List of instruction words.
         """
-        addr = 0
-        for i in instructions:
-            self.core.if_stg.imem.writeRequest(addr, i, 4)
-            self.core.if_stg.imem._tick()
-            addr+=4
+        self.core.mem.mem[:len(instructions)] = instructions
     
     def load_binary(self, file):
         """Load a program binary into the instruction memory.
@@ -99,7 +96,7 @@ class SingleCycleModel(Model):
         f.close()
         inst = list(ba)
 
-        self.core.if_stg.imem.mem[:len(inst)] = inst
+        self.core.mem.mem[:len(inst)] = inst
     
     def readReg(self, reg):
         """Read a register in the register file.
@@ -130,7 +127,7 @@ class SingleCycleModel(Model):
         Returns:
             list: List of bytes.
         """
-        return [hex(self.core.mem_stg.mem.read(addr+i, 1))  for i in range(0, nbytes)]
+        return [hex(self.core.mem.mem[addr+i])  for i in range(0, nbytes)]
     
     def readInstMem(self, addr, nbytes):
         """Read bytes from instruction memory.
@@ -142,4 +139,4 @@ class SingleCycleModel(Model):
         Returns:
             list: List of bytes.
         """
-        return [hex(self.core.if_stg.imem.read(addr+i, 1))  for i in range(0, nbytes)]
+        return [hex(self.core.mem.mem[addr+i])  for i in range(0, nbytes)]

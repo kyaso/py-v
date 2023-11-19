@@ -4,11 +4,12 @@ from pyv.clocked import RegBase
 from pyv.port import Port, Input
 from pyv.reg import Reg
 import pyv.log as log
+from pyv.util import PyVObj
 
 logger = log.getLogger(__name__)
 
 # TODO: Maybe make this abstract
-class Module:
+class Module(PyVObj):
     """Base class for Modules.
 
     All modules inherit from this class.
@@ -16,37 +17,7 @@ class Module:
     All modules have to implement the `process()` method.
     """
     def __init__(self, name = 'UnnamedModule'):
-        self.name = name
-        """Name of module."""
-
-    def init(self):
-        """Initializes the module.
-
-        This includes the following steps:
-        - Set name attributes for each port, register and submodule.
-          The instance names are used. We need to access the names for
-          logging and waveforms.
-        - For each submodule, its own `init()` method is called recursively.
-        """
-
-        for key in self.__dict__:
-            obj = self.__dict__[key]
-            if isinstance(obj, (Port, RegBase, Reg, Module)):
-                obj.name = self.name+"."+key
-
-                if isinstance(obj, (Reg)):
-                    obj.next.name = obj.name+".next"
-                    obj.cur.name = obj.name+".cur"
-
-                if isinstance(obj, Input):
-                    if obj._processMethods == []:
-                        obj._addProcessMethod(self.process)
-                    elif obj._processMethods == [None]:
-                        obj._processMethods = []
-
-                if isinstance(obj, Module):
-                    obj.init()
-
+        super().__init__(name)
 
     def process(self):
         """Generates module's combinatorial outputs for current cycle based on inputs."""
