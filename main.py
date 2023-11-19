@@ -57,7 +57,7 @@ def endless_loop():
   core_type = 'single'
   program_name = 'ENDLESS_LOOP'
   path_to_bin = 'programs/endless_loop/endless_loop.bin'
-  num_cycles = 10000
+  num_cycles = 1000
 
   core = execute_bin(core_type, program_name, path_to_bin, num_cycles)
 
