@@ -4,3 +4,7 @@ __pycache__
 *.dmp
 *.log
 venv
+*.prof
+.coverage
+gitlint.test
+*.diff
