@@ -2,6 +2,9 @@
 
 # TODO: Move this class to its own module
 class PyVObj:
+    """This class represent all Py-V objects (such as modules, ports, registers).
+    Currently, this is used for initializing the names of every object in the design.
+    """
     def __init__(self, name = "noName") -> None:
         self.name = name
         """Name of this object"""

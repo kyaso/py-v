@@ -13,8 +13,6 @@ class Module(PyVObj):
     """Base class for Modules.
 
     All modules inherit from this class.
-
-    All modules have to implement the `process()` method.
     """
     def __init__(self, name = 'UnnamedModule'):
         super().__init__(name)

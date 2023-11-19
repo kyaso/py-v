@@ -53,9 +53,6 @@ class RegBase():
     """Base class for registers.
 
     This class keeps track of all instantiated registers.
-
-    Raises:
-        NotImplementedError: The register did not implement `_prepareNextVal()`
     """
 
     # The list of instantiated registers

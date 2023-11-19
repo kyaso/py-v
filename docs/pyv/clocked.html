@@ -55,10 +55,10 @@
                     <a class="class" href="#RegBase">RegBase</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="function" href="#RegBase.__init__">RegBase</a>
+                                <a class="variable" href="#RegBase.name">name</a>
                         </li>
                         <li>
-                                <a class="variable" href="#RegBase.name">name</a>
+                                <a class="function" href="#RegBase.add_to_reg_list">add_to_reg_list</a>
                         </li>
                         <li>
                                 <a class="function" href="#RegBase.tick">tick</a>
@@ -76,10 +76,7 @@
                     <a class="class" href="#MemBase">MemBase</a>
                             <ul class="memberlist">
                         <li>
-                                <a class="variable" href="#MemBase.we">we</a>
-                        </li>
-                        <li>
-                                <a class="variable" href="#MemBase.re">re</a>
+                                <a class="function" href="#MemBase.add_to_mem_list">add_to_mem_list</a>
                         </li>
                         <li>
                                 <a class="function" href="#MemBase.tick">tick</a>
@@ -89,12 +86,6 @@
                         </li>
                         <li>
                                 <a class="function" href="#MemBase.clear">clear</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#MemBase.read">read</a>
-                        </li>
-                        <li>
-                                <a class="function" href="#MemBase.writeRequest">writeRequest</a>
                         </li>
                 </ul>
 
@@ -120,164 +111,135 @@
 
                         <label class="view-source-button" for="mod-clocked-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="k">class</span> <span class="nc">Clock</span><span class="p">:</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class represents the clock.</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">    For now, clocked elements are:</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="sd">    - Registers</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="sd">    - Memories</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>        <span class="k">pass</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="k">class</span> <span class="nc">Clock</span><span class="p">:</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class represents the clock.</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">    For now, clocked elements are:</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="sd">    - Registers</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">    - Memories</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="k">class</span> <span class="nc">Clocked</span><span class="p">():</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all clocked elements (Registers, Memories).</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>        <span class="k">pass</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Raises:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        NotImplementedError: The clocked element did not implement `_tick()`</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">        NotImplementedError: The clocked element did not implement `_reset()`</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tick function of individual clocked element.&quot;&quot;&quot;</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset function of individual clocked element.&quot;&quot;&quot;</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="k">class</span> <span class="nc">RegBase</span><span class="p">(</span><span class="n">Clocked</span><span class="p">):</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for registers.</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">    This class keeps track of all instantiated registers.</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">class</span> <span class="nc">Clocked</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all clocked elements (Registers, Memories).</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    Methods `_tick()` and `_reset()` must be implemented by any class</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">    inheriting.</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tick function of individual clocked element.&quot;&quot;&quot;</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset function of individual clocked element.&quot;&quot;&quot;</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="k">class</span> <span class="nc">RegBase</span><span class="p">():</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for registers.</span>
 </span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    Raises:</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        NotImplementedError: The register did not implement `_prepareNextVal()`</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="c1"># The list of instantiated registers</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>    <span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="c1"># Add register to register list</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_nextv</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a><span class="sd">    This class keeps track of all instantiated registers.</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>    <span class="c1"># The list of instantiated registers</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="c1"># Add register to register list</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">add_to_reg_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">add_to_reg_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>        <span class="c1"># Whether to do a reset on the next tick</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_doReset</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the next value to an internal variable.</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">        This method is required to prevent the next val input from being</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">        overridden after the _propagateNextVal() of a potentially preceding register</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">        has been called.</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="k">class</span> <span class="nc">MemBase</span><span class="p">(</span><span class="n">Clocked</span><span class="p">):</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all memories.</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">    This class keeps track of all memories.</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">    Raises:</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">        NotImplementedError: The memory did not implement `read()`</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">        NotImplementedError: The memory did not implement `writeRequest()`</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="c1"># List of instantiated memories</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="c1"># Add to list of memories</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="c1"># Disable write by default</span>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">we</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Write enable.&quot;&quot;&quot;</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>        <span class="c1"># Read enable</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">re</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Read enable&quot;&quot;&quot;</span>
-</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    
-</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
-</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    
-</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
-</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>
-</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
-</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    
-</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Read memory.&quot;&quot;&quot;</span>
-</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    
-</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a write request.</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">        </span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        The write will be committed with the next `tick()`.</span>
-</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">        (Unless `we` is False)</span>
-</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a><span class="k">class</span> <span class="nc">MemBase</span><span class="p">():</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all memories.</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="sd">    This class keeps track of all memories.</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="c1"># List of instantiated memories</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>    <span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="c1"># Add to list of memories</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">add_to_mem_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>    <span class="k">def</span> <span class="nf">add_to_mem_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
@@ -293,37 +255,37 @@
 
     </div>
     <a class="headerlink" href="#Clock"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock-2"><a href="#Clock-2"><span class="linenos"> 2</span></a><span class="k">class</span> <span class="nc">Clock</span><span class="p">:</span>
-</span><span id="Clock-3"><a href="#Clock-3"><span class="linenos"> 3</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class represents the clock.</span>
-</span><span id="Clock-4"><a href="#Clock-4"><span class="linenos"> 4</span></a>
-</span><span id="Clock-5"><a href="#Clock-5"><span class="linenos"> 5</span></a><span class="sd">    For now, clocked elements are:</span>
-</span><span id="Clock-6"><a href="#Clock-6"><span class="linenos"> 6</span></a><span class="sd">    - Registers</span>
-</span><span id="Clock-7"><a href="#Clock-7"><span class="linenos"> 7</span></a><span class="sd">    - Memories</span>
-</span><span id="Clock-8"><a href="#Clock-8"><span class="linenos"> 8</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Clock-9"><a href="#Clock-9"><span class="linenos"> 9</span></a>
-</span><span id="Clock-10"><a href="#Clock-10"><span class="linenos">10</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Clock-11"><a href="#Clock-11"><span class="linenos">11</span></a>        <span class="k">pass</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock-5"><a href="#Clock-5"><span class="linenos"> 5</span></a><span class="k">class</span> <span class="nc">Clock</span><span class="p">:</span>
+</span><span id="Clock-6"><a href="#Clock-6"><span class="linenos"> 6</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;This class represents the clock.</span>
+</span><span id="Clock-7"><a href="#Clock-7"><span class="linenos"> 7</span></a>
+</span><span id="Clock-8"><a href="#Clock-8"><span class="linenos"> 8</span></a><span class="sd">    For now, clocked elements are:</span>
+</span><span id="Clock-9"><a href="#Clock-9"><span class="linenos"> 9</span></a><span class="sd">    - Registers</span>
+</span><span id="Clock-10"><a href="#Clock-10"><span class="linenos">10</span></a><span class="sd">    - Memories</span>
+</span><span id="Clock-11"><a href="#Clock-11"><span class="linenos">11</span></a><span class="sd">    &quot;&quot;&quot;</span>
 </span><span id="Clock-12"><a href="#Clock-12"><span class="linenos">12</span></a>
-</span><span id="Clock-13"><a href="#Clock-13"><span class="linenos">13</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock-14"><a href="#Clock-14"><span class="linenos">14</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="Clock-15"><a href="#Clock-15"><span class="linenos">15</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
-</span><span id="Clock-16"><a href="#Clock-16"><span class="linenos">16</span></a>
-</span><span id="Clock-17"><a href="#Clock-17"><span class="linenos">17</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
-</span><span id="Clock-18"><a href="#Clock-18"><span class="linenos">18</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Clock-19"><a href="#Clock-19"><span class="linenos">19</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
-</span><span id="Clock-20"><a href="#Clock-20"><span class="linenos">20</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
-</span><span id="Clock-21"><a href="#Clock-21"><span class="linenos">21</span></a>
-</span><span id="Clock-22"><a href="#Clock-22"><span class="linenos">22</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock-23"><a href="#Clock-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="Clock-24"><a href="#Clock-24"><span class="linenos">24</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
-</span><span id="Clock-25"><a href="#Clock-25"><span class="linenos">25</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</span><span id="Clock-26"><a href="#Clock-26"><span class="linenos">26</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</span><span id="Clock-27"><a href="#Clock-27"><span class="linenos">27</span></a>
-</span><span id="Clock-28"><a href="#Clock-28"><span class="linenos">28</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock-29"><a href="#Clock-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="Clock-30"><a href="#Clock-30"><span class="linenos">30</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
-</span><span id="Clock-31"><a href="#Clock-31"><span class="linenos">31</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="Clock-32"><a href="#Clock-32"><span class="linenos">32</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="Clock-13"><a href="#Clock-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Clock-14"><a href="#Clock-14"><span class="linenos">14</span></a>        <span class="k">pass</span>
+</span><span id="Clock-15"><a href="#Clock-15"><span class="linenos">15</span></a>
+</span><span id="Clock-16"><a href="#Clock-16"><span class="linenos">16</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock-17"><a href="#Clock-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="Clock-18"><a href="#Clock-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
+</span><span id="Clock-19"><a href="#Clock-19"><span class="linenos">19</span></a>
+</span><span id="Clock-20"><a href="#Clock-20"><span class="linenos">20</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
+</span><span id="Clock-21"><a href="#Clock-21"><span class="linenos">21</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Clock-22"><a href="#Clock-22"><span class="linenos">22</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+</span><span id="Clock-23"><a href="#Clock-23"><span class="linenos">23</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+</span><span id="Clock-24"><a href="#Clock-24"><span class="linenos">24</span></a>
+</span><span id="Clock-25"><a href="#Clock-25"><span class="linenos">25</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock-26"><a href="#Clock-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="Clock-27"><a href="#Clock-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
+</span><span id="Clock-28"><a href="#Clock-28"><span class="linenos">28</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="Clock-29"><a href="#Clock-29"><span class="linenos">29</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="Clock-30"><a href="#Clock-30"><span class="linenos">30</span></a>
+</span><span id="Clock-31"><a href="#Clock-31"><span class="linenos">31</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock-32"><a href="#Clock-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="Clock-33"><a href="#Clock-33"><span class="linenos">33</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
+</span><span id="Clock-34"><a href="#Clock-34"><span class="linenos">34</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="Clock-35"><a href="#Clock-35"><span class="linenos">35</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -350,14 +312,14 @@
 
     </div>
     <a class="headerlink" href="#Clock.tick"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.tick-13"><a href="#Clock.tick-13"><span class="linenos">13</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock.tick-14"><a href="#Clock.tick-14"><span class="linenos">14</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="Clock.tick-15"><a href="#Clock.tick-15"><span class="linenos">15</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
-</span><span id="Clock.tick-16"><a href="#Clock.tick-16"><span class="linenos">16</span></a>
-</span><span id="Clock.tick-17"><a href="#Clock.tick-17"><span class="linenos">17</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
-</span><span id="Clock.tick-18"><a href="#Clock.tick-18"><span class="linenos">18</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Clock.tick-19"><a href="#Clock.tick-19"><span class="linenos">19</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
-</span><span id="Clock.tick-20"><a href="#Clock.tick-20"><span class="linenos">20</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.tick-16"><a href="#Clock.tick-16"><span class="linenos">16</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock.tick-17"><a href="#Clock.tick-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="Clock.tick-18"><a href="#Clock.tick-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a clock tick (rising edge).</span>
+</span><span id="Clock.tick-19"><a href="#Clock.tick-19"><span class="linenos">19</span></a>
+</span><span id="Clock.tick-20"><a href="#Clock.tick-20"><span class="linenos">20</span></a><span class="sd">        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).</span>
+</span><span id="Clock.tick-21"><a href="#Clock.tick-21"><span class="linenos">21</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Clock.tick-22"><a href="#Clock.tick-22"><span class="linenos">22</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
+</span><span id="Clock.tick-23"><a href="#Clock.tick-23"><span class="linenos">23</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">tick</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -380,11 +342,11 @@
 
     </div>
     <a class="headerlink" href="#Clock.reset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.reset-22"><a href="#Clock.reset-22"><span class="linenos">22</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock.reset-23"><a href="#Clock.reset-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="Clock.reset-24"><a href="#Clock.reset-24"><span class="linenos">24</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
-</span><span id="Clock.reset-25"><a href="#Clock.reset-25"><span class="linenos">25</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-</span><span id="Clock.reset-26"><a href="#Clock.reset-26"><span class="linenos">26</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.reset-25"><a href="#Clock.reset-25"><span class="linenos">25</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock.reset-26"><a href="#Clock.reset-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="Clock.reset-27"><a href="#Clock.reset-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`).&quot;&quot;&quot;</span>
+</span><span id="Clock.reset-28"><a href="#Clock.reset-28"><span class="linenos">28</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</span><span id="Clock.reset-29"><a href="#Clock.reset-29"><span class="linenos">29</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -405,11 +367,11 @@
 
     </div>
     <a class="headerlink" href="#Clock.clear"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.clear-28"><a href="#Clock.clear-28"><span class="linenos">28</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Clock.clear-29"><a href="#Clock.clear-29"><span class="linenos">29</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="Clock.clear-30"><a href="#Clock.clear-30"><span class="linenos">30</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
-</span><span id="Clock.clear-31"><a href="#Clock.clear-31"><span class="linenos">31</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span><span id="Clock.clear-32"><a href="#Clock.clear-32"><span class="linenos">32</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Clock.clear-31"><a href="#Clock.clear-31"><span class="linenos">31</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Clock.clear-32"><a href="#Clock.clear-32"><span class="linenos">32</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="Clock.clear-33"><a href="#Clock.clear-33"><span class="linenos">33</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`).&quot;&quot;&quot;</span>
+</span><span id="Clock.clear-34"><a href="#Clock.clear-34"><span class="linenos">34</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+</span><span id="Clock.clear-35"><a href="#Clock.clear-35"><span class="linenos">35</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -424,37 +386,32 @@
 <div class="attr class">
             
     <span class="def">class</span>
-    <span class="name">Clocked</span>:
+    <span class="name">Clocked</span><wbr>(<span class="base">abc.ABC</span>):
 
                 <label class="view-source-button" for="Clocked-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#Clocked"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Clocked-35"><a href="#Clocked-35"><span class="linenos">35</span></a><span class="k">class</span> <span class="nc">Clocked</span><span class="p">():</span>
-</span><span id="Clocked-36"><a href="#Clocked-36"><span class="linenos">36</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all clocked elements (Registers, Memories).</span>
-</span><span id="Clocked-37"><a href="#Clocked-37"><span class="linenos">37</span></a>
-</span><span id="Clocked-38"><a href="#Clocked-38"><span class="linenos">38</span></a><span class="sd">    Raises:</span>
-</span><span id="Clocked-39"><a href="#Clocked-39"><span class="linenos">39</span></a><span class="sd">        NotImplementedError: The clocked element did not implement `_tick()`</span>
-</span><span id="Clocked-40"><a href="#Clocked-40"><span class="linenos">40</span></a><span class="sd">        NotImplementedError: The clocked element did not implement `_reset()`</span>
-</span><span id="Clocked-41"><a href="#Clocked-41"><span class="linenos">41</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Clocked-42"><a href="#Clocked-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Clocked-43"><a href="#Clocked-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tick function of individual clocked element.&quot;&quot;&quot;</span>
-</span><span id="Clocked-44"><a href="#Clocked-44"><span class="linenos">44</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="Clocked-45"><a href="#Clocked-45"><span class="linenos">45</span></a>
-</span><span id="Clocked-46"><a href="#Clocked-46"><span class="linenos">46</span></a>    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Clocked-47"><a href="#Clocked-47"><span class="linenos">47</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset function of individual clocked element.&quot;&quot;&quot;</span>
-</span><span id="Clocked-48"><a href="#Clocked-48"><span class="linenos">48</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Clocked-38"><a href="#Clocked-38"><span class="linenos">38</span></a><span class="k">class</span> <span class="nc">Clocked</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+</span><span id="Clocked-39"><a href="#Clocked-39"><span class="linenos">39</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all clocked elements (Registers, Memories).</span>
+</span><span id="Clocked-40"><a href="#Clocked-40"><span class="linenos">40</span></a>
+</span><span id="Clocked-41"><a href="#Clocked-41"><span class="linenos">41</span></a><span class="sd">    Methods `_tick()` and `_reset()` must be implemented by any class</span>
+</span><span id="Clocked-42"><a href="#Clocked-42"><span class="linenos">42</span></a><span class="sd">    inheriting.</span>
+</span><span id="Clocked-43"><a href="#Clocked-43"><span class="linenos">43</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Clocked-44"><a href="#Clocked-44"><span class="linenos">44</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="Clocked-45"><a href="#Clocked-45"><span class="linenos">45</span></a>    <span class="k">def</span> <span class="nf">_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Clocked-46"><a href="#Clocked-46"><span class="linenos">46</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Tick function of individual clocked element.&quot;&quot;&quot;</span>
+</span><span id="Clocked-47"><a href="#Clocked-47"><span class="linenos">47</span></a>
+</span><span id="Clocked-48"><a href="#Clocked-48"><span class="linenos">48</span></a>    <span class="nd">@abstractmethod</span>
+</span><span id="Clocked-49"><a href="#Clocked-49"><span class="linenos">49</span></a>    <span class="k">def</span> <span class="nf">_reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Clocked-50"><a href="#Clocked-50"><span class="linenos">50</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset function of individual clocked element.&quot;&quot;&quot;</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Base class for all clocked elements (Registers, Memories).</p>
 
-<h6 id="raises">Raises:</h6>
-
-<ul>
-<li><strong>NotImplementedError:</strong>  The clocked element did not implement <code>_tick()</code></li>
-<li><strong>NotImplementedError:</strong>  The clocked element did not implement <code>_reset()</code></li>
-</ul>
+<p>Methods <code>_tick()</code> and <code>_reset()</code> must be implemented by any class
+inheriting.</p>
 </div>
 
 
@@ -464,111 +421,65 @@
 <div class="attr class">
             
     <span class="def">class</span>
-    <span class="name">RegBase</span><wbr>(<span class="base"><a href="#Clocked">Clocked</a></span>):
+    <span class="name">RegBase</span>:
 
                 <label class="view-source-button" for="RegBase-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#RegBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase-51"><a href="#RegBase-51"><span class="linenos"> 51</span></a><span class="k">class</span> <span class="nc">RegBase</span><span class="p">(</span><span class="n">Clocked</span><span class="p">):</span>
-</span><span id="RegBase-52"><a href="#RegBase-52"><span class="linenos"> 52</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for registers.</span>
-</span><span id="RegBase-53"><a href="#RegBase-53"><span class="linenos"> 53</span></a>
-</span><span id="RegBase-54"><a href="#RegBase-54"><span class="linenos"> 54</span></a><span class="sd">    This class keeps track of all instantiated registers.</span>
-</span><span id="RegBase-55"><a href="#RegBase-55"><span class="linenos"> 55</span></a>
-</span><span id="RegBase-56"><a href="#RegBase-56"><span class="linenos"> 56</span></a><span class="sd">    Raises:</span>
-</span><span id="RegBase-57"><a href="#RegBase-57"><span class="linenos"> 57</span></a><span class="sd">        NotImplementedError: The register did not implement `_prepareNextVal()`</span>
-</span><span id="RegBase-58"><a href="#RegBase-58"><span class="linenos"> 58</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="RegBase-59"><a href="#RegBase-59"><span class="linenos"> 59</span></a>
-</span><span id="RegBase-60"><a href="#RegBase-60"><span class="linenos"> 60</span></a>    <span class="c1"># The list of instantiated registers</span>
-</span><span id="RegBase-61"><a href="#RegBase-61"><span class="linenos"> 61</span></a>    <span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="RegBase-62"><a href="#RegBase-62"><span class="linenos"> 62</span></a>
-</span><span id="RegBase-63"><a href="#RegBase-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-</span><span id="RegBase-64"><a href="#RegBase-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
-</span><span id="RegBase-65"><a href="#RegBase-65"><span class="linenos"> 65</span></a>
-</span><span id="RegBase-66"><a href="#RegBase-66"><span class="linenos"> 66</span></a>        <span class="c1"># Add register to register list</span>
-</span><span id="RegBase-67"><a href="#RegBase-67"><span class="linenos"> 67</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="RegBase-68"><a href="#RegBase-68"><span class="linenos"> 68</span></a>
-</span><span id="RegBase-69"><a href="#RegBase-69"><span class="linenos"> 69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_nextv</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="RegBase-70"><a href="#RegBase-70"><span class="linenos"> 70</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
-</span><span id="RegBase-71"><a href="#RegBase-71"><span class="linenos"> 71</span></a>
-</span><span id="RegBase-72"><a href="#RegBase-72"><span class="linenos"> 72</span></a>        <span class="c1"># Whether to do a reset on the next tick</span>
-</span><span id="RegBase-73"><a href="#RegBase-73"><span class="linenos"> 73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_doReset</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="RegBase-74"><a href="#RegBase-74"><span class="linenos"> 74</span></a>
-</span><span id="RegBase-75"><a href="#RegBase-75"><span class="linenos"> 75</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase-76"><a href="#RegBase-76"><span class="linenos"> 76</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="RegBase-77"><a href="#RegBase-77"><span class="linenos"> 77</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
-</span><span id="RegBase-78"><a href="#RegBase-78"><span class="linenos"> 78</span></a>
-</span><span id="RegBase-79"><a href="#RegBase-79"><span class="linenos"> 79</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
-</span><span id="RegBase-80"><a href="#RegBase-80"><span class="linenos"> 80</span></a>
-</span><span id="RegBase-81"><a href="#RegBase-81"><span class="linenos"> 81</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
-</span><span id="RegBase-82"><a href="#RegBase-82"><span class="linenos"> 82</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="RegBase-83"><a href="#RegBase-83"><span class="linenos"> 83</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase-84"><a href="#RegBase-84"><span class="linenos"> 84</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
-</span><span id="RegBase-85"><a href="#RegBase-85"><span class="linenos"> 85</span></a>        
-</span><span id="RegBase-86"><a href="#RegBase-86"><span class="linenos"> 86</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase-87"><a href="#RegBase-87"><span class="linenos"> 87</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-</span><span id="RegBase-88"><a href="#RegBase-88"><span class="linenos"> 88</span></a>    
-</span><span id="RegBase-89"><a href="#RegBase-89"><span class="linenos"> 89</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase-90"><a href="#RegBase-90"><span class="linenos"> 90</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="RegBase-91"><a href="#RegBase-91"><span class="linenos"> 91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
-</span><span id="RegBase-92"><a href="#RegBase-92"><span class="linenos"> 92</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase-93"><a href="#RegBase-93"><span class="linenos"> 93</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
-</span><span id="RegBase-94"><a href="#RegBase-94"><span class="linenos"> 94</span></a>    
-</span><span id="RegBase-95"><a href="#RegBase-95"><span class="linenos"> 95</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase-96"><a href="#RegBase-96"><span class="linenos"> 96</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="RegBase-97"><a href="#RegBase-97"><span class="linenos"> 97</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
-</span><span id="RegBase-98"><a href="#RegBase-98"><span class="linenos"> 98</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="RegBase-99"><a href="#RegBase-99"><span class="linenos"> 99</span></a>
-</span><span id="RegBase-100"><a href="#RegBase-100"><span class="linenos">100</span></a>    <span class="k">def</span> <span class="nf">_prepareNextVal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="RegBase-101"><a href="#RegBase-101"><span class="linenos">101</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the next value to an internal variable.</span>
-</span><span id="RegBase-102"><a href="#RegBase-102"><span class="linenos">102</span></a>
-</span><span id="RegBase-103"><a href="#RegBase-103"><span class="linenos">103</span></a><span class="sd">        This method is required to prevent the next val input from being</span>
-</span><span id="RegBase-104"><a href="#RegBase-104"><span class="linenos">104</span></a><span class="sd">        overridden after the _propagateNextVal() of a potentially preceding register</span>
-</span><span id="RegBase-105"><a href="#RegBase-105"><span class="linenos">105</span></a><span class="sd">        has been called.</span>
-</span><span id="RegBase-106"><a href="#RegBase-106"><span class="linenos">106</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="RegBase-107"><a href="#RegBase-107"><span class="linenos">107</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase-53"><a href="#RegBase-53"><span class="linenos">53</span></a><span class="k">class</span> <span class="nc">RegBase</span><span class="p">():</span>
+</span><span id="RegBase-54"><a href="#RegBase-54"><span class="linenos">54</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for registers.</span>
+</span><span id="RegBase-55"><a href="#RegBase-55"><span class="linenos">55</span></a>
+</span><span id="RegBase-56"><a href="#RegBase-56"><span class="linenos">56</span></a><span class="sd">    This class keeps track of all instantiated registers.</span>
+</span><span id="RegBase-57"><a href="#RegBase-57"><span class="linenos">57</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="RegBase-58"><a href="#RegBase-58"><span class="linenos">58</span></a>
+</span><span id="RegBase-59"><a href="#RegBase-59"><span class="linenos">59</span></a>    <span class="c1"># The list of instantiated registers</span>
+</span><span id="RegBase-60"><a href="#RegBase-60"><span class="linenos">60</span></a>    <span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="RegBase-61"><a href="#RegBase-61"><span class="linenos">61</span></a>
+</span><span id="RegBase-62"><a href="#RegBase-62"><span class="linenos">62</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="RegBase-63"><a href="#RegBase-63"><span class="linenos">63</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
+</span><span id="RegBase-64"><a href="#RegBase-64"><span class="linenos">64</span></a>
+</span><span id="RegBase-65"><a href="#RegBase-65"><span class="linenos">65</span></a>        <span class="c1"># Add register to register list</span>
+</span><span id="RegBase-66"><a href="#RegBase-66"><span class="linenos">66</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">add_to_reg_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="RegBase-67"><a href="#RegBase-67"><span class="linenos">67</span></a>
+</span><span id="RegBase-68"><a href="#RegBase-68"><span class="linenos">68</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase-69"><a href="#RegBase-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">add_to_reg_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="RegBase-70"><a href="#RegBase-70"><span class="linenos">70</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="RegBase-71"><a href="#RegBase-71"><span class="linenos">71</span></a>
+</span><span id="RegBase-72"><a href="#RegBase-72"><span class="linenos">72</span></a>
+</span><span id="RegBase-73"><a href="#RegBase-73"><span class="linenos">73</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase-74"><a href="#RegBase-74"><span class="linenos">74</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="RegBase-75"><a href="#RegBase-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
+</span><span id="RegBase-76"><a href="#RegBase-76"><span class="linenos">76</span></a>
+</span><span id="RegBase-77"><a href="#RegBase-77"><span class="linenos">77</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
+</span><span id="RegBase-78"><a href="#RegBase-78"><span class="linenos">78</span></a>
+</span><span id="RegBase-79"><a href="#RegBase-79"><span class="linenos">79</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
+</span><span id="RegBase-80"><a href="#RegBase-80"><span class="linenos">80</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="RegBase-81"><a href="#RegBase-81"><span class="linenos">81</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase-82"><a href="#RegBase-82"><span class="linenos">82</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
+</span><span id="RegBase-83"><a href="#RegBase-83"><span class="linenos">83</span></a>
+</span><span id="RegBase-84"><a href="#RegBase-84"><span class="linenos">84</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase-85"><a href="#RegBase-85"><span class="linenos">85</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+</span><span id="RegBase-86"><a href="#RegBase-86"><span class="linenos">86</span></a>
+</span><span id="RegBase-87"><a href="#RegBase-87"><span class="linenos">87</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase-88"><a href="#RegBase-88"><span class="linenos">88</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="RegBase-89"><a href="#RegBase-89"><span class="linenos">89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
+</span><span id="RegBase-90"><a href="#RegBase-90"><span class="linenos">90</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase-91"><a href="#RegBase-91"><span class="linenos">91</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+</span><span id="RegBase-92"><a href="#RegBase-92"><span class="linenos">92</span></a>
+</span><span id="RegBase-93"><a href="#RegBase-93"><span class="linenos">93</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase-94"><a href="#RegBase-94"><span class="linenos">94</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="RegBase-95"><a href="#RegBase-95"><span class="linenos">95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
+</span><span id="RegBase-96"><a href="#RegBase-96"><span class="linenos">96</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Base class for registers.</p>
 
 <p>This class keeps track of all instantiated registers.</p>
-
-<h6 id="raises">Raises:</h6>
-
-<ul>
-<li><strong>NotImplementedError:</strong>  The register did not implement <code>_prepareNextVal()</code></li>
-</ul>
 </div>
 
 
-                            <div id="RegBase.__init__" class="classattr">
-                                        <input id="RegBase.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="name">RegBase</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">resetVal</span></span>)</span>
-
-                <label class="view-source-button" for="RegBase.__init__-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#RegBase.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.__init__-63"><a href="#RegBase.__init__-63"><span class="linenos">63</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resetVal</span><span class="p">):</span>
-</span><span id="RegBase.__init__-64"><a href="#RegBase.__init__-64"><span class="linenos">64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;noName&#39;</span>
-</span><span id="RegBase.__init__-65"><a href="#RegBase.__init__-65"><span class="linenos">65</span></a>
-</span><span id="RegBase.__init__-66"><a href="#RegBase.__init__-66"><span class="linenos">66</span></a>        <span class="c1"># Add register to register list</span>
-</span><span id="RegBase.__init__-67"><a href="#RegBase.__init__-67"><span class="linenos">67</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="RegBase.__init__-68"><a href="#RegBase.__init__-68"><span class="linenos">68</span></a>
-</span><span id="RegBase.__init__-69"><a href="#RegBase.__init__-69"><span class="linenos">69</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_nextv</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="RegBase.__init__-70"><a href="#RegBase.__init__-70"><span class="linenos">70</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_resetVal</span> <span class="o">=</span> <span class="n">resetVal</span>
-</span><span id="RegBase.__init__-71"><a href="#RegBase.__init__-71"><span class="linenos">71</span></a>
-</span><span id="RegBase.__init__-72"><a href="#RegBase.__init__-72"><span class="linenos">72</span></a>        <span class="c1"># Whether to do a reset on the next tick</span>
-</span><span id="RegBase.__init__-73"><a href="#RegBase.__init__-73"><span class="linenos">73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_doReset</span> <span class="o">=</span> <span class="kc">False</span>
-</span></pre></div>
-
-
-    
-
-                            </div>
                             <div id="RegBase.name" class="classattr">
                                 <div class="attr variable">
             <span class="name">name</span>
@@ -577,6 +488,27 @@
     </div>
     <a class="headerlink" href="#RegBase.name"></a>
     
+    
+
+                            </div>
+                            <div id="RegBase.add_to_reg_list" class="classattr">
+                                        <input id="RegBase.add_to_reg_list-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator">@staticmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">add_to_reg_list</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">obj</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="RegBase.add_to_reg_list-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#RegBase.add_to_reg_list"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.add_to_reg_list-68"><a href="#RegBase.add_to_reg_list-68"><span class="linenos">68</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase.add_to_reg_list-69"><a href="#RegBase.add_to_reg_list-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">add_to_reg_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="RegBase.add_to_reg_list-70"><a href="#RegBase.add_to_reg_list-70"><span class="linenos">70</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+
     
 
                             </div>
@@ -592,19 +524,19 @@
 
     </div>
     <a class="headerlink" href="#RegBase.tick"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.tick-75"><a href="#RegBase.tick-75"><span class="linenos">75</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase.tick-76"><a href="#RegBase.tick-76"><span class="linenos">76</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="RegBase.tick-77"><a href="#RegBase.tick-77"><span class="linenos">77</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.tick-73"><a href="#RegBase.tick-73"><span class="linenos">73</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase.tick-74"><a href="#RegBase.tick-74"><span class="linenos">74</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="RegBase.tick-75"><a href="#RegBase.tick-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all registers.</span>
+</span><span id="RegBase.tick-76"><a href="#RegBase.tick-76"><span class="linenos">76</span></a>
+</span><span id="RegBase.tick-77"><a href="#RegBase.tick-77"><span class="linenos">77</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
 </span><span id="RegBase.tick-78"><a href="#RegBase.tick-78"><span class="linenos">78</span></a>
-</span><span id="RegBase.tick-79"><a href="#RegBase.tick-79"><span class="linenos">79</span></a><span class="sd">        First, their next values are saved (-&gt; `_prepareNextVal()`).</span>
-</span><span id="RegBase.tick-80"><a href="#RegBase.tick-80"><span class="linenos">80</span></a>
-</span><span id="RegBase.tick-81"><a href="#RegBase.tick-81"><span class="linenos">81</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
-</span><span id="RegBase.tick-82"><a href="#RegBase.tick-82"><span class="linenos">82</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="RegBase.tick-83"><a href="#RegBase.tick-83"><span class="linenos">83</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase.tick-84"><a href="#RegBase.tick-84"><span class="linenos">84</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
-</span><span id="RegBase.tick-85"><a href="#RegBase.tick-85"><span class="linenos">85</span></a>        
-</span><span id="RegBase.tick-86"><a href="#RegBase.tick-86"><span class="linenos">86</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase.tick-87"><a href="#RegBase.tick-87"><span class="linenos">87</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+</span><span id="RegBase.tick-79"><a href="#RegBase.tick-79"><span class="linenos">79</span></a><span class="sd">        Then the next values are propagated to the current values.</span>
+</span><span id="RegBase.tick-80"><a href="#RegBase.tick-80"><span class="linenos">80</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="RegBase.tick-81"><a href="#RegBase.tick-81"><span class="linenos">81</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase.tick-82"><a href="#RegBase.tick-82"><span class="linenos">82</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_prepareNextVal</span><span class="p">()</span>
+</span><span id="RegBase.tick-83"><a href="#RegBase.tick-83"><span class="linenos">83</span></a>
+</span><span id="RegBase.tick-84"><a href="#RegBase.tick-84"><span class="linenos">84</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase.tick-85"><a href="#RegBase.tick-85"><span class="linenos">85</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -629,11 +561,11 @@
 
     </div>
     <a class="headerlink" href="#RegBase.reset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.reset-89"><a href="#RegBase.reset-89"><span class="linenos">89</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase.reset-90"><a href="#RegBase.reset-90"><span class="linenos">90</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="RegBase.reset-91"><a href="#RegBase.reset-91"><span class="linenos">91</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
-</span><span id="RegBase.reset-92"><a href="#RegBase.reset-92"><span class="linenos">92</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
-</span><span id="RegBase.reset-93"><a href="#RegBase.reset-93"><span class="linenos">93</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.reset-87"><a href="#RegBase.reset-87"><span class="linenos">87</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase.reset-88"><a href="#RegBase.reset-88"><span class="linenos">88</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="RegBase.reset-89"><a href="#RegBase.reset-89"><span class="linenos">89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all registers.&quot;&quot;&quot;</span>
+</span><span id="RegBase.reset-90"><a href="#RegBase.reset-90"><span class="linenos">90</span></a>        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span><span class="p">:</span>
+</span><span id="RegBase.reset-91"><a href="#RegBase.reset-91"><span class="linenos">91</span></a>            <span class="n">r</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -654,10 +586,10 @@
 
     </div>
     <a class="headerlink" href="#RegBase.clear"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.clear-95"><a href="#RegBase.clear-95"><span class="linenos">95</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="RegBase.clear-96"><a href="#RegBase.clear-96"><span class="linenos">96</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="RegBase.clear-97"><a href="#RegBase.clear-97"><span class="linenos">97</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
-</span><span id="RegBase.clear-98"><a href="#RegBase.clear-98"><span class="linenos">98</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RegBase.clear-93"><a href="#RegBase.clear-93"><span class="linenos">93</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="RegBase.clear-94"><a href="#RegBase.clear-94"><span class="linenos">94</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="RegBase.clear-95"><a href="#RegBase.clear-95"><span class="linenos">95</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the list of registers.&quot;&quot;&quot;</span>
+</span><span id="RegBase.clear-96"><a href="#RegBase.clear-96"><span class="linenos">96</span></a>        <span class="n">RegBase</span><span class="o">.</span><span class="n">_reg_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
@@ -672,103 +604,73 @@
 <div class="attr class">
             
     <span class="def">class</span>
-    <span class="name">MemBase</span><wbr>(<span class="base"><a href="#Clocked">Clocked</a></span>):
+    <span class="name">MemBase</span>:
 
                 <label class="view-source-button" for="MemBase-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#MemBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase-109"><a href="#MemBase-109"><span class="linenos">109</span></a><span class="k">class</span> <span class="nc">MemBase</span><span class="p">(</span><span class="n">Clocked</span><span class="p">):</span>
-</span><span id="MemBase-110"><a href="#MemBase-110"><span class="linenos">110</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all memories.</span>
-</span><span id="MemBase-111"><a href="#MemBase-111"><span class="linenos">111</span></a>
-</span><span id="MemBase-112"><a href="#MemBase-112"><span class="linenos">112</span></a><span class="sd">    This class keeps track of all memories.</span>
-</span><span id="MemBase-113"><a href="#MemBase-113"><span class="linenos">113</span></a>
-</span><span id="MemBase-114"><a href="#MemBase-114"><span class="linenos">114</span></a><span class="sd">    Raises:</span>
-</span><span id="MemBase-115"><a href="#MemBase-115"><span class="linenos">115</span></a><span class="sd">        NotImplementedError: The memory did not implement `read()`</span>
-</span><span id="MemBase-116"><a href="#MemBase-116"><span class="linenos">116</span></a><span class="sd">        NotImplementedError: The memory did not implement `writeRequest()`</span>
-</span><span id="MemBase-117"><a href="#MemBase-117"><span class="linenos">117</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="MemBase-118"><a href="#MemBase-118"><span class="linenos">118</span></a>
-</span><span id="MemBase-119"><a href="#MemBase-119"><span class="linenos">119</span></a>    <span class="c1"># List of instantiated memories</span>
-</span><span id="MemBase-120"><a href="#MemBase-120"><span class="linenos">120</span></a>    <span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="MemBase-121"><a href="#MemBase-121"><span class="linenos">121</span></a>
-</span><span id="MemBase-122"><a href="#MemBase-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="MemBase-123"><a href="#MemBase-123"><span class="linenos">123</span></a>        <span class="c1"># Add to list of memories</span>
-</span><span id="MemBase-124"><a href="#MemBase-124"><span class="linenos">124</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-</span><span id="MemBase-125"><a href="#MemBase-125"><span class="linenos">125</span></a>        <span class="c1"># Disable write by default</span>
-</span><span id="MemBase-126"><a href="#MemBase-126"><span class="linenos">126</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">we</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="MemBase-127"><a href="#MemBase-127"><span class="linenos">127</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Write enable.&quot;&quot;&quot;</span>
-</span><span id="MemBase-128"><a href="#MemBase-128"><span class="linenos">128</span></a>        <span class="c1"># Read enable</span>
-</span><span id="MemBase-129"><a href="#MemBase-129"><span class="linenos">129</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">re</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="MemBase-130"><a href="#MemBase-130"><span class="linenos">130</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Read enable&quot;&quot;&quot;</span>
-</span><span id="MemBase-131"><a href="#MemBase-131"><span class="linenos">131</span></a>    
-</span><span id="MemBase-132"><a href="#MemBase-132"><span class="linenos">132</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase-133"><a href="#MemBase-133"><span class="linenos">133</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="MemBase-134"><a href="#MemBase-134"><span class="linenos">134</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase-135"><a href="#MemBase-135"><span class="linenos">135</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="MemBase-136"><a href="#MemBase-136"><span class="linenos">136</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
-</span><span id="MemBase-137"><a href="#MemBase-137"><span class="linenos">137</span></a>    
-</span><span id="MemBase-138"><a href="#MemBase-138"><span class="linenos">138</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase-139"><a href="#MemBase-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="MemBase-140"><a href="#MemBase-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase-141"><a href="#MemBase-141"><span class="linenos">141</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="MemBase-142"><a href="#MemBase-142"><span class="linenos">142</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
-</span><span id="MemBase-143"><a href="#MemBase-143"><span class="linenos">143</span></a>
-</span><span id="MemBase-144"><a href="#MemBase-144"><span class="linenos">144</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase-145"><a href="#MemBase-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="MemBase-146"><a href="#MemBase-146"><span class="linenos">146</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase-147"><a href="#MemBase-147"><span class="linenos">147</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="MemBase-148"><a href="#MemBase-148"><span class="linenos">148</span></a>    
-</span><span id="MemBase-149"><a href="#MemBase-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="MemBase-150"><a href="#MemBase-150"><span class="linenos">150</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Read memory.&quot;&quot;&quot;</span>
-</span><span id="MemBase-151"><a href="#MemBase-151"><span class="linenos">151</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span><span id="MemBase-152"><a href="#MemBase-152"><span class="linenos">152</span></a>    
-</span><span id="MemBase-153"><a href="#MemBase-153"><span class="linenos">153</span></a>    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="MemBase-154"><a href="#MemBase-154"><span class="linenos">154</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a write request.</span>
-</span><span id="MemBase-155"><a href="#MemBase-155"><span class="linenos">155</span></a><span class="sd">        </span>
-</span><span id="MemBase-156"><a href="#MemBase-156"><span class="linenos">156</span></a><span class="sd">        The write will be committed with the next `tick()`.</span>
-</span><span id="MemBase-157"><a href="#MemBase-157"><span class="linenos">157</span></a><span class="sd">        (Unless `we` is False)</span>
-</span><span id="MemBase-158"><a href="#MemBase-158"><span class="linenos">158</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="MemBase-159"><a href="#MemBase-159"><span class="linenos">159</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase-98"><a href="#MemBase-98"><span class="linenos"> 98</span></a><span class="k">class</span> <span class="nc">MemBase</span><span class="p">():</span>
+</span><span id="MemBase-99"><a href="#MemBase-99"><span class="linenos"> 99</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all memories.</span>
+</span><span id="MemBase-100"><a href="#MemBase-100"><span class="linenos">100</span></a>
+</span><span id="MemBase-101"><a href="#MemBase-101"><span class="linenos">101</span></a><span class="sd">    This class keeps track of all memories.</span>
+</span><span id="MemBase-102"><a href="#MemBase-102"><span class="linenos">102</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="MemBase-103"><a href="#MemBase-103"><span class="linenos">103</span></a>
+</span><span id="MemBase-104"><a href="#MemBase-104"><span class="linenos">104</span></a>    <span class="c1"># List of instantiated memories</span>
+</span><span id="MemBase-105"><a href="#MemBase-105"><span class="linenos">105</span></a>    <span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="MemBase-106"><a href="#MemBase-106"><span class="linenos">106</span></a>
+</span><span id="MemBase-107"><a href="#MemBase-107"><span class="linenos">107</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="MemBase-108"><a href="#MemBase-108"><span class="linenos">108</span></a>        <span class="c1"># Add to list of memories</span>
+</span><span id="MemBase-109"><a href="#MemBase-109"><span class="linenos">109</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">add_to_mem_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</span><span id="MemBase-110"><a href="#MemBase-110"><span class="linenos">110</span></a>
+</span><span id="MemBase-111"><a href="#MemBase-111"><span class="linenos">111</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase-112"><a href="#MemBase-112"><span class="linenos">112</span></a>    <span class="k">def</span> <span class="nf">add_to_mem_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="MemBase-113"><a href="#MemBase-113"><span class="linenos">113</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="MemBase-114"><a href="#MemBase-114"><span class="linenos">114</span></a>
+</span><span id="MemBase-115"><a href="#MemBase-115"><span class="linenos">115</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase-116"><a href="#MemBase-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="MemBase-117"><a href="#MemBase-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase-118"><a href="#MemBase-118"><span class="linenos">118</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="MemBase-119"><a href="#MemBase-119"><span class="linenos">119</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+</span><span id="MemBase-120"><a href="#MemBase-120"><span class="linenos">120</span></a>
+</span><span id="MemBase-121"><a href="#MemBase-121"><span class="linenos">121</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase-122"><a href="#MemBase-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="MemBase-123"><a href="#MemBase-123"><span class="linenos">123</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase-124"><a href="#MemBase-124"><span class="linenos">124</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="MemBase-125"><a href="#MemBase-125"><span class="linenos">125</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+</span><span id="MemBase-126"><a href="#MemBase-126"><span class="linenos">126</span></a>
+</span><span id="MemBase-127"><a href="#MemBase-127"><span class="linenos">127</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase-128"><a href="#MemBase-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="MemBase-129"><a href="#MemBase-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase-130"><a href="#MemBase-130"><span class="linenos">130</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Base class for all memories.</p>
 
 <p>This class keeps track of all memories.</p>
-
-<h6 id="raises">Raises:</h6>
-
-<ul>
-<li><strong>NotImplementedError:</strong>  The memory did not implement <code><a href="#MemBase.read">read()</a></code></li>
-<li><strong>NotImplementedError:</strong>  The memory did not implement <code><a href="#MemBase.writeRequest">writeRequest()</a></code></li>
-</ul>
 </div>
 
 
-                            <div id="MemBase.we" class="classattr">
-                                <div class="attr variable">
-            <span class="name">we</span>
+                            <div id="MemBase.add_to_mem_list" class="classattr">
+                                        <input id="MemBase.add_to_mem_list-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator">@staticmethod</div>
 
-        
+        <span class="def">def</span>
+        <span class="name">add_to_mem_list</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">obj</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="MemBase.add_to_mem_list-view-source"><span>View Source</span></label>
+
     </div>
-    <a class="headerlink" href="#MemBase.we"></a>
+    <a class="headerlink" href="#MemBase.add_to_mem_list"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.add_to_mem_list-111"><a href="#MemBase.add_to_mem_list-111"><span class="linenos">111</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase.add_to_mem_list-112"><a href="#MemBase.add_to_mem_list-112"><span class="linenos">112</span></a>    <span class="k">def</span> <span class="nf">add_to_mem_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+</span><span id="MemBase.add_to_mem_list-113"><a href="#MemBase.add_to_mem_list-113"><span class="linenos">113</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+
     
-            <div class="docstring"><p>Write enable.</p>
-</div>
-
-
-                            </div>
-                            <div id="MemBase.re" class="classattr">
-                                <div class="attr variable">
-            <span class="name">re</span>
-
-        
-    </div>
-    <a class="headerlink" href="#MemBase.re"></a>
-    
-            <div class="docstring"><p>Read enable</p>
-</div>
-
 
                             </div>
                             <div id="MemBase.tick" class="classattr">
@@ -783,11 +685,11 @@
 
     </div>
     <a class="headerlink" href="#MemBase.tick"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.tick-132"><a href="#MemBase.tick-132"><span class="linenos">132</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase.tick-133"><a href="#MemBase.tick-133"><span class="linenos">133</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
-</span><span id="MemBase.tick-134"><a href="#MemBase.tick-134"><span class="linenos">134</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase.tick-135"><a href="#MemBase.tick-135"><span class="linenos">135</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="MemBase.tick-136"><a href="#MemBase.tick-136"><span class="linenos">136</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.tick-115"><a href="#MemBase.tick-115"><span class="linenos">115</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase.tick-116"><a href="#MemBase.tick-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="nf">tick</span><span class="p">():</span>
+</span><span id="MemBase.tick-117"><a href="#MemBase.tick-117"><span class="linenos">117</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Ticks all memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase.tick-118"><a href="#MemBase.tick-118"><span class="linenos">118</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="MemBase.tick-119"><a href="#MemBase.tick-119"><span class="linenos">119</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_tick</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -808,11 +710,11 @@
 
     </div>
     <a class="headerlink" href="#MemBase.reset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.reset-138"><a href="#MemBase.reset-138"><span class="linenos">138</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase.reset-139"><a href="#MemBase.reset-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="MemBase.reset-140"><a href="#MemBase.reset-140"><span class="linenos">140</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase.reset-141"><a href="#MemBase.reset-141"><span class="linenos">141</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
-</span><span id="MemBase.reset-142"><a href="#MemBase.reset-142"><span class="linenos">142</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.reset-121"><a href="#MemBase.reset-121"><span class="linenos">121</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase.reset-122"><a href="#MemBase.reset-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="MemBase.reset-123"><a href="#MemBase.reset-123"><span class="linenos">123</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets all memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase.reset-124"><a href="#MemBase.reset-124"><span class="linenos">124</span></a>        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span><span class="p">:</span>
+</span><span id="MemBase.reset-125"><a href="#MemBase.reset-125"><span class="linenos">125</span></a>            <span class="n">m</span><span class="o">.</span><span class="n">_reset</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -833,65 +735,14 @@
 
     </div>
     <a class="headerlink" href="#MemBase.clear"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.clear-144"><a href="#MemBase.clear-144"><span class="linenos">144</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="MemBase.clear-145"><a href="#MemBase.clear-145"><span class="linenos">145</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
-</span><span id="MemBase.clear-146"><a href="#MemBase.clear-146"><span class="linenos">146</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
-</span><span id="MemBase.clear-147"><a href="#MemBase.clear-147"><span class="linenos">147</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.clear-127"><a href="#MemBase.clear-127"><span class="linenos">127</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="MemBase.clear-128"><a href="#MemBase.clear-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">():</span>
+</span><span id="MemBase.clear-129"><a href="#MemBase.clear-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears list of memories.&quot;&quot;&quot;</span>
+</span><span id="MemBase.clear-130"><a href="#MemBase.clear-130"><span class="linenos">130</span></a>        <span class="n">MemBase</span><span class="o">.</span><span class="n">_mem_list</span> <span class="o">=</span> <span class="p">[]</span>
 </span></pre></div>
 
 
             <div class="docstring"><p>Clears list of memories.</p>
-</div>
-
-
-                            </div>
-                            <div id="MemBase.read" class="classattr">
-                                        <input id="MemBase.read-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">read</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="MemBase.read-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#MemBase.read"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.read-149"><a href="#MemBase.read-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="MemBase.read-150"><a href="#MemBase.read-150"><span class="linenos">150</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Read memory.&quot;&quot;&quot;</span>
-</span><span id="MemBase.read-151"><a href="#MemBase.read-151"><span class="linenos">151</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span></pre></div>
-
-
-            <div class="docstring"><p>Read memory.</p>
-</div>
-
-
-                            </div>
-                            <div id="MemBase.writeRequest" class="classattr">
-                                        <input id="MemBase.writeRequest-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
-<div class="attr function">
-            
-        <span class="def">def</span>
-        <span class="name">writeRequest</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
-
-                <label class="view-source-button" for="MemBase.writeRequest-view-source"><span>View Source</span></label>
-
-    </div>
-    <a class="headerlink" href="#MemBase.writeRequest"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MemBase.writeRequest-153"><a href="#MemBase.writeRequest-153"><span class="linenos">153</span></a>    <span class="k">def</span> <span class="nf">writeRequest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="MemBase.writeRequest-154"><a href="#MemBase.writeRequest-154"><span class="linenos">154</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a write request.</span>
-</span><span id="MemBase.writeRequest-155"><a href="#MemBase.writeRequest-155"><span class="linenos">155</span></a><span class="sd">        </span>
-</span><span id="MemBase.writeRequest-156"><a href="#MemBase.writeRequest-156"><span class="linenos">156</span></a><span class="sd">        The write will be committed with the next `tick()`.</span>
-</span><span id="MemBase.writeRequest-157"><a href="#MemBase.writeRequest-157"><span class="linenos">157</span></a><span class="sd">        (Unless `we` is False)</span>
-</span><span id="MemBase.writeRequest-158"><a href="#MemBase.writeRequest-158"><span class="linenos">158</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="MemBase.writeRequest-159"><a href="#MemBase.writeRequest-159"><span class="linenos">159</span></a>        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
-</span></pre></div>
-
-
-            <div class="docstring"><p>Generate a write request.</p>
-
-<p>The write will be committed with the next <code><a href="#MemBase.tick">tick()</a></code>.
-(Unless <code><a href="#MemBase.we">we</a></code> is False)</p>
 </div>
 
 
