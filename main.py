@@ -31,7 +31,7 @@ def loop_acc():
   path_to_bin = 'programs/loop_acc/loop_acc.bin'
   num_cycles = 2010
 
-  core = execute_bin(core_type, program_name, path_to_bin, num_cycles) # TODO: continue here
+  core = execute_bin(core_type, program_name, path_to_bin, num_cycles)
 
   # Print register and memory contents
   print("x1 = "+str(core.readReg(1)))
