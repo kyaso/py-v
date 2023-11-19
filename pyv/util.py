@@ -1,5 +1,6 @@
 """Utility stuff."""
 
+# TODO: Move this class to its own module
 class PyVObj:
     def __init__(self, name = "noName") -> None:
         self.name = name
