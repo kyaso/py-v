@@ -1,3 +1,7 @@
+# Next version
+
+- Logging is now disabled by default
+
 # 0.2.0
 
 - **Important**:

@@ -5,6 +5,8 @@ def getLogger(name: str):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
+    logging.disable()
+
     formatter = logging.Formatter('%(name)15s: %(message)s')
     stream_handler = logging.StreamHandler()
     file_handler = logging.FileHandler("run.log", 'w')
