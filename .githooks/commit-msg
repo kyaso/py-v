@@ -1,5 +1,6 @@
 #!/bin/sh
 ### gitlint commit-msg hook start ###
+. ./venv/bin/activate
 
 # Determine whether we have a tty available by trying to access it.
 # This allows us to deal with UI based gitclient's like Atlassian SourceTree.
