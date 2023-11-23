@@ -1,24 +1,20 @@
 from collections import deque
 from unittest.mock import MagicMock
 import pytest
-from pyv.port import Input, Output, Wire
-from pyv.defines import *
+from pyv.port import Constant, Input, Output, Wire
 from pyv.module import Module
 from pyv.simulator import Simulator
 
 class TestPort:
     def test_init(self):
         A = Input(int)
-        assert A._direction == IN
         assert type(A._val) == int
         assert A._val == 0
-        assert A._processMethods == []
+        assert A._processMethodHandler._processMethods == []
 
         A = Output(float)
-        assert A._direction == OUT
         assert type(A._val) == float
         assert A._val == 0
-        assert A._processMethods == []
 
     def test_read(self):
         A = Input(int)
@@ -29,6 +25,77 @@ class TestPort:
         A = Input(int)
         A.write(123)
         assert A._val == 123
+
+    def test_root_driver(self):
+        # Chain A->B
+        A = Input(int)
+        B = Input(int)
+        B.connect(A)
+
+        assert A._root_driver == A
+        assert B._root_driver == A
+
+        # Chain C->D->E
+        C = Input(int)
+        D = Input(int)
+        E = Input(int)
+        D.connect(C)
+        E.connect(D)
+        assert C._root_driver == C
+        assert D._root_driver == C
+        assert E._root_driver == C
+
+        # Now do A-B->C-D-E
+        C.connect(B)
+        assert C._root_driver == A
+        assert D._root_driver == A
+        assert E._root_driver == A
+
+        # Write something to A
+        A.write(42)
+        assert A.read() == 42
+        assert B.read() == 42
+        assert C.read() == 42
+        assert D.read() == 42
+        assert E.read() == 42
+
+    def test_root_driver_downstream_inputs(self):
+        #        ┌── B(I)
+        #  A(I) ─┤
+        #        └── C(O)
+        A = Input(int)
+        B = Input(int)
+        C = Output(int)
+
+        B.connect(A)
+        C.connect(A)
+
+        assert A._downstreamInputs == [B]
+        assert B._downstreamInputs == []
+        assert C._downstreamInputs == []
+
+        #       ┌── E(I)
+        # D(O) ─┤
+        #       └── F(O) ── G(I)
+        D = Output(int)
+        E = Input(int)
+        F = Output(int)
+        G = Input(int)
+
+        E.connect(D)
+        F.connect(D)
+        G.connect(F)
+
+        assert D._downstreamInputs == [E, G]
+
+        # Connect D to B
+        #                        ┌── E(I)
+        #      ┌── B(I) ── D(O) ─┤
+        # A(I)─┤                 └── F(O) ── G(I)
+        #      └── C(O)
+        D.connect(B)
+        assert D._downstreamInputs == []
+        assert A._downstreamInputs == [B, E, G]
 
     def test_connect(self):
         A = Input(int)
@@ -52,10 +119,10 @@ class TestPort:
         assert D._parent == B
 
         # Check root driver attribute
-        assert A._is_root_driver == True
-        assert B._is_root_driver == False
-        assert C._is_root_driver == False
-        assert D._is_root_driver == False
+        assert A._root_driver == A
+        assert B._root_driver == A
+        assert C._root_driver == A
+        assert D._root_driver == A
 
         # Write to A
         A.write(410)
@@ -131,12 +198,12 @@ class TestPort:
         with pytest.raises(Exception):
             B.connect(A)
 
-    def test_defaultVal(self):
+    def test_defaultVal(self, sim):
         # This tests checks whether the forced propagation on the
         # very first write works.
-        sim = Simulator()
         class modA(Module):
             def __init__(self):
+                super().__init__()
                 self.pi = Input(int) # Default value: 0
                 self.po = Output(int)
 
@@ -147,7 +214,7 @@ class TestPort:
         # Initialize module
         A = modA()
         A.name = 'A'
-        A.init()
+        A._init()
 
         # Write 0. The port has the same default value.
         # However, since this is the first write, the
@@ -166,9 +233,7 @@ class TestPort:
     def test_readOutput(self):
         p = Output(int)
         p.write(4)
-
-        with pytest.warns(UserWarning):
-            p.read()
+        assert p.read() == 4
 
     def test_sensitive_methods(self, caplog):
         def foo():
@@ -178,13 +243,9 @@ class TestPort:
 
         # (also don't allow any duplicates)
         p = Input(int, sensitive_methods=[foo, bar, bar])
-        assert p._processMethods == [foo, bar]
+        assert p._processMethodHandler._processMethods == [foo, bar]
 
-        # Output ports shouldn't have any sensitive methods
-        with pytest.raises(Exception):
-            p2 = Output(int, sensitive_methods=[foo])
-
-    def test_onChange(self):
+    def test_basic_change(self, sim):
         def foo():
             pass
         def bar():
@@ -192,7 +253,46 @@ class TestPort:
 
         p = Input(int, sensitive_methods=[foo, bar])
 
-        sim = Simulator()
-
         p.write(42)
         assert sim._process_q == deque([foo, bar])
+
+    def test_downstream_change(self, sim: Simulator):
+        def fooA(): pass
+        def fooB(): pass
+        def fooE(): pass
+        def fooG(): pass
+        #                        ┌── E(I)
+        #      ┌── B(I) ── D(O) ─┤
+        # A(I)─┤                 └── F(O) ── G(I)
+        #      └── C(O)
+        A = Input(int, [fooA])
+        B = Input(int, [fooB])
+        C = Output(int)
+
+        B.connect(A)
+        C.connect(A)
+
+        D = Output(int)
+        E = Input(int, [fooE])
+        F = Output(int)
+        G = Input(int, [fooG])
+
+        E.connect(D)
+        F.connect(D)
+        G.connect(F)
+
+        D.connect(B)
+
+        A.write(42)
+        assert sim._process_q == deque([fooA, fooB, fooE, fooG])
+
+    def test_constant(self):
+        c = Constant(42)
+        assert c._val == 42
+        assert c._type == int
+
+        assert c.read() == 42
+
+        p = Input(int)
+        p.connect(c)
+        assert p.read() == 42

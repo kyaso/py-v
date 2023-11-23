@@ -75,56 +75,58 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">pyv.module</span> <span class="k">as</span> <span class="nn">module</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">pyv.simulator</span> <span class="kn">import</span> <span class="n">Simulator</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span> <span class="nn">warnings</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Simulator instance&quot;&quot;&quot;</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="c1"># Initialize modules</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="n">exit</span><span class="p">()</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">        Args:</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">            name (str): The name the top module should have.</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="c1"># Set name of module</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="c1"># Register module as global top module</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">        Args:</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">        Returns:</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">            int: Number of executed cycles.</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span> <span class="nn">traceback</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Simulator instance&quot;&quot;&quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="c1"># Initialize modules</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>            <span class="n">exit</span><span class="p">()</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">        Args:</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">            name (str): The name the top module should have.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="c1"># Set name of module</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>        <span class="c1"># Register module as global top module</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        Args:</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">        Returns:</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="sd">            int: Number of executed cycles.</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -140,55 +142,56 @@
 
     </div>
     <a class="headerlink" href="#Model"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Model-6"><a href="#Model-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
-</span><span id="Model-7"><a href="#Model-7"><span class="linenos"> 7</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
-</span><span id="Model-8"><a href="#Model-8"><span class="linenos"> 8</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Model-9"><a href="#Model-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Model-10"><a href="#Model-10"><span class="linenos">10</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
-</span><span id="Model-11"><a href="#Model-11"><span class="linenos">11</span></a>
-</span><span id="Model-12"><a href="#Model-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span>
-</span><span id="Model-13"><a href="#Model-13"><span class="linenos">13</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Simulator instance&quot;&quot;&quot;</span>
-</span><span id="Model-14"><a href="#Model-14"><span class="linenos">14</span></a>    
-</span><span id="Model-15"><a href="#Model-15"><span class="linenos">15</span></a>        <span class="c1"># Initialize modules</span>
-</span><span id="Model-16"><a href="#Model-16"><span class="linenos">16</span></a>        <span class="k">try</span><span class="p">:</span>
-</span><span id="Model-17"><a href="#Model-17"><span class="linenos">17</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
-</span><span id="Model-18"><a href="#Model-18"><span class="linenos">18</span></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-</span><span id="Model-19"><a href="#Model-19"><span class="linenos">19</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
-</span><span id="Model-20"><a href="#Model-20"><span class="linenos">20</span></a>            <span class="n">exit</span><span class="p">()</span>
-</span><span id="Model-21"><a href="#Model-21"><span class="linenos">21</span></a>    
-</span><span id="Model-22"><a href="#Model-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="Model-23"><a href="#Model-23"><span class="linenos">23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
-</span><span id="Model-24"><a href="#Model-24"><span class="linenos">24</span></a>
-</span><span id="Model-25"><a href="#Model-25"><span class="linenos">25</span></a><span class="sd">        Args:</span>
-</span><span id="Model-26"><a href="#Model-26"><span class="linenos">26</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
-</span><span id="Model-27"><a href="#Model-27"><span class="linenos">27</span></a><span class="sd">            name (str): The name the top module should have.</span>
-</span><span id="Model-28"><a href="#Model-28"><span class="linenos">28</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model-29"><a href="#Model-29"><span class="linenos">29</span></a>        
-</span><span id="Model-30"><a href="#Model-30"><span class="linenos">30</span></a>        <span class="c1"># Set name of module</span>
-</span><span id="Model-31"><a href="#Model-31"><span class="linenos">31</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-</span><span id="Model-32"><a href="#Model-32"><span class="linenos">32</span></a>        <span class="c1"># Register module as global top module</span>
-</span><span id="Model-33"><a href="#Model-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
-</span><span id="Model-34"><a href="#Model-34"><span class="linenos">34</span></a>    
-</span><span id="Model-35"><a href="#Model-35"><span class="linenos">35</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Model-36"><a href="#Model-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="Model-37"><a href="#Model-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
-</span><span id="Model-38"><a href="#Model-38"><span class="linenos">38</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Model-39"><a href="#Model-39"><span class="linenos">39</span></a>
-</span><span id="Model-40"><a href="#Model-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span id="Model-41"><a href="#Model-41"><span class="linenos">41</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
-</span><span id="Model-42"><a href="#Model-42"><span class="linenos">42</span></a>
-</span><span id="Model-43"><a href="#Model-43"><span class="linenos">43</span></a><span class="sd">        Args:</span>
-</span><span id="Model-44"><a href="#Model-44"><span class="linenos">44</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
-</span><span id="Model-45"><a href="#Model-45"><span class="linenos">45</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model-46"><a href="#Model-46"><span class="linenos">46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
-</span><span id="Model-47"><a href="#Model-47"><span class="linenos">47</span></a>    
-</span><span id="Model-48"><a href="#Model-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Model-49"><a href="#Model-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
-</span><span id="Model-50"><a href="#Model-50"><span class="linenos">50</span></a>
-</span><span id="Model-51"><a href="#Model-51"><span class="linenos">51</span></a><span class="sd">        Returns:</span>
-</span><span id="Model-52"><a href="#Model-52"><span class="linenos">52</span></a><span class="sd">            int: Number of executed cycles.</span>
-</span><span id="Model-53"><a href="#Model-53"><span class="linenos">53</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model-54"><a href="#Model-54"><span class="linenos">54</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Model-7"><a href="#Model-7"><span class="linenos"> 7</span></a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+</span><span id="Model-8"><a href="#Model-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all core models.</span>
+</span><span id="Model-9"><a href="#Model-9"><span class="linenos"> 9</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Model-10"><a href="#Model-10"><span class="linenos">10</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Model-11"><a href="#Model-11"><span class="linenos">11</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Initializing model...&quot;</span><span class="p">)</span>
+</span><span id="Model-12"><a href="#Model-12"><span class="linenos">12</span></a>
+</span><span id="Model-13"><a href="#Model-13"><span class="linenos">13</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span>
+</span><span id="Model-14"><a href="#Model-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Simulator instance&quot;&quot;&quot;</span>
+</span><span id="Model-15"><a href="#Model-15"><span class="linenos">15</span></a>    
+</span><span id="Model-16"><a href="#Model-16"><span class="linenos">16</span></a>        <span class="c1"># Initialize modules</span>
+</span><span id="Model-17"><a href="#Model-17"><span class="linenos">17</span></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="Model-18"><a href="#Model-18"><span class="linenos">18</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
+</span><span id="Model-19"><a href="#Model-19"><span class="linenos">19</span></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="Model-20"><a href="#Model-20"><span class="linenos">20</span></a>            <span class="nb">print</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
+</span><span id="Model-21"><a href="#Model-21"><span class="linenos">21</span></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: Missing top module. Please set top module using Model.setTop().&quot;</span><span class="p">)</span>
+</span><span id="Model-22"><a href="#Model-22"><span class="linenos">22</span></a>            <span class="n">exit</span><span class="p">()</span>
+</span><span id="Model-23"><a href="#Model-23"><span class="linenos">23</span></a>    
+</span><span id="Model-24"><a href="#Model-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="Model-25"><a href="#Model-25"><span class="linenos">25</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
+</span><span id="Model-26"><a href="#Model-26"><span class="linenos">26</span></a>
+</span><span id="Model-27"><a href="#Model-27"><span class="linenos">27</span></a><span class="sd">        Args:</span>
+</span><span id="Model-28"><a href="#Model-28"><span class="linenos">28</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
+</span><span id="Model-29"><a href="#Model-29"><span class="linenos">29</span></a><span class="sd">            name (str): The name the top module should have.</span>
+</span><span id="Model-30"><a href="#Model-30"><span class="linenos">30</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model-31"><a href="#Model-31"><span class="linenos">31</span></a>        
+</span><span id="Model-32"><a href="#Model-32"><span class="linenos">32</span></a>        <span class="c1"># Set name of module</span>
+</span><span id="Model-33"><a href="#Model-33"><span class="linenos">33</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="Model-34"><a href="#Model-34"><span class="linenos">34</span></a>        <span class="c1"># Register module as global top module</span>
+</span><span id="Model-35"><a href="#Model-35"><span class="linenos">35</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+</span><span id="Model-36"><a href="#Model-36"><span class="linenos">36</span></a>    
+</span><span id="Model-37"><a href="#Model-37"><span class="linenos">37</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Model-38"><a href="#Model-38"><span class="linenos">38</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="Model-39"><a href="#Model-39"><span class="linenos">39</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
+</span><span id="Model-40"><a href="#Model-40"><span class="linenos">40</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Model-41"><a href="#Model-41"><span class="linenos">41</span></a>
+</span><span id="Model-42"><a href="#Model-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="Model-43"><a href="#Model-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
+</span><span id="Model-44"><a href="#Model-44"><span class="linenos">44</span></a>
+</span><span id="Model-45"><a href="#Model-45"><span class="linenos">45</span></a><span class="sd">        Args:</span>
+</span><span id="Model-46"><a href="#Model-46"><span class="linenos">46</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
+</span><span id="Model-47"><a href="#Model-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model-48"><a href="#Model-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
+</span><span id="Model-49"><a href="#Model-49"><span class="linenos">49</span></a>    
+</span><span id="Model-50"><a href="#Model-50"><span class="linenos">50</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Model-51"><a href="#Model-51"><span class="linenos">51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
+</span><span id="Model-52"><a href="#Model-52"><span class="linenos">52</span></a>
+</span><span id="Model-53"><a href="#Model-53"><span class="linenos">53</span></a><span class="sd">        Returns:</span>
+</span><span id="Model-54"><a href="#Model-54"><span class="linenos">54</span></a><span class="sd">            int: Number of executed cycles.</span>
+</span><span id="Model-55"><a href="#Model-55"><span class="linenos">55</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model-56"><a href="#Model-56"><span class="linenos">56</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
 </span></pre></div>
 
 
@@ -220,18 +223,18 @@
 
     </div>
     <a class="headerlink" href="#Model.setTop"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.setTop-22"><a href="#Model.setTop-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-</span><span id="Model.setTop-23"><a href="#Model.setTop-23"><span class="linenos">23</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
-</span><span id="Model.setTop-24"><a href="#Model.setTop-24"><span class="linenos">24</span></a>
-</span><span id="Model.setTop-25"><a href="#Model.setTop-25"><span class="linenos">25</span></a><span class="sd">        Args:</span>
-</span><span id="Model.setTop-26"><a href="#Model.setTop-26"><span class="linenos">26</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
-</span><span id="Model.setTop-27"><a href="#Model.setTop-27"><span class="linenos">27</span></a><span class="sd">            name (str): The name the top module should have.</span>
-</span><span id="Model.setTop-28"><a href="#Model.setTop-28"><span class="linenos">28</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model.setTop-29"><a href="#Model.setTop-29"><span class="linenos">29</span></a>        
-</span><span id="Model.setTop-30"><a href="#Model.setTop-30"><span class="linenos">30</span></a>        <span class="c1"># Set name of module</span>
-</span><span id="Model.setTop-31"><a href="#Model.setTop-31"><span class="linenos">31</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-</span><span id="Model.setTop-32"><a href="#Model.setTop-32"><span class="linenos">32</span></a>        <span class="c1"># Register module as global top module</span>
-</span><span id="Model.setTop-33"><a href="#Model.setTop-33"><span class="linenos">33</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.setTop-24"><a href="#Model.setTop-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="nf">setTop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod</span><span class="p">:</span> <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="Model.setTop-25"><a href="#Model.setTop-25"><span class="linenos">25</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Set top module.</span>
+</span><span id="Model.setTop-26"><a href="#Model.setTop-26"><span class="linenos">26</span></a>
+</span><span id="Model.setTop-27"><a href="#Model.setTop-27"><span class="linenos">27</span></a><span class="sd">        Args:</span>
+</span><span id="Model.setTop-28"><a href="#Model.setTop-28"><span class="linenos">28</span></a><span class="sd">            mod (module.Module): Designated top module.</span>
+</span><span id="Model.setTop-29"><a href="#Model.setTop-29"><span class="linenos">29</span></a><span class="sd">            name (str): The name the top module should have.</span>
+</span><span id="Model.setTop-30"><a href="#Model.setTop-30"><span class="linenos">30</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model.setTop-31"><a href="#Model.setTop-31"><span class="linenos">31</span></a>        
+</span><span id="Model.setTop-32"><a href="#Model.setTop-32"><span class="linenos">32</span></a>        <span class="c1"># Set name of module</span>
+</span><span id="Model.setTop-33"><a href="#Model.setTop-33"><span class="linenos">33</span></a>        <span class="n">mod</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span><span id="Model.setTop-34"><a href="#Model.setTop-34"><span class="linenos">34</span></a>        <span class="c1"># Register module as global top module</span>
+</span><span id="Model.setTop-35"><a href="#Model.setTop-35"><span class="linenos">35</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="n">mod</span>
 </span></pre></div>
 
 
@@ -259,10 +262,10 @@
 
     </div>
     <a class="headerlink" href="#Model.reset"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.reset-35"><a href="#Model.reset-35"><span class="linenos">35</span></a>    <span class="nd">@staticmethod</span>
-</span><span id="Model.reset-36"><a href="#Model.reset-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
-</span><span id="Model.reset-37"><a href="#Model.reset-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
-</span><span id="Model.reset-38"><a href="#Model.reset-38"><span class="linenos">38</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.reset-37"><a href="#Model.reset-37"><span class="linenos">37</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Model.reset-38"><a href="#Model.reset-38"><span class="linenos">38</span></a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">():</span>
+</span><span id="Model.reset-39"><a href="#Model.reset-39"><span class="linenos">39</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Resets the top module pointer.&quot;&quot;&quot;</span>
+</span><span id="Model.reset-40"><a href="#Model.reset-40"><span class="linenos">40</span></a>        <span class="n">module</span><span class="o">.</span><span class="n">Module</span><span class="o">.</span><span class="n">top</span> <span class="o">=</span> <span class="kc">None</span>
 </span></pre></div>
 
 
@@ -282,13 +285,13 @@
 
     </div>
     <a class="headerlink" href="#Model.run"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.run-40"><a href="#Model.run-40"><span class="linenos">40</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-</span><span id="Model.run-41"><a href="#Model.run-41"><span class="linenos">41</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
-</span><span id="Model.run-42"><a href="#Model.run-42"><span class="linenos">42</span></a>
-</span><span id="Model.run-43"><a href="#Model.run-43"><span class="linenos">43</span></a><span class="sd">        Args:</span>
-</span><span id="Model.run-44"><a href="#Model.run-44"><span class="linenos">44</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
-</span><span id="Model.run-45"><a href="#Model.run-45"><span class="linenos">45</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model.run-46"><a href="#Model.run-46"><span class="linenos">46</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.run-42"><a href="#Model.run-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_cycles</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="Model.run-43"><a href="#Model.run-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation.</span>
+</span><span id="Model.run-44"><a href="#Model.run-44"><span class="linenos">44</span></a>
+</span><span id="Model.run-45"><a href="#Model.run-45"><span class="linenos">45</span></a><span class="sd">        Args:</span>
+</span><span id="Model.run-46"><a href="#Model.run-46"><span class="linenos">46</span></a><span class="sd">            num_cycles (int, optional): Number of clock cycles to simulate.</span>
+</span><span id="Model.run-47"><a href="#Model.run-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model.run-48"><a href="#Model.run-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">num_cycles</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -314,13 +317,13 @@
 
     </div>
     <a class="headerlink" href="#Model.getCycles"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.getCycles-48"><a href="#Model.getCycles-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Model.getCycles-49"><a href="#Model.getCycles-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
-</span><span id="Model.getCycles-50"><a href="#Model.getCycles-50"><span class="linenos">50</span></a>
-</span><span id="Model.getCycles-51"><a href="#Model.getCycles-51"><span class="linenos">51</span></a><span class="sd">        Returns:</span>
-</span><span id="Model.getCycles-52"><a href="#Model.getCycles-52"><span class="linenos">52</span></a><span class="sd">            int: Number of executed cycles.</span>
-</span><span id="Model.getCycles-53"><a href="#Model.getCycles-53"><span class="linenos">53</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Model.getCycles-54"><a href="#Model.getCycles-54"><span class="linenos">54</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Model.getCycles-50"><a href="#Model.getCycles-50"><span class="linenos">50</span></a>    <span class="k">def</span> <span class="nf">getCycles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Model.getCycles-51"><a href="#Model.getCycles-51"><span class="linenos">51</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number cycles executed.</span>
+</span><span id="Model.getCycles-52"><a href="#Model.getCycles-52"><span class="linenos">52</span></a>
+</span><span id="Model.getCycles-53"><a href="#Model.getCycles-53"><span class="linenos">53</span></a><span class="sd">        Returns:</span>
+</span><span id="Model.getCycles-54"><a href="#Model.getCycles-54"><span class="linenos">54</span></a><span class="sd">            int: Number of executed cycles.</span>
+</span><span id="Model.getCycles-55"><a href="#Model.getCycles-55"><span class="linenos">55</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Model.getCycles-56"><a href="#Model.getCycles-56"><span class="linenos">56</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">getCycles</span><span class="p">()</span>
 </span></pre></div>
 
 

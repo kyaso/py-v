@@ -1,4 +1,5 @@
 import pytest
+from pyv.module import Module
 from pyv.reg import Reg
 from pyv.clocked import Clock, Clocked, MemBase, RegBase
 
@@ -23,30 +24,16 @@ def test_abstractMethods():
     class Foo(Clocked):
         pass
 
-    class Bar(MemBase):
-        pass
-
-    foo = Foo()
-    bar = Bar()
-
-    with pytest.raises(NotImplementedError):
-        foo._tick()
-    
-    with pytest.raises(NotImplementedError):
-        foo._reset()
-    
-    with pytest.raises(NotImplementedError):
-        bar._tick()
-    
-    with pytest.raises(NotImplementedError):
-        bar._reset()
+    with pytest.raises(TypeError):
+        foo = Foo()
 
 def test_tick():
-    Clock.clear()
-
     reg1 = Reg(int)
     reg2 = Reg(int)
     mem = Mem()
+
+    reg1._init()
+    reg2._init()
 
     reg1.next.write(43)
     reg2.next.write(45)
@@ -58,8 +45,6 @@ def test_tick():
     assert mem.val == 12
 
 def test_clear():
-    Clock.clear()
-
     reg1 = Reg(int)
     reg2 = Reg(int)
     mem1 = Mem()

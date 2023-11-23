@@ -1,11 +1,10 @@
 import logging
 
-def getLogger(name: str):
-    # logger = logging.getLogger(name)
+def getLogger():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    logging.disable()
+    # logging.disable()
 
     formatter = logging.Formatter('%(name)15s: %(message)s')
     stream_handler = logging.StreamHandler()
@@ -17,3 +16,5 @@ def getLogger(name: str):
     logger.addHandler(file_handler)
 
     return logger
+
+logger = getLogger()

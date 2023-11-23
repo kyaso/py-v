@@ -1,10 +1,10 @@
 import pytest
+from pyv.clocked import Clock
 from pyv.stages import *
 from pyv.reg import *
 from pyv.util import MASK_32
 from pyv.mem import Memory
 from pyv.simulator import Simulator
-from .fixtures import sim
 
 
 def test_sanity():
@@ -38,13 +38,14 @@ def test_data_types():
 # Test FETCH
 # ---------------------------------------
 def test_IFStage(sim):
-    RegBase.clear()
-
-    fetch = IFStage(Memory(1024))
-    fetch.init()
+    imem = Memory(1024)
+    fetch = IFStage(imem.read_port1)
+    fetch._init()
 
     # SW a0,-20(s0) = SW, x10, -20(x8)
-    fetch.imem.writeRequest(0, 0xfea42623, 4)
+    # 0xfea42623
+    imem.mem[0:4] = [0x23, 0x26, 0xa4, 0xfe]
+
     sim.step()
     fetch.npc_i.write(0x00000000)
 
@@ -131,7 +132,7 @@ class TestIDStage:
 
     def test_exception(self, caplog, sim):
         dec = IDStage(Regfile())
-        dec.init()
+        dec._init()
 
         # --- Illegal Instruction -----------------
         pc = 0
@@ -256,7 +257,7 @@ class TestIDStage:
 
         regf = Regfile()
         decode = IDStage(regf)
-        decode.init()
+        decode._init()
 
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
         # Write some values into the relevant registers
@@ -1387,18 +1388,27 @@ class TestEXStage:
 # Test MEMORY
 # ---------------------------------------
 class TestMEMStage:
-    def test_constructor(self):
-        mem = MEMStage(Memory(1024))
+    @pytest.fixture()
+    def mem(self):
+        dmem = Memory(1024)
+        # Load memory
+        dmem.mem[0:4] = [0xef, 0xbe, 0xad, 0xde]
+        dmem.mem[4:8] = [0x23, 0x01, 0xde, 0xba]
+        return dmem
 
+    @pytest.fixture()
+    def mem_stage(self, mem: Memory):
+        return MEMStage(mem.read_port0, mem.write_port)
+
+    def test_constructor(self, mem_stage):
         # Check Port types
-        assert mem.EXMEM_i._type == EXMEM_t
-        assert mem.MEMWB_o._type == MEMWB_t
-        
-    def test_passThrough(self, sim):
-        mem = MEMStage(Memory(1024))
-        mem.init()
+        assert mem_stage.EXMEM_i._type == EXMEM_t
+        assert mem_stage.MEMWB_o._type == MEMWB_t
 
-        mem.EXMEM_i.write(EXMEM_t(
+    def test_passThrough(self, mem_stage, sim):
+        mem_stage._init()
+
+        mem_stage.EXMEM_i.write(EXMEM_t(
             rd=1,
             we=1,
             wb_sel=2,
@@ -1406,128 +1416,116 @@ class TestMEMStage:
             alu_res=0xaffeaffe
         ))
         sim.step()
-        out = mem.MEMWB_o.read()
+        out = mem_stage.MEMWB_o.read()
         assert out.rd == 1
         assert out.we == 1
         assert out.wb_sel == 2
         assert out.pc4 == 0xdeadbeef
         assert out.alu_res == 0xaffeaffe
 
-    def test_load(self, sim):
-        mem = MEMStage(Memory(1024))
-        mem.init()
-
-        # Load memory
-        mem.mem.writeRequest(0, 0xdeadbeef, 4)
-        sim.step()
-        mem.mem.writeRequest(4, 0xbade0123, 4)
-        sim.step()
+    def test_load(self, mem_stage, sim):
+        mem_stage._init()
 
         # LB
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=2, # addr
             funct3=0 #lb
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0xffffffad
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0xffffffad
 
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=5, # addr
             funct3=0 #lb
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0x00000001 
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000001 
 
         # LH
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=2, # addr
             funct3=1 # lh
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0xffffdead
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0xffffdead
 
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=4, # addr
             funct3=1 # lh
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0x00000123 
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000123 
 
         # LW
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=0, # addr
             funct3=2 # lw
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0xdeadbeef
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0xdeadbeef
 
         # LBU
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=2, # addr
             funct3=4 # lbu
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0xad
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0xad
 
         # LHU
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=2, # addr
             funct3=5 # lbu
         ))
         sim.step()
-        assert mem.MEMWB_o.read().mem_rdata == 0xdead
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0xdead
 
-    def test_store(self, sim):
-        mem = MEMStage(Memory(1024))
-        mem.init()
+    def test_store(self, mem_stage, mem, sim):
+        mem_stage._init()
 
         # SB
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=2, # store
             alu_res=3, # addr
             rs2=0xabadbabe, # wdata
             funct3=0 # sb
         ))
         sim.step()
-        assert mem.mem.read(3, 1) == 0xbe
-
-        mem.mem.writeRequest(0, 0, 4)
-        sim.step()
+        assert mem.mem[3] == 0xbe
 
         # SH
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=2, # store
             alu_res=0, # addr
             rs2=0xabadbabe, # wdata
             funct3=1 # sh
         ))
         sim.step()
-        assert mem.mem.read(0, 2) == 0xbabe
+        assert mem.mem[0:2] == [0xbe, 0xba]
 
         # SW
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=2, # store
             alu_res=0, # addr
             rs2=0xabadbabe, # wdata
             funct3=2 # sw
         ))
         sim.step()
-        assert mem.mem.read(0, 4) == 0xabadbabe
+        assert mem.mem[0:4] == [0xbe, 0xba, 0xad, 0xab]
 
-    def test_exception(self, caplog, sim):
-        mem = MEMStage(Memory(16))
-        mem.init()
+    def test_exception(self, mem_stage, caplog, sim):
+        mem_stage._init()
 
         # --- Load address misaligned ---------------
         # LH/LHU
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=1, # addr
             funct3=1 # lh
@@ -1537,7 +1535,7 @@ class TestMEMStage:
         caplog.clear()
 
         # LW
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=1, # load
             alu_res=3, # addr
             funct3=2 # lw
@@ -1548,7 +1546,7 @@ class TestMEMStage:
 
         # --- Store address misaligned --------------
         # SH
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=2, # store
             alu_res=1, # addr
             funct3=1 # sh
@@ -1558,7 +1556,7 @@ class TestMEMStage:
         caplog.clear()
 
         # SW
-        mem.EXMEM_i.write(EXMEM_t(
+        mem_stage.EXMEM_i.write(EXMEM_t(
             mem=2, # store
             alu_res=3, # addr
             funct3=2 # sw
@@ -1579,7 +1577,7 @@ class TestWBStage:
 
     def test_wb(self, sim):
         wb = WBStage(Regfile())
-        wb.init()
+        wb._init()
 
         # ALU op
         wb.MEMWB_i.write(MEMWB_t(
@@ -1654,7 +1652,7 @@ class TestWBStage:
 # ---------------------------------------
 def test_branch_unit(sim):
     bu = BranchUnit()
-    bu.init()
+    bu._init()
 
     # Test ports
     assert bu.pc_i._type == int

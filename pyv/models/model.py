@@ -13,7 +13,7 @@ class Model:
     
         # Initialize modules
         try:
-            self.top.init()
+            self.top._init()
         except AttributeError:
             print("Error: Missing top module. Please set top module using Model.setTop().")
             exit()

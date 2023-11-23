@@ -1,5 +1,32 @@
 """Utility stuff."""
 
+# TODO: Move this class to its own module
+class PyVObj:
+    """This class represent all Py-V objects (such as modules, ports, registers).
+    Currently, this is used for initializing the names of every object in the design.
+    """
+    def __init__(self, name = "noName") -> None:
+        self.name = name
+        """Name of this object"""
+        self._visited = False
+
+    def _init(self, parent = None):
+        """Initializes the object.
+
+        This includes the following steps:
+        - Set the name of each child PyVObj instance
+        - Recursively call `_init()` for each child `PyVObj` instance
+        """
+        if self._visited:
+            return
+        self._visited = True
+
+        for key in self.__dict__:
+            obj = self.__dict__[key]
+            if isinstance(obj, (PyVObj)):
+                obj.name = self.name+"."+key
+                obj._init(self)
+
 # XLEN
 import warnings
 
@@ -65,7 +92,7 @@ def getBitVector(val: int, len: int = 0):
         return leading_zeros + [1 if digit=='1' else 0 for digit in bin(val)[2:]]
     else:
         num_trunc_bits = val.bit_length() - len
-        warnings.warn("Util getBitVector(): Requested vector length ({}) shorter than bit_length of value ({}). Truncating upper {} bits.".format(len, val.bit_length(), num_trunc_bits))
+        warnings.warn(f"Util getBitVector(): Requested vector length ({len}) shorter than bit_length of value ({val.bit_length()}). Truncating upper {num_trunc_bits} bits.")
         return [1 if digit=='1' else 0 for digit in bin(val)[2+num_trunc_bits:]]
 
 def bitVector2num(bitVec: list):

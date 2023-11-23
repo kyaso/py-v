@@ -1,2 +1,0 @@
-IN = True
-OUT = False

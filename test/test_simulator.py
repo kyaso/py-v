@@ -2,17 +2,21 @@ import pytest
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.simulator import Simulator, _EventQueue
-from pyv.defines import *
 from pyv.reg import Reg, RegBase
 from pyv.clocked import Clock
 from collections import deque
-from .fixtures import sim, eq
 from queue import PriorityQueue
 from unittest.mock import MagicMock
+
+
+@pytest.fixture
+def eq() -> _EventQueue:
+    return _EventQueue()
 
 # Build a simple example circuit
 class A(Module):
     def __init__(self):
+        super().__init__()
         self.inA = Input(int)
         self.inB = Input(int)
 
@@ -25,6 +29,7 @@ class A(Module):
 
 class B(Module):
     def __init__(self):
+        super().__init__()
         self.inA = Input(int)
         self.outA = Output(int)
     
@@ -33,6 +38,7 @@ class B(Module):
 
 class C(Module):
     def __init__(self):
+        super().__init__()
         self.inA = Input(int)
         self.inB = Input(int)
         self.outA = Output(int)
@@ -116,11 +122,9 @@ class TestSimulator:
         assert Simulator.globalSim == sim
 
     def test_queue(self, sim: Simulator):
-        Clock.clear()
-
         dut = ExampleTop()
         dut.name = 'ExampleTop'
-        dut.init()
+        dut._init()
         Clock.reset()
 
         dut.inA.write(42)
@@ -158,11 +162,9 @@ class TestSimulator:
         assert sim._cycles == 1
 
     def test_run(self, sim: Simulator):
-        Clock.clear()
-
         dut = ExampleTop2()
         dut.name = 'ExampleTop2'
-        dut.init()
+        dut._init()
 
         sim._process_events = MagicMock()
         Clock.reset()

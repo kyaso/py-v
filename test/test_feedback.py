@@ -4,6 +4,7 @@ from pyv.simulator import Simulator
 
 class A(Module):
     def __init__(self):
+        super().__init__()
         self.IN = Input(int)
         self.OUT = Output(int)
 
@@ -12,6 +13,7 @@ class A(Module):
 
 class B(Module):
     def __init__(self):
+        super().__init__()
         self.IN1 = Input(int)
         self.IN2 = Input(int)
         self.OUT1 = Output(int)
@@ -26,6 +28,7 @@ class B(Module):
 
 class C(Module):
     def __init__(self):
+        super().__init__()
         self.IN1 = Input(int)
         self.IN2 = Input(int)
         self.OUT1 = Output(int)
@@ -40,6 +43,7 @@ class C(Module):
 
 class Top(Module):
     def __init__(self):
+        super().__init__()
         self.IN = Input(int)
         self.OUT = Output(int)
 
@@ -60,7 +64,7 @@ class Top(Module):
 def test_feedback():
     dut = Top()
     dut.name = "Top"
-    dut.init()
+    dut._init()
     sim = Simulator()
 
     dut.IN.write(4)

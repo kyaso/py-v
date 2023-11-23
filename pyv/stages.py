@@ -4,11 +4,9 @@ from pyv.reg import *
 from pyv.mem import *
 import pyv.isa as isa
 from pyv.util import *
-from pyv.defines import *
-import pyv.log as log
+from pyv.log import logger
 from dataclasses import dataclass
 
-logger = log.getLogger(__name__)
 
 @dataclass
 class IFID_t:
@@ -63,7 +61,7 @@ class IFStage(Module):
         IFID_o: Interface to IDStage.
     """
 
-    def __init__(self, imem: Memory):
+    def __init__(self, imem: ReadPort):
         super().__init__()
         # Next PC
         self.npc_i = Input(int)
@@ -82,18 +80,16 @@ class IFStage(Module):
         self.ir_reg_w = self.ir_reg.cur
 
         # Instruction memory
-        self.imem = imem
+        # Force read-enable
+        self.const1 = Constant(True)
+        self.const2 = Constant(4)
+        imem.re_i.connect(self.const1)
+        imem.addr_i.connect(self.npc_i)
+        imem.width_i.connect(self.const2)
+        self.ir_reg.next = imem.rdata_o
 
         # Connect next PC to input of PC reg
         self.pc_reg.next = self.npc_i
-
-    def process(self):
-        # Read inputs
-        npc = self.npc_i.read()
-
-        # Read instruction
-        self.ir_reg.next.write(self.imem.read(npc, 4))
-        # TODO: Illegal address exception handling
 
     def writeOutput(self):
         self.IFID_o.write(IFID_t(self.ir_reg_w.read(), self.pc_reg_w.read()))
@@ -630,13 +626,38 @@ class MEMStage(Module):
     Outputs:
         MEMWB_o: Interface to WBStage.
     """
-    def __init__(self, dmem: Memory):
+    def __init__(self, dmem_read: ReadPort, dmem_write: WritePort):
         super().__init__()
         self.EXMEM_i = Input(EXMEM_t)
         self.MEMWB_o = Output(MEMWB_t)
+        self.load_val = Wire(int, [self.process_load])
 
         # Main memory
-        self.mem = dmem
+        self.read_port = dmem_read
+        self.write_port = dmem_write
+        self.load_val = self.read_port.rdata_o
+        self.w = 1 # data width
+        self.signext_w = 0 # signext width
+
+        self.out_val = MEMWB_t()
+
+    def write_output(self):
+        self.MEMWB_o.write(MEMWB_t(
+            rd=self.out_val.rd,
+            we=self.out_val.we,
+            alu_res=self.out_val.alu_res,
+            pc4=self.out_val.pc4,
+            mem_rdata=self.out_val.mem_rdata,
+            wb_sel=self.out_val.wb_sel
+        ))
+
+    def process_load(self):
+        load_val = self.load_val.read()
+        if self.signext_w != 0:
+            load_val = signext(load_val, self.signext_w)
+
+        self.out_val.mem_rdata = load_val
+        self.write_output()
 
     def process(self):
         # Read inputs
@@ -646,50 +667,58 @@ class MEMStage(Module):
         op = in_val.mem
         f3 = in_val.funct3
 
-        load_val = 0
-        # Don't write by default
-        self.mem.we = False
-        self.mem.re = False
-
         self.check_exception(op, addr, f3)
 
+        # Set inputs for memory module
+        we = False
+        re = False
+        self.read_port.addr_i.write(addr)
+        self.write_port.wdata_i.write(mem_wdata)
+        self.signext_w = 0
+
         if op == LOAD:                                          # Read memory
+            re = True
             if f3 == 0: # LB
-                load_val = signext(self.mem.read(addr, 1), 8)
+                self.w = 1
+                self.signext_w = 8
             elif f3 == 1: # LH
-                load_val = signext(self.mem.read(addr, 2), 16)
+                self.w = 2
+                self.signext_w = 16
             elif f3 == 2: # LW
-                load_val = self.mem.read(addr, 4)
+                self.w = 4
             elif f3 == 4: # LBU
-                load_val = self.mem.read(addr, 1)
+                self.w = 1
             elif f3 == 5: # LHU
-                load_val = self.mem.read(addr, 2)
+                self.w = 2
             else:
-                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+                raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
 
         elif op == STORE:                                       # Store memory
+            we = True
             if f3 == 0: # SB
-                self.mem.writeRequest(addr, mem_wdata, 1)
+                self.w = 1
             elif f3 == 1: # SH
-                self.mem.writeRequest(addr, mem_wdata, 2)
+                self.w = 2
             elif f3 == 2: # SW
-                self.mem.writeRequest(addr, mem_wdata, 4)
+                self.w = 4
             else:
-                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+                raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
         # else:
         #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
 
         # TODO: Illegal address execption handling
 
+        self.read_port.width_i.write(self.w)
+        self.read_port.re_i.write(re)
+        self.write_port.we_i.write(we)
+
         # Outputs
-        self.MEMWB_o.write(MEMWB_t(
-            rd=in_val.rd,
-            we=in_val.we,
-            alu_res=in_val.alu_res,
-            pc4=in_val.pc4,
-            mem_rdata=load_val,
-            wb_sel=in_val.wb_sel
-        ))
+        self.out_val.rd = in_val.rd
+        self.out_val.we = in_val.we
+        self.out_val.alu_res = in_val.alu_res
+        self.out_val.pc4 = in_val.pc4
+        self.out_val.wb_sel = in_val.wb_sel
+        self.write_output()
 
     def check_exception(self, op, addr, f3):
         if f3 == 0:
@@ -740,7 +769,7 @@ class WBStage(Module):
             elif wb_sel==2: # Load
                 wb_val = mem_rdata
             else:
-                raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
+                raise Exception(f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
 
             self.regfile.writeRequest(rd, wb_val)
 
