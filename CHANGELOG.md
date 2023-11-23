@@ -1,6 +1,9 @@
 # Next version
 
-- Logging is now disabled by default
+- Logging:
+  - Default log-level is now INFO
+    - At this log-level we will only see stable port values
+    - At the end of the current cycle (before tick), all port values will be logged
 
 # 0.2.0
 

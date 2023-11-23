@@ -1,3 +1,4 @@
+from pyv.port import PortList
 from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
@@ -50,10 +51,12 @@ class Simulator:
     def step(self):
         """Perform one simulation step (cycle).
         """
-        logger.debug(f"\n**** Cycle {self._cycles} ****")
+        logger.info(f"\n**** Cycle {self._cycles} ****")
 
         self._process_events()
         self._process_queue()
+
+        PortList.logPorts()
 
         logger.debug("** Clock tick **")
         Clock.tick()

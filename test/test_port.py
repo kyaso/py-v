@@ -1,7 +1,7 @@
 from collections import deque
 from unittest.mock import MagicMock
 import pytest
-from pyv.port import Constant, Input, Output, Wire
+from pyv.port import Constant, Input, Output, PortList, Wire
 from pyv.module import Module
 from pyv.simulator import Simulator
 
@@ -15,6 +15,19 @@ class TestPort:
         A = Output(float)
         assert type(A._val) == float
         assert A._val == 0
+
+    def test_port_list(self):
+        PortList.clear()
+        A = Input(int)
+        B = Input(int)
+        C = Output(int)
+        D = Wire(int)
+        E = Constant(5)
+
+        assert PortList.port_list == [A, B, C, D, E]
+
+        PortList.clear()
+        assert PortList.port_list == []
 
     def test_read(self):
         A = Input(int)

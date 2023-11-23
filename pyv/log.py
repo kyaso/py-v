@@ -2,7 +2,7 @@ import logging
 
 def getLogger():
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     # logging.disable()
 

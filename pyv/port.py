@@ -7,9 +7,6 @@ from pyv.util import PyVObj
 
 T = TypeVar('T')
 
-class PortList:
-    port_list = []
-
 class Port(PyVObj, ABC):
     """Abstract base class for ports."""
     def __init__(self, type, val) -> None:
@@ -28,6 +25,8 @@ class Port(PyVObj, ABC):
         # Which ports does this port drive?
         self._children = []
 
+        PortList.addPort(self)
+
     @abstractmethod
     def read(self):
         """Read the current port value"""
@@ -42,6 +41,22 @@ class Port(PyVObj, ABC):
     def _clear_root_attrs(self):
         del self._val
         self._downstreamInputs = []
+
+class PortList:
+    port_list: list[Port] = []
+
+    @staticmethod
+    def addPort(port):
+        PortList.port_list.append(port)
+
+    @staticmethod
+    def clear():
+        PortList.port_list = []
+
+    @staticmethod
+    def logPorts():
+        for p in PortList.port_list:
+            logger.info(f"{p.name}: {p.read()}")
 
 class _ProcessMethodHandler():
     def __init__(self, sensitive_methods) -> None:
