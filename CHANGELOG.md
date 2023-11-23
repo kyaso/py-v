@@ -4,6 +4,8 @@
   - Default log-level is now INFO
     - At this log-level we will only see stable port values
     - At the end of the current cycle (before tick), all port values will be logged
+- Serial adder/core has been removed
+- ShiftReg stuff has been removed
 
 # 0.2.0
 
