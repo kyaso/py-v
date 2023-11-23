@@ -4,10 +4,9 @@ from pyv.reg import *
 from pyv.mem import *
 import pyv.isa as isa
 from pyv.util import *
-import pyv.log as log
+from pyv.log import logger
 from dataclasses import dataclass
 
-logger = log.getLogger(__name__)
 
 @dataclass
 class IFID_t:
@@ -692,7 +691,7 @@ class MEMStage(Module):
             elif f3 == 5: # LHU
                 self.w = 2
             else:
-                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+                raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
 
         elif op == STORE:                                       # Store memory
             we = True
@@ -703,7 +702,7 @@ class MEMStage(Module):
             elif f3 == 2: # SW
                 self.w = 4
             else:
-                raise Exception('ERROR (MEMStage, process): Illegal f3 {}'.format(f3))
+                raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
         # else:
         #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
 
@@ -770,7 +769,7 @@ class WBStage(Module):
             elif wb_sel==2: # Load
                 wb_val = mem_rdata
             else:
-                raise Exception('ERROR (WBStage, process): Invalid wb_sel {}'.format(wb_sel))
+                raise Exception(f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
 
             self.regfile.writeRequest(rd, wb_val)
 

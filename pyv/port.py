@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
 import copy
 from typing import Any, TypeVar, Generic, Type
-import pyv.log as log
+from pyv.log import logger
 from pyv.util import PyVObj
 
-_logger = log.getLogger(__name__)
 
 T = TypeVar('T')
 
@@ -125,7 +124,7 @@ class PortRW(Port, Generic[T]):
     def _propagate(self, oldVal: T, newVal: T):
         """Propagate a value change.
         """
-        _logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
+        logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
         # Propagate change to all children
         for p in self._children:

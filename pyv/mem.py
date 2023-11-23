@@ -2,10 +2,9 @@ from dataclasses import dataclass
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.util import MASK_32, PyVObj
-import pyv.log as log
+from pyv.log import logger
 from pyv.clocked import Clocked, MemBase
 
-logger = log.getLogger(__name__)
 
 
 class ReadPort(PyVObj):
@@ -97,11 +96,11 @@ class Memory(Module, Clocked):
             elif w == 4: # word
                 val = MASK_32 & (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
             else:
-                raise Exception('ERROR (Memory ({}), read): Invalid width {}'.format(self.name, w))
+                raise Exception(f'ERROR (Memory ({self.name}), read): Invalid width {w}')
 
-            logger.debug("MEM ({}): read value 0x{:08X} from address 0x{:08X}".format(self.name, val, addr))
+            logger.debug(f"MEM ({self.name}): read value {val:08X} from address {addr:08X}")
         except IndexError:
-            logger.warn("Potentially illegal memory address 0x{:08X}. This might be normal during cycle processing.".format(addr))
+            logger.warn(f"Potentially illegal memory address 0x{addr:08X}. This might be normal during cycle processing.")
             val = 0
 
         return val
@@ -139,8 +138,8 @@ class Memory(Module, Clocked):
 
         if we:
             if not (w == 1 or w == 2 or w == 4):
-                raise Exception('ERROR (Memory ({}), write): Invalid width {}'.format(self.name, w)) 
-            logger.debug("MEM {}: write 0x{:08X} to address 0x{:08X}".format(self.name, wdata, addr))
+                raise Exception(f'ERROR (Memory ({self.name}), write): Invalid width {w}')
+            logger.debug(f"MEM {self.name}: write {wdata:08X} to address {addr:08X}")
 
             if w == 1: # byte
                 self.mem[addr] = 0xff & wdata

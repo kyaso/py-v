@@ -3,12 +3,11 @@ import warnings
 from pyv.port import Input, Output
 from pyv.util import PyVObj, bitVector2num, getBitVector
 from pyv.clocked import Clocked, MemBase, RegBase
-import pyv.log as log
+from pyv.log import logger
 from typing import TypeVar, Generic, Type
 
 T = TypeVar('T')
 
-_logger = log.getLogger(__name__)
 
 class Reg(PyVObj, Clocked, Generic[T]):
     """Represents a register."""
@@ -58,7 +57,7 @@ class Reg(PyVObj, Clocked, Generic[T]):
 
     def _tick(self):
         if self._doReset:
-            _logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
+            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
             self._reset()
         elif self._doTick:
             self.cur.write(self._nextv)
@@ -110,7 +109,7 @@ class ShiftReg(RegBase):
         """
 
         if self._doReset:
-            _logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self._resetVal}.")
+            logger.debug(f"Sync reset on shift register {self.name}. Reset value: {self._resetVal}.")
             self.regs = [self._resetVal  for _ in range(0, self.depth)]
         else:
             # Fetch the new value
@@ -210,9 +209,9 @@ class Regfile(Clocked):
             # because the decoder will only feed-in valid 5 bit indeces.
             try:
                 val = self.regs[reg]
-                _logger.debug(f"Regfile READ: x{reg} = {val}")
+                logger.debug(f"Regfile READ: x{reg} = {val}")
             except IndexError:
-                _logger.warn("Potentially illegal register index 0x{:08X}. This might be normal during cycle processing.".format(reg))
+                logger.warn(f"Potentially illegal register index 0x{reg:08X}. This might be normal during cycle processing.")
                 val = 0
 
             return val
@@ -240,7 +239,7 @@ class Regfile(Clocked):
         if not self.we:
             return
 
-        _logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")
+        logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")
         self.regs[self._nextWidx] = self._nextWval
 
         # TODO: Technically, it shouldn't be the regfile's responsibility to reset

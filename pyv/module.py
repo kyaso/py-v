@@ -6,7 +6,6 @@ from pyv.reg import Reg
 import pyv.log as log
 from pyv.util import PyVObj
 
-logger = log.getLogger(__name__)
 
 # TODO: Maybe make this abstract
 class Module(PyVObj):

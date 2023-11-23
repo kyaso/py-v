@@ -92,7 +92,7 @@ def getBitVector(val: int, len: int = 0):
         return leading_zeros + [1 if digit=='1' else 0 for digit in bin(val)[2:]]
     else:
         num_trunc_bits = val.bit_length() - len
-        warnings.warn("Util getBitVector(): Requested vector length ({}) shorter than bit_length of value ({}). Truncating upper {} bits.".format(len, val.bit_length(), num_trunc_bits))
+        warnings.warn(f"Util getBitVector(): Requested vector length ({len}) shorter than bit_length of value ({val.bit_length()}). Truncating upper {num_trunc_bits} bits.")
         return [1 if digit=='1' else 0 for digit in bin(val)[2+num_trunc_bits:]]
 
 def bitVector2num(bitVec: list):

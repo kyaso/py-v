@@ -1,7 +1,7 @@
 from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
-import pyv.log as log
+from pyv.log import logger
 from pyv.clocked import Clock
 from queue import PriorityQueue
 from typing import TypeAlias, Callable
@@ -9,7 +9,6 @@ import uuid
 
 Event: TypeAlias = tuple[int, uuid.UUID, Callable]
 
-_logger = log.getLogger(__name__)
 
 class _EventQueue:
     def __init__(self):
@@ -51,12 +50,12 @@ class Simulator:
     def step(self):
         """Perform one simulation step (cycle).
         """
-        _logger.debug("\n**** Cycle {} ****".format(self._cycles))
+        logger.debug(f"\n**** Cycle {self._cycles} ****")
 
         self._process_events()
         self._process_queue()
 
-        _logger.debug("** Clock tick **")
+        logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
 
@@ -77,7 +76,7 @@ class Simulator:
     def _process_queue(self):
         while len(self._process_q) > 0:
             nextFn = self._process_q.popleft()
-            _logger.debug("Running {}".format(nextFn.__qualname__))
+            logger.debug(f"Running {nextFn.__qualname__}")
             nextFn()
 
     def _events_pending(self):
@@ -87,7 +86,7 @@ class Simulator:
         while self._events_pending():
             event: Event = self._event_q.get_next_event()
             callback = event[2]
-            _logger.debug(f"Triggering event -> {callback.__qualname__}()")
+            logger.debug(f"Triggering event -> {callback.__qualname__}()")
             callback()
 
     def _addToProcessQueue(self, fn):
@@ -97,10 +96,10 @@ class Simulator:
             fn (function): The function we want to add to the queue.
         """
         if fn not in self._process_q:
-            _logger.debug("Adding {} to queue.".format(fn.__qualname__))
+            logger.debug(f"Adding {fn.__qualname__} to queue.")
             self._process_q.append(fn)
         else:
-            _logger.debug("{} already in queue.".format(fn.__qualname__))
+            logger.debug(f"{fn.__qualname__} already in queue.")
 
     def getCycles(self):
         """Returns the current number of cycles.

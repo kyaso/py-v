@@ -1,7 +1,6 @@
 import logging
 
-def getLogger(name: str):
-    # logger = logging.getLogger(name)
+def getLogger():
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
@@ -17,3 +16,5 @@ def getLogger(name: str):
     logger.addHandler(file_handler)
 
     return logger
+
+logger = getLogger()
