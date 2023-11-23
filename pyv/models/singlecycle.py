@@ -37,18 +37,18 @@ class SingleCycle(Module):
         self.take_branch = Wire(bool)
         self.alu_res = Wire(int)
 
-        self.IFID = self.if_stg.IFID_o
-        self.EXMEM = self.ex_stg.EXMEM_o
+        self.IFID.connect(self.if_stg.IFID_o)
+        self.EXMEM.connect(self.ex_stg.EXMEM_o)
 
         # Connect stages
-        self.if_stg.npc_i     = self.bu.npc_o
-        self.id_stg.IFID_i    = self.if_stg.IFID_o
-        self.ex_stg.IDEX_i    = self.id_stg.IDEX_o
-        self.mem_stg.EXMEM_i  = self.ex_stg.EXMEM_o
-        self.wb_stg.MEMWB_i   = self.mem_stg.MEMWB_o
-        self.bu.pc_i          = self.pc
-        self.bu.take_branch_i = self.take_branch
-        self.bu.target_i      = self.alu_res
+        self.if_stg.npc_i     .connect(self.bu.npc_o)
+        self.id_stg.IFID_i    .connect(self.if_stg.IFID_o)
+        self.ex_stg.IDEX_i    .connect(self.id_stg.IDEX_o)
+        self.mem_stg.EXMEM_i  .connect(self.ex_stg.EXMEM_o)
+        self.wb_stg.MEMWB_i   .connect(self.mem_stg.MEMWB_o)
+        self.bu.pc_i          .connect(self.pc)
+        self.bu.take_branch_i .connect(self.take_branch)
+        self.bu.target_i      .connect(self.alu_res)
 
     def connects(self):
         val = self.IFID.read().pc

@@ -23,20 +23,6 @@ class TestModule:
     def test_init(self, modA: ModA):
         assert modA.name == 'ModA'
 
-    def test_port_connect_with_assignment_operator(self, modA: ModA):
-        connect = modA.A_o.connect = MagicMock()
-        modA.A_o = modA.A_i
-        connect.assert_called_once_with(modA.A_i)
-
-        # This should do default assignment
-        modA.A_o = 42
-        assert modA.A_o == 42
-        assert connect.call_count == 1
-
-        modA.foo = modA.A_i
-        assert modA.foo == modA.A_i
-        assert connect.call_count == 1
-
     def test_port_init(self, modA: ModA):
         modA._init()
         assert modA.A_i._processMethodHandler._processMethods == [modA.process]

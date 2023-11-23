@@ -51,12 +51,12 @@ class Top(Module):
         self.B_i = B()
         self.C_i = C()
 
-        self.A_i.IN = self.IN
-        self.B_i.IN1 = self.A_i.OUT
-        self.B_i.IN2 = self.C_i.OUT1
-        self.C_i.IN1 = self.B_i.OUT1
-        self.C_i.IN2 = self.B_i.OUT2
-        self.OUT = self.C_i.OUT2
+        self.A_i.IN.connect(self.IN)
+        self.B_i.IN1.connect(self.A_i.OUT)
+        self.B_i.IN2.connect(self.C_i.OUT1)
+        self.C_i.IN1.connect(self.B_i.OUT1)
+        self.C_i.IN2.connect(self.B_i.OUT2)
+        self.OUT.connect(self.C_i.OUT2)
 
     def process(self):
         return

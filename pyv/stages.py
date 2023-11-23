@@ -76,8 +76,8 @@ class IFStage(Module):
         # Helper wires
         self.pc_reg_w = Wire(int, [self.writeOutput])
         self.ir_reg_w = Wire(int, [self.writeOutput])
-        self.pc_reg_w = self.pc_reg.cur
-        self.ir_reg_w = self.ir_reg.cur
+        self.pc_reg_w.connect(self.pc_reg.cur)
+        self.ir_reg_w.connect(self.ir_reg.cur)
 
         # Instruction memory
         # Force read-enable
@@ -86,10 +86,10 @@ class IFStage(Module):
         imem.re_i.connect(self.const1)
         imem.addr_i.connect(self.npc_i)
         imem.width_i.connect(self.const2)
-        self.ir_reg.next = imem.rdata_o
+        self.ir_reg.next.connect(imem.rdata_o)
 
         # Connect next PC to input of PC reg
-        self.pc_reg.next = self.npc_i
+        self.pc_reg.next.connect(self.npc_i)
 
     def writeOutput(self):
         self.IFID_o.write(IFID_t(self.ir_reg_w.read(), self.pc_reg_w.read()))
@@ -635,7 +635,7 @@ class MEMStage(Module):
         # Main memory
         self.read_port = dmem_read
         self.write_port = dmem_write
-        self.load_val = self.read_port.rdata_o
+        self.load_val.connect(self.read_port.rdata_o)
         self.w = 1 # data width
         self.signext_w = 0 # signext width
 
