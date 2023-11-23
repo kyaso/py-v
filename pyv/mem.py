@@ -105,29 +105,23 @@ class Memory(Module, Clocked):
 
         return val
 
-    def process_read0(self):
-        re = self.read_port0.re_i.read()
-        addr = self.read_port0.addr_i.read()
-        w = self.read_port0.width_i.read()
+    def _process_read(self, read_port):
+        re = read_port.re_i.read()
+        addr = read_port.addr_i.read()
+        w = read_port.width_i.read()
 
         if re:
             val = self._read(addr, w)
         else:
             val = 0
 
-        self.read_port0.rdata_o.write(val)
+        read_port.rdata_o.write(val)
+
+    def process_read0(self):
+        self._process_read(self.read_port0)
 
     def process_read1(self):
-        re = self.read_port1.re_i.read()
-        addr = self.read_port1.addr_i.read()
-        w = self.read_port1.width_i.read()
-
-        if re:
-            val = self._read(addr, w)
-        else:
-            val = 0
-
-        self.read_port1.rdata_o.write(val)
+        self._process_read(self.read_port1)
 
     def _tick(self):
         we = self.write_port.we_i.read()
