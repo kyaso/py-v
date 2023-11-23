@@ -201,6 +201,9 @@ class Input(PortRW[T]):
         self._processMethodHandler = ProcessMethodHandler(sensitive_methods)
 
     def _init(self, parent: PyVObj):
+        if self._visited:
+            return
+        self._visited = True
         self._processMethodHandler.init_process_methods(parent)
 
     def _set_root_driver(self, newRoot: Port):
