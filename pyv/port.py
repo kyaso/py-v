@@ -7,6 +7,9 @@ from pyv.util import PyVObj
 
 T = TypeVar('T')
 
+class PortList:
+    port_list = []
+
 class Port(PyVObj, ABC):
     """Abstract base class for ports."""
     def __init__(self, type, val) -> None:
@@ -18,6 +21,7 @@ class Port(PyVObj, ABC):
             # Take the type's default value
             self._val = self._type()
         self._root_driver = self
+        self._downstreamInputs: list[Input] = []
 
         # Who drives this port?
         self._parent = None
@@ -31,6 +35,13 @@ class Port(PyVObj, ABC):
     def _init(self, parent=None):
         # Empty _init to prevent further processing
         pass
+
+    def _addDownstreamInput(self, port: 'Port'):
+        self._downstreamInputs.append(port)
+
+    def _clear_root_attrs(self):
+        del self._val
+        self._downstreamInputs = []
 
 class ProcessMethodHandler():
     def __init__(self, sensitive_methods) -> None:
@@ -126,12 +137,15 @@ class PortRW(Port, Generic[T]):
         """
         logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
-        # Propagate change to all children
-        for p in self._children:
-            p._propagate(oldVal, newVal)
+        for port in self._downstreamInputs:
+            logger.debug(f"Notifying {port.name}")
+            port._notify()
+
+    def _set_root_driver(self, newRoot: Port):
+        self._root_driver = newRoot
 
     def _update_root_driver(self, driver: Port):
-        self._root_driver = driver._root_driver
+        self._set_root_driver(driver._root_driver)
         for child in self._children:
             child._update_root_driver(self._root_driver)
 
@@ -162,7 +176,7 @@ class PortRW(Port, Generic[T]):
             self._parent = driver
             driver._children.append(self)
             self._update_root_driver(driver)
-            del self._val
+            self._clear_root_attrs()
         else:
             raise Exception(f"ERROR (Port): Port {self.name} already has a parent!")
 
@@ -189,13 +203,19 @@ class Input(PortRW[T]):
     def _init(self, parent: PyVObj):
         self._processMethodHandler.init_process_methods(parent)
 
+    def _set_root_driver(self, newRoot: Port):
+        super()._set_root_driver(newRoot)
+        newRoot._addDownstreamInput(self)
+
     def _propagate(self, oldVal: T, newVal: T):
         # TODO: Figure out how to log the change before the log of process queue
-        # _logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
+        # logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
-        # Add this port's sensitive methods to the simulation queue
         self._processMethodHandler.add_methods_to_sim_queue()
         super()._propagate(oldVal, newVal)
+
+    def _notify(self):
+        self._processMethodHandler.add_methods_to_sim_queue()
 
 class Output(PortRW[T]):
     """Represents an **Output** port."""

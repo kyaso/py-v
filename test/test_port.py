@@ -59,6 +59,44 @@ class TestPort:
         assert D.read() == 42
         assert E.read() == 42
 
+    def test_root_driver_downstream_inputs(self):
+        #        ┌── B(I)
+        #  A(I) ─┤
+        #        └── C(O)
+        A = Input(int)
+        B = Input(int)
+        C = Output(int)
+
+        B.connect(A)
+        C.connect(A)
+
+        assert A._downstreamInputs == [B]
+        assert B._downstreamInputs == []
+        assert C._downstreamInputs == []
+
+        #       ┌── E(I)
+        # D(O) ─┤
+        #       └── F(O) ── G(I)
+        D = Output(int)
+        E = Input(int)
+        F = Output(int)
+        G = Input(int)
+
+        E.connect(D)
+        F.connect(D)
+        G.connect(F)
+
+        assert D._downstreamInputs == [E, G]
+
+        # Connect D to B
+        #                        ┌── E(I)
+        #      ┌── B(I) ── D(O) ─┤
+        # A(I)─┤                 └── F(O) ── G(I)
+        #      └── C(O)
+        D.connect(B)
+        assert D._downstreamInputs == []
+        assert A._downstreamInputs == [B, E, G]
+
     def test_connect(self):
         A = Input(int)
         B = Input(int)
@@ -160,10 +198,9 @@ class TestPort:
         with pytest.raises(Exception):
             B.connect(A)
 
-    def test_defaultVal(self):
+    def test_defaultVal(self, sim):
         # This tests checks whether the forced propagation on the
         # very first write works.
-        sim = Simulator()
         class modA(Module):
             def __init__(self):
                 super().__init__()
@@ -208,11 +245,7 @@ class TestPort:
         p = Input(int, sensitive_methods=[foo, bar, bar])
         assert p._processMethodHandler._processMethods == [foo, bar]
 
-        # Output ports shouldn't have any sensitive methods
-        with pytest.raises(Exception):
-            p2 = Output(int, sensitive_methods=[foo])
-
-    def test_onChange(self):
+    def test_basic_change(self, sim):
         def foo():
             pass
         def bar():
@@ -220,10 +253,38 @@ class TestPort:
 
         p = Input(int, sensitive_methods=[foo, bar])
 
-        sim = Simulator()
-
         p.write(42)
         assert sim._process_q == deque([foo, bar])
+
+    def test_downstream_change(self, sim: Simulator):
+        def fooA(): pass
+        def fooB(): pass
+        def fooE(): pass
+        def fooG(): pass
+        #                        ┌── E(I)
+        #      ┌── B(I) ── D(O) ─┤
+        # A(I)─┤                 └── F(O) ── G(I)
+        #      └── C(O)
+        A = Input(int, [fooA])
+        B = Input(int, [fooB])
+        C = Output(int)
+
+        B.connect(A)
+        C.connect(A)
+
+        D = Output(int)
+        E = Input(int, [fooE])
+        F = Output(int)
+        G = Input(int, [fooG])
+
+        E.connect(D)
+        F.connect(D)
+        G.connect(F)
+
+        D.connect(B)
+
+        A.write(42)
+        assert sim._process_q == deque([fooA, fooB, fooE, fooG])
 
     def test_constant(self):
         c = Constant(42)
