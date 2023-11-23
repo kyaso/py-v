@@ -142,115 +142,14 @@ def test_next_value_does_not_propagate():
     foo[0] = 3
     assert A.cur._val == [1,2]
 
-@pytest.mark.skip()
-def test_shiftReg():
-    depth = 32
-    A = ShiftReg(depth)
-    RegBase.reset()
-
-    inputs = [random.randint(0,1)  for _ in range(depth)]
-
-    assert len(A.regs) == depth
-    assert A.serOut.read() == 0
-
-    # Fill shift register
-    for i in range(depth):
-        A.serIn.write(inputs[i])
-        RegBase.tick()
-        #print("i = {}, regs = {}".format(i, A.regs))
-
-    # Drain shift register
-    A.serIn.write(0)
-    for i in range(depth):
-        #print("i = {}, regs = {}".format(i, A.regs))
-        assert A.serOut.read() == inputs[i]
-        RegBase.tick()
-    
-    # Test warning when input wider than 1 bit
-    A.serIn.write(4)
-    with pytest.warns(UserWarning):
-        RegBase.tick()
-
-@pytest.mark.skip()
-def test_shiftRegParallel():
-    depth = 8
-    A = ShiftRegParallel(depth)
-    RegBase.reset()
-
-    assert len(A.regs) == depth
-
-    # Test parallel load
-    A.parEnable.write(1)
-    A.parIn.write(0xAF)
-    RegBase.tick()
-    assert A.regs == [1,0,1,0,1,1,1,1]
-
-    # Test parallel read
-    assert A.parOut.read() == 0xAF
-
-    # Shift some bits
-    A.parEnable.write(0)
-
-    A.serIn.write(1)
-    RegBase.tick()
-    A.serIn.write(1)
-    RegBase.tick()
-    A.serIn.write(0)
-    RegBase.tick()
-
-    # Test parallel read again
-    print(A.regs)
-    assert A.parOut.read() == 0b01111110
-
-    # Test serial shift out
-    A.serIn.write(0)
-    for i in range(0, depth):
-        #print("i = {}, regs = {}".format(i, A.regs))
-        if i == 0:
-            assert A.serOut.read() == 0
-        elif i == 1:
-            assert A.serOut.read() == 1
-        elif i == 2:
-            assert A.serOut.read() == 1
-        elif i == 3:
-            assert A.serOut.read() == 1
-        elif i == 4:
-            assert A.serOut.read() == 1
-        elif i == 5:
-            assert A.serOut.read() == 1
-        elif i == 6:
-            assert A.serOut.read() == 1
-        elif i == 7:
-            assert A.serOut.read() == 0
-        
-        RegBase.tick()
-
-    # Test parallel load with value wider than depth
-    # This should issue a warning.
-    A.parEnable.write(1)
-    A.parIn.write(0xAEADBEEF)
-    with pytest.warns(UserWarning):
-        RegBase.tick()
-
-    # Test parallel load with value narrower than depth
-    # This should make sure that the length of the list remains the same.
-    A.parEnable.write(1)
-    A.parIn.write(0x47)
-    RegBase.tick()
-    assert len(A.regs) == depth
-
 def test_reset():
     reg1 = Reg(int)
     reg2 = Reg(int, 42)
-    # reg4 = ShiftReg(8, 1)
-    # reg5 = ShiftRegParallel(8, 2)
 
     RegBase.reset()
 
     assert reg1.cur.read() == 0
     assert reg2.cur.read() == 42
-    # assert reg4.regs == [1  for _ in range(0,8)]
-    # assert reg5.regs == [2  for _ in range(0,8)]
 
 def test_sync_reset(reg):
 
@@ -269,26 +168,3 @@ def test_sync_reset(reg):
     reg.rst.write(44)
     with pytest.raises(Exception, match = "Error: Invalid rst signal!"):
         RegBase.tick()
-
-@pytest.mark.skip()
-def test_sync_reset_shiftreg():
-    reg1 = ShiftReg(8, 1)
-    reg2 = ShiftRegParallel(8, 0)
-
-    # Load some values
-    reg1.regs = [1,0,1,0,0,1,0,1]
-    reg2.regs = [1,0,1,0,0,1,0,1]
-
-    # No reset
-    reg1.rst.write(0)
-    reg2.rst.write(0)
-    RegBase.tick()
-    assert reg1.regs != [1,1,1,1,1,1,1,1]
-    assert reg2.regs != [0,0,0,0,0,0,0,0]
-
-    # Reset
-    reg1.rst.write(1)
-    reg2.rst.write(1)
-    RegBase.tick()
-    assert reg1.regs == [1  for _ in range(0,8)]
-    assert reg2.regs == [0  for _ in range(0,8)]
