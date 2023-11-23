@@ -31,9 +31,6 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
-                    <a class="variable" href="#logger">logger</a>
-            </li>
-            <li>
                     <a class="class" href="#Module">Module</a>
                             <ul class="memberlist">
                         <li>
@@ -74,52 +71,39 @@
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">import</span> <span class="nn">pyv.log</span> <span class="k">as</span> <span class="nn">log</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span> <span class="nn">pyv.util</span> <span class="kn">import</span> <span class="n">PyVObj</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="c1"># TODO: Maybe make this abstract</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="n">PyVObj</span><span class="p">):</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Modules.</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">    All modules inherit from this class.</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="k">pass</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="c1"># TODO: Maybe make this abstract</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="n">PyVObj</span><span class="p">):</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Modules.</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">    All modules inherit from this class.</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="k">pass</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>
 </span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>            <span class="k">return</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>            <span class="k">return</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>            <span class="k">return</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="k">return</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>            <span class="k">return</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="k">return</span>
 </span></pre></div>
 
 
             </section>
-                <section id="logger">
-                    <div class="attr variable">
-            <span class="name">logger</span>        =
-<span class="default_value">&lt;RootLogger root (DEBUG)&gt;</span>
-
-        
-    </div>
-    <a class="headerlink" href="#logger"></a>
-    
-    
-
-                </section>
                 <section id="Module">
                             <input id="Module-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr class">
@@ -131,33 +115,33 @@
 
     </div>
     <a class="headerlink" href="#Module"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Module-13"><a href="#Module-13"><span class="linenos">13</span></a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="n">PyVObj</span><span class="p">):</span>
-</span><span id="Module-14"><a href="#Module-14"><span class="linenos">14</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Modules.</span>
-</span><span id="Module-15"><a href="#Module-15"><span class="linenos">15</span></a>
-</span><span id="Module-16"><a href="#Module-16"><span class="linenos">16</span></a><span class="sd">    All modules inherit from this class.</span>
-</span><span id="Module-17"><a href="#Module-17"><span class="linenos">17</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Module-18"><a href="#Module-18"><span class="linenos">18</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
-</span><span id="Module-19"><a href="#Module-19"><span class="linenos">19</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</span><span id="Module-20"><a href="#Module-20"><span class="linenos">20</span></a>
-</span><span id="Module-21"><a href="#Module-21"><span class="linenos">21</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Module-22"><a href="#Module-22"><span class="linenos">22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
-</span><span id="Module-23"><a href="#Module-23"><span class="linenos">23</span></a>        <span class="k">pass</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Module-12"><a href="#Module-12"><span class="linenos">12</span></a><span class="k">class</span> <span class="nc">Module</span><span class="p">(</span><span class="n">PyVObj</span><span class="p">):</span>
+</span><span id="Module-13"><a href="#Module-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Modules.</span>
+</span><span id="Module-14"><a href="#Module-14"><span class="linenos">14</span></a>
+</span><span id="Module-15"><a href="#Module-15"><span class="linenos">15</span></a><span class="sd">    All modules inherit from this class.</span>
+</span><span id="Module-16"><a href="#Module-16"><span class="linenos">16</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Module-17"><a href="#Module-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
+</span><span id="Module-18"><a href="#Module-18"><span class="linenos">18</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</span><span id="Module-19"><a href="#Module-19"><span class="linenos">19</span></a>
+</span><span id="Module-20"><a href="#Module-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Module-21"><a href="#Module-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
+</span><span id="Module-22"><a href="#Module-22"><span class="linenos">22</span></a>        <span class="k">pass</span>
+</span><span id="Module-23"><a href="#Module-23"><span class="linenos">23</span></a>
 </span><span id="Module-24"><a href="#Module-24"><span class="linenos">24</span></a>
-</span><span id="Module-25"><a href="#Module-25"><span class="linenos">25</span></a>
-</span><span id="Module-26"><a href="#Module-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Module-27"><a href="#Module-27"><span class="linenos">27</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-</span><span id="Module-28"><a href="#Module-28"><span class="linenos">28</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="Module-29"><a href="#Module-29"><span class="linenos">29</span></a>            <span class="k">return</span>
-</span><span id="Module-30"><a href="#Module-30"><span class="linenos">30</span></a>
-</span><span id="Module-31"><a href="#Module-31"><span class="linenos">31</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
-</span><span id="Module-32"><a href="#Module-32"><span class="linenos">32</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
-</span><span id="Module-33"><a href="#Module-33"><span class="linenos">33</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
-</span><span id="Module-34"><a href="#Module-34"><span class="linenos">34</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
-</span><span id="Module-35"><a href="#Module-35"><span class="linenos">35</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
-</span><span id="Module-36"><a href="#Module-36"><span class="linenos">36</span></a>            <span class="k">return</span>
-</span><span id="Module-37"><a href="#Module-37"><span class="linenos">37</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="Module-38"><a href="#Module-38"><span class="linenos">38</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="Module-39"><a href="#Module-39"><span class="linenos">39</span></a>            <span class="k">return</span>
+</span><span id="Module-25"><a href="#Module-25"><span class="linenos">25</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Module-26"><a href="#Module-26"><span class="linenos">26</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+</span><span id="Module-27"><a href="#Module-27"><span class="linenos">27</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
+</span><span id="Module-28"><a href="#Module-28"><span class="linenos">28</span></a>            <span class="k">return</span>
+</span><span id="Module-29"><a href="#Module-29"><span class="linenos">29</span></a>
+</span><span id="Module-30"><a href="#Module-30"><span class="linenos">30</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
+</span><span id="Module-31"><a href="#Module-31"><span class="linenos">31</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
+</span><span id="Module-32"><a href="#Module-32"><span class="linenos">32</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
+</span><span id="Module-33"><a href="#Module-33"><span class="linenos">33</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
+</span><span id="Module-34"><a href="#Module-34"><span class="linenos">34</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
+</span><span id="Module-35"><a href="#Module-35"><span class="linenos">35</span></a>            <span class="k">return</span>
+</span><span id="Module-36"><a href="#Module-36"><span class="linenos">36</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Module-37"><a href="#Module-37"><span class="linenos">37</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
+</span><span id="Module-38"><a href="#Module-38"><span class="linenos">38</span></a>            <span class="k">return</span>
 </span></pre></div>
 
 
@@ -177,8 +161,8 @@
 
     </div>
     <a class="headerlink" href="#Module.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Module.__init__-18"><a href="#Module.__init__-18"><span class="linenos">18</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
-</span><span id="Module.__init__-19"><a href="#Module.__init__-19"><span class="linenos">19</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Module.__init__-17"><a href="#Module.__init__-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;UnnamedModule&#39;</span><span class="p">):</span>
+</span><span id="Module.__init__-18"><a href="#Module.__init__-18"><span class="linenos">18</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -196,9 +180,9 @@
 
     </div>
     <a class="headerlink" href="#Module.process"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Module.process-21"><a href="#Module.process-21"><span class="linenos">21</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Module.process-22"><a href="#Module.process-22"><span class="linenos">22</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
-</span><span id="Module.process-23"><a href="#Module.process-23"><span class="linenos">23</span></a>        <span class="k">pass</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Module.process-20"><a href="#Module.process-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Module.process-21"><a href="#Module.process-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
+</span><span id="Module.process-22"><a href="#Module.process-22"><span class="linenos">22</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
 

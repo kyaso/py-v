@@ -43,7 +43,7 @@ class Port(PyVObj, ABC):
         del self._val
         self._downstreamInputs = []
 
-class ProcessMethodHandler():
+class _ProcessMethodHandler():
     def __init__(self, sensitive_methods) -> None:
         # Setup sensitivity list
         self._processMethods = []
@@ -198,7 +198,7 @@ class Input(PortRW[T]):
                 include it explicitly in the list.
         """
         super().__init__(type)
-        self._processMethodHandler = ProcessMethodHandler(sensitive_methods)
+        self._processMethodHandler = _ProcessMethodHandler(sensitive_methods)
 
     def _init(self, parent: PyVObj):
         if self._visited:

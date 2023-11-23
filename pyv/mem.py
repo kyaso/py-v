@@ -8,6 +8,7 @@ from pyv.clocked import Clocked, MemBase
 
 
 class ReadPort(PyVObj):
+    """Read port"""
     def __init__(self,
         re_i: Input[bool],
         width_i: Input[int],
@@ -26,6 +27,7 @@ class ReadPort(PyVObj):
         """Read port 0 Read data output"""
 
 class WritePort(PyVObj):
+    """Write port"""
     def __init__(self,
         we_i: Input[bool],
         wdata_i: Input[int]
