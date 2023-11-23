@@ -84,22 +84,6 @@
 </span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="k">pass</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>            <span class="k">return</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>            <span class="k">return</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>            <span class="k">return</span>
 </span></pre></div>
 
 
@@ -126,22 +110,6 @@
 </span><span id="Module-20"><a href="#Module-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 </span><span id="Module-21"><a href="#Module-21"><span class="linenos">21</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates module&#39;s combinatorial outputs for current cycle based on inputs.&quot;&quot;&quot;</span>
 </span><span id="Module-22"><a href="#Module-22"><span class="linenos">22</span></a>        <span class="k">pass</span>
-</span><span id="Module-23"><a href="#Module-23"><span class="linenos">23</span></a>
-</span><span id="Module-24"><a href="#Module-24"><span class="linenos">24</span></a>
-</span><span id="Module-25"><a href="#Module-25"><span class="linenos">25</span></a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="Module-26"><a href="#Module-26"><span class="linenos">26</span></a>        <span class="k">if</span> <span class="n">__name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-</span><span id="Module-27"><a href="#Module-27"><span class="linenos">27</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="Module-28"><a href="#Module-28"><span class="linenos">28</span></a>            <span class="k">return</span>
-</span><span id="Module-29"><a href="#Module-29"><span class="linenos">29</span></a>
-</span><span id="Module-30"><a href="#Module-30"><span class="linenos">30</span></a>        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">__name</span><span class="p">]</span>
-</span><span id="Module-31"><a href="#Module-31"><span class="linenos">31</span></a>        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Port</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">__value</span><span class="p">,</span> <span class="n">Port</span><span class="p">)):</span>
-</span><span id="Module-32"><a href="#Module-32"><span class="linenos">32</span></a>            <span class="n">port</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">attr</span>
-</span><span id="Module-33"><a href="#Module-33"><span class="linenos">33</span></a>            <span class="n">driver</span><span class="p">:</span> <span class="n">Port</span> <span class="o">=</span> <span class="n">__value</span>
-</span><span id="Module-34"><a href="#Module-34"><span class="linenos">34</span></a>            <span class="n">port</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">driver</span><span class="p">)</span>
-</span><span id="Module-35"><a href="#Module-35"><span class="linenos">35</span></a>            <span class="k">return</span>
-</span><span id="Module-36"><a href="#Module-36"><span class="linenos">36</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="Module-37"><a href="#Module-37"><span class="linenos">37</span></a>            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">__name</span><span class="p">,</span> <span class="n">__value</span><span class="p">)</span>
-</span><span id="Module-38"><a href="#Module-38"><span class="linenos">38</span></a>            <span class="k">return</span>
 </span></pre></div>
 
 

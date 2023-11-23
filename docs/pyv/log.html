@@ -61,9 +61,9 @@
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="k">def</span> <span class="nf">getLogger</span><span class="p">():</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="c1"># logging.disable()</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)15s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 </span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="n">stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
@@ -94,9 +94,9 @@
     <a class="headerlink" href="#getLogger"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="getLogger-4"><a href="#getLogger-4"><span class="linenos"> 4</span></a><span class="k">def</span> <span class="nf">getLogger</span><span class="p">():</span>
 </span><span id="getLogger-5"><a href="#getLogger-5"><span class="linenos"> 5</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
-</span><span id="getLogger-6"><a href="#getLogger-6"><span class="linenos"> 6</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span><span id="getLogger-6"><a href="#getLogger-6"><span class="linenos"> 6</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 </span><span id="getLogger-7"><a href="#getLogger-7"><span class="linenos"> 7</span></a>
-</span><span id="getLogger-8"><a href="#getLogger-8"><span class="linenos"> 8</span></a>    <span class="n">logging</span><span class="o">.</span><span class="n">disable</span><span class="p">()</span>
+</span><span id="getLogger-8"><a href="#getLogger-8"><span class="linenos"> 8</span></a>    <span class="c1"># logging.disable()</span>
 </span><span id="getLogger-9"><a href="#getLogger-9"><span class="linenos"> 9</span></a>
 </span><span id="getLogger-10"><a href="#getLogger-10"><span class="linenos">10</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(name)15s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
 </span><span id="getLogger-11"><a href="#getLogger-11"><span class="linenos">11</span></a>    <span class="n">stream_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
@@ -117,7 +117,7 @@
                 <section id="logger">
                     <div class="attr variable">
             <span class="name">logger</span>        =
-<span class="default_value">&lt;RootLogger root (DEBUG)&gt;</span>
+<span class="default_value">&lt;RootLogger root (INFO)&gt;</span>
 
         
     </div>
