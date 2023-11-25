@@ -124,6 +124,7 @@ class Regfile(Clocked):
             self.we = True
 
     def _prepareNextVal(self):
+        # Not needed for now, as we don't have Input ports here
         pass
 
     def _tick(self):
