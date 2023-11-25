@@ -8,3 +8,4 @@ venv
 .coverage
 gitlint.test
 *.diff
+launch.json
