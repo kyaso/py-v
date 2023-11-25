@@ -1,6 +1,7 @@
 import pyv.module as module
 from pyv.simulator import Simulator
 import warnings
+import traceback
 
 class Model:
     """Base class for all core models.
@@ -14,8 +15,9 @@ class Model:
         # Initialize modules
         try:
             self.top._init()
-        except AttributeError:
-            print("Error: Missing top module. Please set top module using Model.setTop().")
+        except:
+            print(traceback.format_exc())
+            print("Something went wrong during top-module init. Aborting.")
             exit()
     
     def setTop(self, mod: module.Module, name: str):
