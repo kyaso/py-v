@@ -1,5 +1,4 @@
 from pyv.port import PortList
-from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
 from pyv.log import logger
@@ -76,6 +75,12 @@ class Simulator:
         for i in range(0, num_cycles):
             self.step()
 
+    @staticmethod
+    def clear():
+        """Clear list of registers, memories and ports"""
+        Clock.clear()
+        PortList.clear()
+
     def _process_queue(self):
         while len(self._process_q) > 0:
             nextFn = self._process_q.popleft()
@@ -89,7 +94,7 @@ class Simulator:
         while self._events_pending():
             event: Event = self._event_q.get_next_event()
             callback = event[2]
-            logger.debug(f"Triggering event -> {callback.__qualname__}()")
+            logger.info(f"Triggering event -> {callback.__qualname__}()")
             callback()
 
     def _addToProcessQueue(self, fn):

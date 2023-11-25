@@ -1,6 +1,5 @@
 from typing import Any
 import pyv.simulator as simulator
-from pyv.clocked import RegBase
 from pyv.port import Port, Input
 from pyv.reg import Reg
 import pyv.log as log

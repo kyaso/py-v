@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 import pytest
 import random
 from pyv.reg import *
-from pyv.clocked import RegBase
+from pyv.clocked import RegList
 
 @pytest.fixture
 def reg():
@@ -19,36 +19,40 @@ def test_reg_init():
     assert reg._resetVal == 42
 
 def test_reg(reg):
-    RegBase.reset()
+    RegList.reset()
     assert reg.cur.read() == 0
 
     reg.next.write(0x42)
     assert reg.cur.read() == 0
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg.cur.read() == 0x42
 
     reg.next.write(0x69)
     assert reg.cur.read() == 0x42
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg.cur.read() == 0x69
 
 def test_reg_tick(reg):
     reg.next.write(42)
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg._doTick == True
     assert reg.cur._val == 42
 
     # Tick again, but as port value is unchanged, register should skip _tick
     reg.cur.write = MagicMock()
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg._doTick == False
     reg.cur.write.assert_not_called()
 
 
-def test_regbase(reg):
-    assert RegBase._reg_list == [reg]
+def test_RegList(reg):
+    assert RegList._reg_list == [reg]
 
 def test_regfile():
     rf = Regfile()
@@ -100,11 +104,12 @@ def test_regChain():
     B.next.connect(A.cur)
     C.next.connect(B.cur)
     D.next.connect(C.cur)
-    RegBase.reset()
+    RegList.reset()
 
     A.next.write(0x42)
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert A.cur.read() == 0x42
     assert B.cur.read() == 0
     assert C.cur.read() == 0
@@ -112,19 +117,22 @@ def test_regChain():
 
     A.next.write(0)
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert A.cur.read() == 0
     assert B.cur.read() == 0x42
     assert C.cur.read() == 0
     assert D.cur.read() == 0
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert A.cur.read() == 0
     assert B.cur.read() == 0
     assert C.cur.read() == 0x42
     assert D.cur.read() == 0
 
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert A.cur.read() == 0
     assert B.cur.read() == 0
     assert C.cur.read() == 0
@@ -137,7 +145,8 @@ def test_next_value_does_not_propagate():
     foo = [1,2]
 
     A.next.write(foo)
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
 
     foo[0] = 3
     assert A.cur._val == [1,2]
@@ -146,7 +155,7 @@ def test_reset():
     reg1 = Reg(int)
     reg2 = Reg(int, 42)
 
-    RegBase.reset()
+    RegList.reset()
 
     assert reg1.cur.read() == 0
     assert reg2.cur.read() == 42
@@ -156,15 +165,18 @@ def test_sync_reset(reg):
     # No reset -> next val
     reg.next.write(42)
     reg.rst.write(0)
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg.cur.read() == 42
 
     # Now assert reset
     reg.rst.write(1)
-    RegBase.tick()
+    RegList.prepareNextVal()
+    RegList.tick()
     assert reg.cur.read() == 0
 
     # Throw exception on wrong reset value
     reg.rst.write(44)
     with pytest.raises(Exception, match = "Error: Invalid rst signal!"):
-        RegBase.tick()
+        RegList.prepareNextVal()
+        RegList.tick()

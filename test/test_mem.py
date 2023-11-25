@@ -1,5 +1,5 @@
 import pytest
-from pyv.clocked import MemBase
+from pyv.clocked import MemList
 from pyv.port import Input, Output
 from pyv.mem import Memory
 from pyv.simulator import Simulator
@@ -12,9 +12,9 @@ def mem() -> Memory:
     mem._init()
     return mem
 
-def test_membase():
+def test_MemList():
     mem = Memory()
-    assert MemBase._mem_list == [mem]
+    assert MemList._mem_list == [mem]
 
 class TestInit():
     def test_init(self, mem: Memory):

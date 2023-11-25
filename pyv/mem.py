@@ -3,7 +3,7 @@ from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.util import MASK_32, PyVObj
 from pyv.log import logger
-from pyv.clocked import Clocked, MemBase
+from pyv.clocked import Clocked, MemList
 
 
 
@@ -55,7 +55,7 @@ class Memory(Module, Clocked):
             size: Size of memory in bytes.
         """
         super().__init__()
-        MemBase.add_to_mem_list(self)
+        MemList.add_to_mem_list(self)
         self.mem = [ 0 for i in range(0,size) ]
         """Memory array. List of length `size`."""
 
@@ -125,12 +125,20 @@ class Memory(Module, Clocked):
     def process_read1(self):
         self._process_read(self.read_port1)
 
-    def _tick(self):
-        we = self.write_port.we_i.read()
-        addr = self.read_port0.addr_i.read()
-        wdata = self.write_port.wdata_i.read()
-        w = self.read_port0.width_i.read()
+    def _prepareNextVal(self):
+        # We need this also in Memory, because it could happen that these pins
+        # are driven by registers, so we save the values first before the
+        # registers tick.
+        self.we_next = self.write_port.we_i.read()
+        self.addr_next = self.read_port0.addr_i.read()
+        self.wdata_next = self.write_port.wdata_i.read()
+        self.w_next = self.read_port0.width_i.read()
 
+    def _tick(self):
+        we = self.we_next
+        addr = self.addr_next
+        wdata = self.wdata_next
+        w = self.w_next
 
         if we:
             if not (w == 1 or w == 2 or w == 4):
