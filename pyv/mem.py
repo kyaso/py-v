@@ -125,6 +125,9 @@ class Memory(Module, Clocked):
     def process_read1(self):
         self._process_read(self.read_port1)
 
+    def _prepareNextVal(self):
+        pass
+
     def _tick(self):
         we = self.write_port.we_i.read()
         addr = self.read_port0.addr_i.read()

@@ -2,7 +2,7 @@ import pytest
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.simulator import Simulator, _EventQueue
-from pyv.reg import Reg, RegBase
+from pyv.reg import Reg
 from pyv.clocked import Clock
 from collections import deque
 from queue import PriorityQueue

@@ -1,5 +1,4 @@
 from pyv.port import PortList
-from pyv.reg import RegBase
 import pyv.module as module
 from collections import deque
 from pyv.log import logger

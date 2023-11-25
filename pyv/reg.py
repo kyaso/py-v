@@ -2,7 +2,7 @@ import copy
 import warnings
 from pyv.port import Input, Output
 from pyv.util import PyVObj, bitVector2num, getBitVector
-from pyv.clocked import Clocked, MemBase, RegBase
+from pyv.clocked import Clocked, MemBase, RegList
 from pyv.log import logger
 from typing import TypeVar, Generic, Type
 
@@ -21,7 +21,7 @@ class Reg(PyVObj, Clocked, Generic[T]):
         super().__init__()
 
         # Add this register to the global register list
-        RegBase.add_to_reg_list(self)
+        RegList.add_to_reg_list(self)
 
         self.next: Input = Input(type, [None])
         """Next value input"""
@@ -122,6 +122,9 @@ class Regfile(Clocked):
             self._nextWidx = reg
             self._nextWval = val
             self.we = True
+
+    def _prepareNextVal(self):
+        pass
 
     def _tick(self):
         """Register file tick.

@@ -16,30 +16,35 @@ class Clock:
     def tick():
         """Performs a clock tick (rising edge).
 
-        Applies tick to all registers (`RegBase.tick()`) and memories (`MemBase.tick()`).
+        Applies tick to all registers (`RegList.tick()`) and memories (`MemBase.tick()`).
         """
-        RegBase.tick()
+        RegList.prepareNextVal()
+        RegList.tick()
         MemBase.tick()
 
     @staticmethod
     def reset():
-        """Resets registers (`RegBase.reset()`) and memories (`MemBase.reset()`)."""
-        RegBase.reset()
+        """Resets registers (`RegList.reset()`) and memories (`MemBase.reset()`)."""
+        RegList.reset()
         MemBase.reset()
 
     @staticmethod
     def clear():
-        """Clears list of registers (`RegBase.clear()`) and memories (`MemBase.clear()`)."""
-        RegBase.clear()
+        """Clears list of registers (`RegList.clear()`) and memories (`MemBase.clear()`)."""
+        RegList.clear()
         MemBase.clear()
 
 
 class Clocked(ABC):
-    """Base class for all clocked elements (Registers, Memories).
+    """Base class for all clocked elements.
 
-    Methods `_tick()` and `_reset()` must be implemented by any class
+    Methods `_prepareNextVal()`, `_tick()`, and `_reset()` must be implemented by any class
     inheriting.
     """
+    @abstractmethod
+    def _prepareNextVal(self):
+        """Saves current input(s)"""
+
     @abstractmethod
     def _tick(self):
         """Tick function of individual clocked element."""
@@ -49,50 +54,44 @@ class Clocked(ABC):
         """Reset function of individual clocked element."""
 
 
-class RegBase():
-    """Base class for registers.
-
-    This class keeps track of all instantiated registers.
+class RegList():
+    """This class keeps track of all instantiated registers.
     """
 
     # The list of instantiated registers
     _reg_list = []
 
-    def __init__(self):
-        self.name = 'noName'
-
-        # Add register to register list
-        RegBase.add_to_reg_list(self)
-
     @staticmethod
     def add_to_reg_list(obj):
-        RegBase._reg_list.append(obj)
+        """Adds a register object to the global list of registers.
 
+        Args:
+            obj: The register to add to the list
+        """
+        RegList._reg_list.append(obj)
+
+    @staticmethod
+    def prepareNextVal():
+        """Saves inputs of registers"""
+        for r in RegList._reg_list:
+            r._prepareNextVal()
 
     @staticmethod
     def tick():
-        """Ticks all registers.
-
-        First, their next values are saved (-> `_prepareNextVal()`).
-
-        Then the next values are propagated to the current values.
-        """
-        for r in RegBase._reg_list:
-            r._prepareNextVal()
-
-        for r in RegBase._reg_list:
+        """Ticks all registers."""
+        for r in RegList._reg_list:
             r._tick()
 
     @staticmethod
     def reset():
         """Resets all registers."""
-        for r in RegBase._reg_list:
+        for r in RegList._reg_list:
             r._reset()
 
     @staticmethod
     def clear():
         """Clears the list of registers."""
-        RegBase._reg_list = []
+        RegList._reg_list = []
 
 class MemBase():
     """Base class for all memories.

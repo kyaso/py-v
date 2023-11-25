@@ -1,7 +1,7 @@
 import pytest
 from pyv.module import Module
 from pyv.reg import Reg
-from pyv.clocked import Clock, Clocked, MemBase, RegBase
+from pyv.clocked import Clock, Clocked, MemBase, RegList
 
 # A dummy memory
 class Mem(MemBase):
@@ -17,7 +17,7 @@ def test_init():
     reg2 = Reg(int)
     mem1 = Mem()
     mem2 = Mem()
-    assert RegBase._reg_list == [reg1, reg2]
+    assert RegList._reg_list == [reg1, reg2]
     assert MemBase._mem_list == [mem1, mem2]
 
 def test_abstractMethods():
@@ -51,5 +51,5 @@ def test_clear():
     mem2 = Mem()
 
     Clock.clear()
-    assert RegBase._reg_list == []
+    assert RegList._reg_list == []
     assert MemBase._mem_list == []
