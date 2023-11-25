@@ -15,7 +15,7 @@ class ReadPort(PyVObj):
         addr_i: Input[int],
         rdata_o: Output[int]
     ):
-        super().__init__()
+        super().__init__(name='UnnamedReadPort')
 
         self.re_i = re_i
         """Read-enable input"""
@@ -32,7 +32,7 @@ class WritePort(PyVObj):
         we_i: Input[bool],
         wdata_i: Input[int]
     ):
-        super().__init__()
+        super().__init__(name='UnnamedWritePort')
 
         self.we_i = we_i
         """Write-enable input"""
@@ -54,7 +54,7 @@ class Memory(Module, Clocked):
         Args:
             size: Size of memory in bytes.
         """
-        super().__init__()
+        super().__init__(name='UnnamedMemory')
         MemList.add_to_mem_list(self)
         self.mem = [ 0 for i in range(0,size) ]
         """Memory array. List of length `size`."""

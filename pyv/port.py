@@ -10,7 +10,7 @@ T = TypeVar('T')
 class Port(PyVObj, ABC):
     """Abstract base class for ports."""
     def __init__(self, type, val) -> None:
-        super().__init__()
+        super().__init__(name='UnnamedPort')
         self._type = type
         if val is not None:
             self._val = copy.deepcopy(val)

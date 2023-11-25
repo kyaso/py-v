@@ -12,7 +12,7 @@ class Module(PyVObj):
 
     All modules inherit from this class.
     """
-    def __init__(self, name = 'UnnamedModule'):
+    def __init__(self, name='UnnamedModule'):
         super().__init__(name)
 
     def process(self):

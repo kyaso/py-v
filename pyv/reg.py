@@ -18,7 +18,7 @@ class Reg(PyVObj, Clocked, Generic[T]):
         Args:
             resetVal (int, optional): Reset value. Defaults to 0.
         """
-        super().__init__()
+        super().__init__(name='UnnamedRegister')
 
         # Add this register to the global register list
         RegList.add_to_reg_list(self)
