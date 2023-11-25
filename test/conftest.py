@@ -3,9 +3,9 @@ from pyv.clocked import Clock
 from pyv.simulator import Simulator
 
 @pytest.fixture(autouse=True)
-def clear_clock():
+def clear_sim():
     yield
-    Clock.clear()
+    Simulator.clear()
 
 @pytest.fixture
 def sim() -> Simulator:

@@ -75,6 +75,12 @@ class Simulator:
         for i in range(0, num_cycles):
             self.step()
 
+    @staticmethod
+    def clear():
+        """Clear list of registers, memories and ports"""
+        Clock.clear()
+        PortList.clear()
+
     def _process_queue(self):
         while len(self._process_q) > 0:
             nextFn = self._process_q.popleft()
