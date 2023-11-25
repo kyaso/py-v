@@ -16,23 +16,25 @@ class Clock:
     def tick():
         """Performs a clock tick (rising edge).
 
-        Applies tick to all registers (`RegList.tick()`) and memories (`MemBase.tick()`).
+        First, saves the current inputs (`RegList.prepareNextVal()`, `MemList.prepareNextVal()`).
+        Then, applies tick to all registers (`RegList.tick()`) and memories (`MemList.tick()`).
         """
         RegList.prepareNextVal()
+        MemList.prepareNextVal()
         RegList.tick()
-        MemBase.tick()
+        MemList.tick()
 
     @staticmethod
     def reset():
-        """Resets registers (`RegList.reset()`) and memories (`MemBase.reset()`)."""
+        """Resets registers (`RegList.reset()`) and memories (`MemList.reset()`)."""
         RegList.reset()
-        MemBase.reset()
+        MemList.reset()
 
     @staticmethod
     def clear():
-        """Clears list of registers (`RegList.clear()`) and memories (`MemBase.clear()`)."""
+        """Clears list of registers (`RegList.clear()`) and memories (`MemList.clear()`)."""
         RegList.clear()
-        MemBase.clear()
+        MemList.clear()
 
 
 class Clocked(ABC):
@@ -93,7 +95,7 @@ class RegList():
         """Clears the list of registers."""
         RegList._reg_list = []
 
-class MemBase():
+class MemList():
     """Base class for all memories.
 
     This class keeps track of all memories.
@@ -104,25 +106,31 @@ class MemBase():
 
     def __init__(self):
         # Add to list of memories
-        MemBase.add_to_mem_list(self)
+        MemList.add_to_mem_list(self)
 
     @staticmethod
     def add_to_mem_list(obj):
-        MemBase._mem_list.append(obj)
+        MemList._mem_list.append(obj)
+
+    @staticmethod
+    def prepareNextVal():
+        """Saves inputs of memories"""
+        for m in MemList._mem_list:
+            m._prepareNextVal()
 
     @staticmethod
     def tick():
         """Ticks all memories."""
-        for m in MemBase._mem_list:
+        for m in MemList._mem_list:
             m._tick()
 
     @staticmethod
     def reset():
         """Resets all memories."""
-        for m in MemBase._mem_list:
+        for m in MemList._mem_list:
             m._reset()
 
     @staticmethod
     def clear():
         """Clears list of memories."""
-        MemBase._mem_list = []
+        MemList._mem_list = []

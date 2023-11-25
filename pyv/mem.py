@@ -3,7 +3,7 @@ from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.util import MASK_32, PyVObj
 from pyv.log import logger
-from pyv.clocked import Clocked, MemBase
+from pyv.clocked import Clocked, MemList
 
 
 
@@ -55,7 +55,7 @@ class Memory(Module, Clocked):
             size: Size of memory in bytes.
         """
         super().__init__()
-        MemBase.add_to_mem_list(self)
+        MemList.add_to_mem_list(self)
         self.mem = [ 0 for i in range(0,size) ]
         """Memory array. List of length `size`."""
 
