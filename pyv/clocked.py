@@ -68,7 +68,7 @@ class RegList():
         """Adds a register object to the global list of registers.
 
         Args:
-            obj: The register to add to the list
+            obj: The register object
         """
         RegList._reg_list.append(obj)
 
@@ -110,11 +110,16 @@ class MemList():
 
     @staticmethod
     def add_to_mem_list(obj):
+        """Add memory to global list of memories.
+
+        Args:
+            obj: The memory object.
+        """
         MemList._mem_list.append(obj)
 
     @staticmethod
     def prepareNextVal():
-        """Saves inputs of memories"""
+        """Saves inputs of memories."""
         for m in MemList._mem_list:
             m._prepareNextVal()
 
