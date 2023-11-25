@@ -126,14 +126,19 @@ class Memory(Module, Clocked):
         self._process_read(self.read_port1)
 
     def _prepareNextVal(self):
-        pass
+        # We need this also in Memory, because it could happen that these pins
+        # are driven by registers, so we save the values first before the
+        # registers tick.
+        self.we_next = self.write_port.we_i.read()
+        self.addr_next = self.read_port0.addr_i.read()
+        self.wdata_next = self.write_port.wdata_i.read()
+        self.w_next = self.read_port0.width_i.read()
 
     def _tick(self):
-        we = self.write_port.we_i.read()
-        addr = self.read_port0.addr_i.read()
-        wdata = self.write_port.wdata_i.read()
-        w = self.read_port0.width_i.read()
-
+        we = self.we_next
+        addr = self.addr_next
+        wdata = self.wdata_next
+        w = self.w_next
 
         if we:
             if not (w == 1 or w == 2 or w == 4):

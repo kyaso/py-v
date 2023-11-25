@@ -1,4 +1,5 @@
 import pytest
+from pyv.mem import Memory
 from pyv.module import Module
 from pyv.reg import Reg
 from pyv.clocked import Clock, Clocked, MemList, RegList
@@ -60,3 +61,22 @@ def test_clear():
     Clock.clear()
     assert RegList._reg_list == []
     assert MemList._mem_list == []
+
+def test_reg_mem_chain(sim):
+    reg = Reg(int)
+    mem = Memory()
+
+    reg._init()
+    mem._init()
+
+    mem.write_port.wdata_i.connect(reg.cur)
+
+    reg.cur._val = 42
+
+    reg.next.write(12)
+    mem.read_port0.addr_i.write(0)
+    mem.write_port.we_i.write(True)
+    mem.read_port0.width_i.write(1)
+
+    Clock.tick()
+    assert mem.mem[0] == 42
