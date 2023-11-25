@@ -6,6 +6,7 @@
     - At the end of the current cycle (before tick), all port values will be logged
 - Serial adder/core has been removed
 - ShiftReg stuff has been removed
+- Event triggers are now logged at INFO level
 
 # 0.2.0
 
