@@ -155,6 +155,13 @@ class TestPort:
         assert B.read() == 420
         assert C.read() == 420
 
+    def test_connect_shortcut(self):
+        A = Input(int)
+        B = Input(int)
+        connect = A.connect = MagicMock()
+        A << B
+        connect.assert_called_once_with(B)
+
     def test_wire(self):
         A = Input(int)
         B = Input(int)

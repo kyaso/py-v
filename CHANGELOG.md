@@ -7,6 +7,11 @@
 - Serial adder/core has been removed
 - ShiftReg stuff has been removed
 - Event triggers are now logged at INFO level
+- Added shorthand for connecting ports
+  - The `<<` operator has been overloaded for the purpose
+  - `A << B` is equivalent to `A.connect(B)`
+  - Read: "A is driven by B"
+    - Or: "A gets its value from B"
 
 # 0.2.0
 

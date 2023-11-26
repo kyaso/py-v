@@ -167,6 +167,16 @@ class PortRW(Port, Generic[T]):
     def connect(self, driver: Port):
         """Connects the current port to a driver port.
 
+        You can also use a shortcut via the `<<` operator:
+
+        `A.connect(B)`
+
+        is equivalent to:
+
+        `A << B`
+
+        Read: "`A` gets its value from `B`", or "`A` is driven by  `B`"
+
         Args:
             driver (Port): The new driving port (aka *parent*) for this port.
 
@@ -194,6 +204,18 @@ class PortRW(Port, Generic[T]):
             self._clear_root_attrs()
         else:
             raise Exception(f"ERROR (Port): Port {self.name} already has a parent!")
+
+    def __lshift__(self, driver: 'PortRW'):
+        """Overload << operator for port connection.
+
+        `A << B`
+
+        is equivalent to:
+
+        `A.connect(B)`
+        """
+        self.connect(driver)
+
 
 
 class Input(PortRW[T]):
