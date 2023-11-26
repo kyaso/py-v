@@ -575,6 +575,9 @@ class TestEXStage:
         res = ex.alu(opcode=0b00100, rs1=0x80000000, rs2=0, imm=0xfffff800, pc=0, f3=0b010, f7=0)
         assert res == 0
 
+        res = ex.alu(opcode=0b00100, rs1=0xfffff800, rs2=0, imm=0x80000000, pc=0, f3=0b010, f7=0)
+        assert res == 1
+
         # SLTIU
         res = ex.alu(opcode=0b00100, rs1=0, rs2=0, imm=0, pc=0, f3=0b011, f7=0)
         assert res == 0
@@ -729,6 +732,9 @@ class TestEXStage:
 
         res = ex.alu(opcode=0b01100, rs1=0x80000000, imm=0, rs2=0xfffff800, pc=0, f3=0b010, f7=0)
         assert res == 0
+
+        res = ex.alu(opcode=0b01100, rs1=0xfffff800, imm=0, rs2=0x80000000, pc=0, f3=0b010, f7=0)
+        assert res == 1
 
         # SLTU
         res = ex.alu(opcode=0b01100, rs1=0, imm=0, rs2=0, pc=0, f3=0b011, f7=0)
