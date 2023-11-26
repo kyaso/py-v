@@ -9,9 +9,6 @@ class Clock:
     - Memories
     """
 
-    def __init__(self):
-        pass
-
     @staticmethod
     def tick():
         """Performs a clock tick (rising edge).
@@ -103,10 +100,6 @@ class MemList():
 
     # List of instantiated memories
     _mem_list = []
-
-    def __init__(self):
-        # Add to list of memories
-        MemList.add_to_mem_list(self)
 
     @staticmethod
     def add_to_mem_list(obj):
