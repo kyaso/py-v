@@ -120,10 +120,6 @@ class IDStage(Module):
         inst = val.inst
         self.pc = val.pc
 
-        # Illegal instruction if bits 1:0 of inst != b11
-        if (inst & 0x3) != 0x3:
-            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
-
         # Determine opcode (inst[6:2])
         opcode = getBits(inst, 6, 2)
 
@@ -131,7 +127,7 @@ class IDStage(Module):
         funct3 = getBits(inst, 14, 12)
         funct7 = getBits(inst, 31, 25)
 
-        self.check_exception(opcode, funct3, funct7)
+        self.check_exception(inst, opcode, funct3, funct7)
 
         # Determine register indeces
         rs1_idx = getBits(inst, 19, 15)
@@ -247,7 +243,7 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
-    def check_exception(self, opcode, f3, f7):
+    def check_exception(self, inst, opcode, f3, f7):
         """[summary]
 
         Args:
@@ -259,6 +255,10 @@ class IDStage(Module):
             [type]: [description]
         """
         illinst = False
+
+        # Illegal instruction if bits 1:0 of inst != b11
+        if (inst & 0x3) != 0x3:
+            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
 
         if opcode not in isa.OPCODES.values():
             # Illegal instruction
