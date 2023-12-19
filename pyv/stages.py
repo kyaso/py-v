@@ -258,54 +258,46 @@ class IDStage(Module):
 
         # Illegal instruction if bits 1:0 of inst != b11
         if (inst & 0x3) != 0x3:
-            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+            raise isa.IllegalInstructionException(self.pc, inst)
+
 
         if opcode not in isa.OPCODES.values():
-            # Illegal instruction
-            raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X}: unknown opcode")
+            raise isa.IllegalInstructionException(self.pc, inst)
 
         if opcode==isa.OPCODES['OP-IMM']:
             if f3==0b001 and f7!=0: # SLLI
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
             elif f3==0b101 and not(f7==0 or f7==0b0100000): # SRLI, SRAI
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         if opcode==isa.OPCODES['OP']:
             if not (f7==0 or f7==0b0100000):
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
             elif f7==0b0100000 and not(f3==0b000 or f3==0b101):
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         if opcode==isa.OPCODES['JALR']:
             if f3 != 0:
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         if opcode==isa.OPCODES['BRANCH']:
             if f3 == 2 or f3 == 3:
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         if opcode==isa.OPCODES['LOAD']:
             if f3 == 3 or f3 == 6 or f3 == 7:
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         if opcode==isa.OPCODES['STORE']:
             if f3 > 2:
-                # Illegal instruction
-                raise Exception(f"IDStage: Illegal instruction @ PC = 0x{self.pc:08X} detected.")
+                raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
         # TODO: do something with illinst

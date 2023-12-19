@@ -146,20 +146,20 @@ class TestIDStage:
         inst = 0x10
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         ## Unsupported RV32base Opcodes
         inst = 0x1F # opcode = 0011111
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         inst = 0x73 # opcode = 1110011
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X}: unknown opcode"):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         ## Illegal combinations of funct3, funct7
@@ -169,13 +169,13 @@ class TestIDStage:
         inst = 0x02001013 # funct7 = 1
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013 # funct7 = 1100000
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # ADD - AND -> opcode = 0110011
@@ -183,20 +183,20 @@ class TestIDStage:
         inst = 0x80000033 # funct7 = 1000000
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033 # funct3 = 2
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067 # funct3 = 5
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
@@ -205,7 +205,7 @@ class TestIDStage:
             pc += 1
             inst = 0x63 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
         # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
@@ -214,7 +214,7 @@ class TestIDStage:
             pc += 1
             inst = 0x3 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
         # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
@@ -223,7 +223,7 @@ class TestIDStage:
             pc += 1
             inst = 0x23 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"IDStage: Illegal instruction @ PC = 0x{pc:08X} detected."):
+            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
     def test_wbSel(self, sim):

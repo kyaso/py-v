@@ -57,3 +57,13 @@ INST_J = {
 #     OPCODES["JAL"]
 # ]
 REG_OPS = set.union(INST_R, INST_I, INST_U, INST_J)
+
+
+# --------------------------------
+# Exceptions
+# --------------------------------
+
+class IllegalInstructionException(Exception):
+    def __init__(self, pc, inst):
+        msg = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"
+        super().__init__(msg)
