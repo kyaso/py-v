@@ -2,17 +2,18 @@
 
 """
 
-# Note: Least-significant 2 bits of opcode ignored here, as they are always '11'
+# Note: Least-significant 2 bits of opcode ignored here, as they are always
+# '11'
 OPCODES = {
-    "LOAD"      : 0x00,
-    "OP-IMM"    : 0x04,
-    "AUIPC"     : 0x05,
-    "STORE"     : 0x08,
-    "OP"        : 0x0C,
-    "LUI"       : 0x0D,
-    "BRANCH"    : 0x18,
-    "JALR"      : 0x19,
-    "JAL"       : 0x1B
+    "LOAD": 0x00,
+    "OP-IMM": 0x04,
+    "AUIPC": 0x05,
+    "STORE": 0x08,
+    "OP": 0x0C,
+    "LUI": 0x0D,
+    "BRANCH": 0x18,
+    "JALR": 0x19,
+    "JAL": 0x1B
 }
 
 # --------------------------------
