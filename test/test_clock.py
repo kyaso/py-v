@@ -1,8 +1,8 @@
 import pytest
 from pyv.mem import Memory
-from pyv.module import Module
 from pyv.reg import Reg
 from pyv.clocked import Clock, Clocked, MemList, RegList
+
 
 # A dummy memory
 class Mem(Clocked):
@@ -20,6 +20,7 @@ class Mem(Clocked):
     def _reset(self):
         pass
 
+
 def test_init():
     reg1 = Reg(int)
     reg2 = Reg(int)
@@ -28,12 +29,14 @@ def test_init():
     assert RegList._reg_list == [reg1, reg2]
     assert MemList._mem_list == [mem1, mem2]
 
+
 def test_abstractMethods():
     class Foo(Clocked):
         pass
 
     with pytest.raises(TypeError):
-        foo = Foo()
+        _ = Foo()
+
 
 def test_tick():
     reg1 = Reg(int)
@@ -52,15 +55,17 @@ def test_tick():
     assert reg2.cur.read() == 45
     assert mem.val == 12
 
+
 def test_clear():
-    reg1 = Reg(int)
-    reg2 = Reg(int)
-    mem1 = Mem()
-    mem2 = Mem()
+    _ = Reg(int)
+    _ = Reg(int)
+    _ = Mem()
+    _ = Mem()
 
     Clock.clear()
     assert RegList._reg_list == []
     assert MemList._mem_list == []
+
 
 def test_reg_mem_chain(sim):
     reg = Reg(int)
