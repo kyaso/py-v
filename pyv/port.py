@@ -46,6 +46,7 @@ class Port(PyVObj, ABC):
 
 class PortList:
     port_list: list[Port] = []
+    port_list_filtered: list[Port] = []
 
     @staticmethod
     def addPort(port):
@@ -54,11 +55,25 @@ class PortList:
     @staticmethod
     def clear():
         PortList.port_list = []
+        PortList.port_list_filtered = []
 
     @staticmethod
     def logPorts():
-        for p in PortList.port_list:
+        if len(PortList.port_list_filtered) > 0:
+            ports_to_log = PortList.port_list_filtered
+        else:
+            ports_to_log = PortList.port_list
+
+        for p in ports_to_log:
             logger.info(f"{p.name}: {p.read()}")
+
+    @staticmethod
+    def filter(patterns: list[str]):
+        for pat in patterns:
+            for port in PortList.port_list:
+                if pat in port.name:
+                    if port not in PortList.port_list_filtered:
+                        PortList.port_list_filtered.append(port)
 
 
 class _ProcessMethodHandler():

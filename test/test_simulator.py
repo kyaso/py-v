@@ -1,6 +1,6 @@
 import pytest
 from pyv.module import Module
-from pyv.port import Input, Output
+from pyv.port import Input, Output, PortList
 from pyv.simulator import Simulator, _EventQueue
 from pyv.reg import Reg
 from pyv.clocked import Clock
@@ -127,6 +127,14 @@ class TestSimulator:
         assert sim._process_q == deque([])
         assert sim._cycles == 0
         assert Simulator.globalSim == sim
+
+    def test_probes(self, sim: Simulator):
+        dut = ExampleTop()
+        dut.name = 'ExampleTop'
+        dut._init()
+        PortList.filter = MagicMock()
+        sim.setProbes(['ExampleTop.inA', 'ExampleTop.B1_i'])
+        PortList.filter.assert_called_once_with(['ExampleTop.inA', 'ExampleTop.B1_i'])
 
     def test_queue(self, sim: Simulator):
         dut = ExampleTop()

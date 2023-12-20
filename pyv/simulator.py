@@ -5,6 +5,7 @@ from pyv.clocked import Clock
 from queue import PriorityQueue
 from typing import TypeAlias, Callable
 import uuid
+from datetime import datetime
 
 Event: TypeAlias = tuple[int, uuid.UUID, Callable]
 
@@ -47,6 +48,17 @@ class Simulator:
         self._event_q = _EventQueue()
         self._cycles = 0
 
+    def setProbes(self, probes: list[str]):
+        """Setup probes for ports.
+
+        Only ports whose full hierarchical name match at least one element from
+        `probes` will be logged during simulation.
+
+        Args:
+            probes (list[str]): List of strings to match ports to probe
+        """
+        PortList.filter(probes)
+
     def step(self):
         """Perform one simulation step (cycle).
         """
@@ -70,6 +82,9 @@ class Simulator:
             reset_regs (bool, optional): Whether to reset registers before the
                 simulation. Defaults to True.
         """
+        current_time = datetime.now().strftime("%A, %b %d, %Y at %H:%M:%S")
+        logger.info(f"**** Simulation started on {current_time} ****\n")
+
         if reset_regs:
             Clock.reset()
 

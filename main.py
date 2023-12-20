@@ -19,6 +19,9 @@ def execute_bin(
     print("* Loading binary...")
     core.load_binary(path_to_bin)
 
+    # Set probes
+    core.setProbes([])
+
     # Simulate
     print("* Starting simulation...\n")
 

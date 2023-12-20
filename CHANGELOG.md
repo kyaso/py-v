@@ -14,6 +14,7 @@
     - Or: "A gets its value from B"
 - Codebase now adheres to PEP8 guidelines
 - Added a requirements.txt to streamline project setup
+- Added option to probe specific ports
 
 # 0.2.0
 

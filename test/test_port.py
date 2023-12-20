@@ -17,19 +17,6 @@ class TestPort:
         assert type(A._val) is float
         assert A._val == 0
 
-    def test_port_list(self):
-        PortList.clear()
-        A = Input(int)
-        B = Input(int)
-        C = Output(int)
-        D = Wire(int)
-        E = Constant(5)
-
-        assert PortList.port_list == [A, B, C, D, E]
-
-        PortList.clear()
-        assert PortList.port_list == []
-
     def test_read(self):
         A = Input(int)
         A._val = 42
@@ -319,3 +306,99 @@ class TestPort:
         p = Input(int)
         p.connect(c)
         assert p.read() == 42
+
+
+class TestPortList:
+    def test_port_list(self):
+        PortList.clear()
+        A = Input(int)
+        B = Input(int)
+        C = Output(int)
+        D = Wire(int)
+        E = Constant(5)
+
+        assert PortList.port_list == [A, B, C, D, E]
+
+        PortList.clear()
+        assert PortList.port_list == []
+
+    def test_filter(self):
+        PortList.clear()
+        A = Input(int)
+        A.name = 'top.mod1.A'
+        B = Input(int)
+        B.name = 'top.mod1.B'
+        C = Output(int)
+        C.name = 'top.mod2.C'
+        D = Wire(int)
+        D.name = 'top.mod2.D'
+        E = Constant(5)
+        E.name = 'top.mod2.sub1.E'
+
+        PortList.filter([
+            'top.mod1'
+        ])
+        assert PortList.port_list_filtered == [A, B]
+
+        PortList.port_list_filtered = []
+        PortList.filter([
+            'mod2'
+        ])
+        assert PortList.port_list_filtered == [C, D, E]
+
+        PortList.port_list_filtered = []
+        PortList.filter([
+            'mod1.A', 'sub1'
+        ])
+        assert PortList.port_list_filtered == [A, E]
+
+        PortList.port_list_filtered = []
+        PortList.filter([
+            'mod1.A', 'mod1.A', 'sub1'
+        ])
+        assert PortList.port_list_filtered == [A, E]
+
+        PortList.clear()
+        assert PortList.port_list_filtered == []
+
+    def test_logPorts(self):
+        PortList.clear()
+        A = Input(int)
+        A.name = 'top.mod1.A'
+        A.read = MagicMock()
+
+        B = Input(int)
+        B.name = 'top.mod1.B'
+        B.read = MagicMock()
+
+        C = Output(int)
+        C.name = 'top.mod2.C'
+        C.read = MagicMock()
+
+        D = Wire(int)
+        D.name = 'top.mod2.D'
+        D.read = MagicMock()
+
+        E = Constant(5)
+        E.name = 'top.mod2.sub1.E'
+        E.read = MagicMock()
+
+        # First, test logging all ports
+        PortList.logPorts()
+        assert A.read.call_count == 1
+        assert B.read.call_count == 1
+        assert C.read.call_count == 1
+        assert D.read.call_count == 1
+        assert E.read.call_count == 1
+
+        # Now, filter some ports
+        PortList.port_list_filtered = []
+        PortList.filter([
+            'mod2'
+        ])
+        PortList.logPorts()
+        assert A.read.call_count == 1
+        assert B.read.call_count == 1
+        assert C.read.call_count == 2
+        assert D.read.call_count == 2
+        assert E.read.call_count == 2
