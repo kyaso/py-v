@@ -1,4 +1,4 @@
-# Next version
+# 0.3.0
 
 - Logging:
   - Default log-level is now INFO
