@@ -33,11 +33,12 @@ class Model:
         # Register module as global top module
         self.top = mod
 
-    def setProbes(self, probes: list[str]):
+    def setProbes(self, probes: list[str]=[]):
         """Setup probes for ports.
 
         Only ports whose full hierarchical name match at least one element from
-        `probes` will be logged during simulation.
+        `probes` will be logged during simulation. If `probes` is empty, ALL
+        ports will be logged.
 
         Args:
             probes (list[str]): List of strings to match ports to probe
