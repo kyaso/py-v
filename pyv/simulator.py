@@ -1,5 +1,4 @@
 from pyv.port import PortList
-import pyv.module as module
 from collections import deque
 from pyv.log import logger
 from pyv.clocked import Clock
@@ -33,6 +32,7 @@ class _EventQueue:
         else:
             return -1
 
+
 class Simulator:
     globalSim = None
     """This is a static pointer to the currently instantiated
@@ -65,7 +65,8 @@ class Simulator:
         """Runs the simulation.
 
         Args:
-            num_cycles (int, optional): Number of cycles to execute. Defaults to 1.
+            num_cycles (int, optional): Number of cycles to execute. Defaults
+                to 1.
             reset_regs (bool, optional): Whether to reset registers before the
                 simulation. Defaults to True.
         """
@@ -140,6 +141,7 @@ class Simulator:
             callback (function): Callback function to call on event trigger
 
         Raises:
-            Exception: Resulting event time is less then or equal to current cycle.
+            Exception: Resulting event time is less then or equal to current
+                cycle.
         """
         self.postEventAbs(self._cycles + time_rel, callback)
