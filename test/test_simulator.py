@@ -13,6 +13,7 @@ from unittest.mock import MagicMock
 def eq() -> _EventQueue:
     return _EventQueue()
 
+
 # Build a simple example circuit
 class A(Module):
     def __init__(self):
@@ -22,19 +23,21 @@ class A(Module):
 
         self.outA = Output(int)
         self.outB = Output(int)
-    
+
     def process(self):
         self.outA.write(self.inA.read())
         self.outB.write(self.inB.read())
+
 
 class B(Module):
     def __init__(self):
         super().__init__()
         self.inA = Input(int)
         self.outA = Output(int)
-    
+
     def process(self):
         self.outA.write(self.inA.read())
+
 
 class C(Module):
     def __init__(self):
@@ -42,9 +45,10 @@ class C(Module):
         self.inA = Input(int)
         self.inB = Input(int)
         self.outA = Output(int)
-    
+
     def process(self):
         self.outA.write(self.inA.read() + self.inB.read())
+
 
 class ExampleTop(Module):
     def __init__(self):
@@ -71,22 +75,25 @@ class ExampleTop(Module):
     def process(self):
         pass
 
+
 #####
 class Mul(B):
     def __init__(self, fac):
         super().__init__()
         self.fac = fac
-    
+
     def process(self):
         self.outA.write(self.inA.read() * self.fac)
+
 
 class Add(B):
     def __init__(self, add):
         super().__init__()
         self.add = add
-    
+
     def process(self):
         self.outA.write(self.inA.read() + self.add)
+
 
 class ExampleTop2(Module):
     def __init__(self):
@@ -129,28 +136,28 @@ class TestSimulator:
 
         dut.inA.write(42)
         dut.inB.write(43)
-        assert sim._process_q == deque([ dut.process, dut.A_i.process ])
+        assert sim._process_q == deque([dut.process, dut.A_i.process])
 
         fn = sim._process_q.popleft()
         fn()
-        assert sim._process_q == deque([ dut.A_i.process ])
+        assert sim._process_q == deque([dut.A_i.process])
 
         fn = sim._process_q.popleft()
         fn()
-        assert sim._process_q == deque([ dut.B1_i.process, dut.B2_i.process ])
+        assert sim._process_q == deque([dut.B1_i.process, dut.B2_i.process])
 
         fn = sim._process_q.popleft()
         fn()
-        assert sim._process_q == deque([ dut.B2_i.process, dut.C_i.process ])
+        assert sim._process_q == deque([dut.B2_i.process, dut.C_i.process])
 
         fn = sim._process_q.popleft()
         fn()
-        assert sim._process_q == deque([ dut.C_i.process ])
+        assert sim._process_q == deque([dut.C_i.process])
 
         fn = sim._process_q.popleft()
         fn()
         assert sim._process_q == deque([])
-        assert dut.out.read() == 42+43
+        assert dut.out.read() == 42 + 43
 
     def test_step(self, sim: Simulator):
         pe = sim._process_events = MagicMock()
@@ -186,6 +193,7 @@ class TestSimulator:
 
         assert sim.getCycles() == 4
         assert sim._process_events.call_count == 4
+
 
 class TestEventQueue:
     def test_init(self, eq: _EventQueue):
@@ -246,7 +254,7 @@ class TestEventQueue:
 
     def test_empty(self, eq: _EventQueue):
         with pytest.raises(Exception):
-            eq.get_next_event() 
+            eq.get_next_event()
 
 
 class TestEvents:
@@ -262,7 +270,6 @@ class TestEvents:
         sim.postEventAbs(1024, callback)
         add_event.assert_called_once_with(1024, callback)
 
-
     def test_add_event_relative(self, sim: Simulator):
         def callback():
             pass
@@ -273,7 +280,7 @@ class TestEvents:
 
     def test_process_events(self, sim: Simulator):
         callback1 = MagicMock()
-        callback1.__qualname__ = "cb1" # We have to manually set this here, as MagicMock does not have this attr
+        callback1.__qualname__ = "cb1"  # We have to manually set this here, as MagicMock does not have this attr
         callback2 = MagicMock()
         callback2.__qualname__ = "cb2"
         callback3 = MagicMock()
@@ -281,10 +288,10 @@ class TestEvents:
         callback4 = MagicMock()
         callback4.__qualname__ = "cb4"
 
-        sim.postEventAbs(5, callback1) # event1
-        sim.postEventAbs(11, callback3) # event3
-        sim.postEventAbs(10, callback2) # event2
-        sim.postEventAbs(11, callback4) # event4
+        sim.postEventAbs(5, callback1)   # event1
+        sim.postEventAbs(11, callback3)  # event3
+        sim.postEventAbs(10, callback2)  # event2
+        sim.postEventAbs(11, callback4)  # event4
 
         sim._cycles = 1
         sim._process_events()
