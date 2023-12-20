@@ -8,7 +8,7 @@ def execute_bin(
         program_name: str,
         path_to_bin: str,
         num_cycles: int) -> Model:
-    print("===== "+program_name+" =====")
+    print("===== " + program_name + " =====")
 
     # Create core instance
     print("* Creating core instance...")
@@ -40,10 +40,10 @@ def loop_acc():
     core = execute_bin(core_type, program_name, path_to_bin, num_cycles)
 
     # Print register and memory contents
-    print("x1 = "+str(core.readReg(1)))
-    print("x2 = "+str(core.readReg(2)))
-    print("x5 = "+str(core.readReg(5)))
-    print("pc = "+str(hex(core.readPC())))
+    print("x1 = " + str(core.readReg(1)))
+    print("x2 = " + str(core.readReg(2)))
+    print("x5 = " + str(core.readReg(5)))
+    print("pc = " + str(hex(core.readPC())))
     print("mem@4096 = ", core.readDataMem(4096, 4))
     print("")
 
