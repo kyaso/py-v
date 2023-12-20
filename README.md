@@ -94,8 +94,6 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
   - Partial support implemented
 - [ ] Branch predictor
 - [ ] Caches
-- [ ] Logging capabilities
-  - Partially implemented already!
 - [ ] ...
 
 ## Designing your own systems
