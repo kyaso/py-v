@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.util import MASK_32, PyVObj
@@ -6,10 +5,10 @@ from pyv.log import logger
 from pyv.clocked import Clocked, MemList
 
 
-
 class ReadPort(PyVObj):
     """Read port"""
-    def __init__(self,
+    def __init__(
+        self,
         re_i: Input[bool],
         width_i: Input[int],
         addr_i: Input[int],
@@ -26,9 +25,11 @@ class ReadPort(PyVObj):
         self.rdata_o = rdata_o
         """Read port 0 Read data output"""
 
+
 class WritePort(PyVObj):
     """Write port"""
-    def __init__(self,
+    def __init__(
+        self,
         we_i: Input[bool],
         wdata_i: Input[int]
     ):
@@ -40,6 +41,8 @@ class WritePort(PyVObj):
         """Write data input"""
 
 # TODO: Check if addr is valid
+
+
 class Memory(Module, Clocked):
     """Simple memory module with 2 read ports and 1 write port
 
@@ -56,7 +59,7 @@ class Memory(Module, Clocked):
         """
         super().__init__(name='UnnamedMemory')
         MemList.add_to_mem_list(self)
-        self.mem = [ 0 for i in range(0,size) ]
+        self.mem = [0 for i in range(0, size)]
         """Memory array. List of length `size`."""
 
         # Read port 0
@@ -91,18 +94,23 @@ class Memory(Module, Clocked):
         # program should be handled synchronously, i.e. with the next
         # active clock edge (tick).
         try:
-            if w == 1: # byte
+            if w == 1:  # byte
                 val = MASK_32 & self.mem[addr]
-            elif w == 2: # half word
-                val = MASK_32 & (self.mem[addr+1]<<8 | self.mem[addr])
-            elif w == 4: # word
-                val = MASK_32 & (self.mem[addr+3]<<24 | self.mem[addr+2]<<16 | self.mem[addr+1]<<8 | self.mem[addr])
+            elif w == 2:  # half word
+                val = MASK_32 & (self.mem[addr + 1] << 8 | self.mem[addr])
+            elif w == 4:  # word
+                val = MASK_32 & (
+                    self.mem[addr + 3] << 24
+                    | self.mem[addr + 2] << 16
+                    | self.mem[addr + 1] << 8
+                    | self.mem[addr])
             else:
-                raise Exception(f'ERROR (Memory ({self.name}), read): Invalid width {w}')
+                raise Exception(
+                    f'ERROR (Memory ({self.name}), read): Invalid width {w}')
 
-            logger.debug(f"MEM ({self.name}): read value {val:08X} from address {addr:08X}")
+            logger.debug(f"MEM ({self.name}): read value {val:08X} from address {addr:08X}")  # noqa: E501
         except IndexError:
-            logger.warn(f"Potentially illegal memory address 0x{addr:08X}. This might be normal during cycle processing.")
+            logger.warn(f"Potentially illegal memory address 0x{addr:08X}. This might be normal during cycle processing.")  # noqa: E501
             val = 0
 
         return val
@@ -142,22 +150,24 @@ class Memory(Module, Clocked):
 
         if we:
             if not (w == 1 or w == 2 or w == 4):
-                raise Exception(f'ERROR (Memory ({self.name}), write): Invalid width {w}')
-            logger.debug(f"MEM {self.name}: write {wdata:08X} to address {addr:08X}")
+                raise Exception(
+                    f'ERROR (Memory ({self.name}), write): Invalid width {w}')
+            logger.debug(
+                f"MEM {self.name}: write {wdata:08X} to address {addr:08X}")
 
-            if w == 1: # byte
+            if w == 1:  # byte
                 self.mem[addr] = 0xff & wdata
-            elif w == 2: # half word
+            elif w == 2:  # half word
                 self.mem[addr] = 0xff & wdata
-                self.mem[addr+1] = (0xff00 & wdata)>>8
-            elif w == 4: # word
+                self.mem[addr + 1] = (0xff00 & wdata) >> 8
+            elif w == 4:  # word
                 self.mem[addr] = 0xff & wdata
-                self.mem[addr+1] = (0xff00 & wdata)>>8 
-                self.mem[addr+2] = (0xff0000 & wdata)>>16
-                self.mem[addr+3] = (0xff000000 & wdata)>>24
+                self.mem[addr + 1] = (0xff00 & wdata) >> 8
+                self.mem[addr + 2] = (0xff0000 & wdata) >> 16
+                self.mem[addr + 3] = (0xff000000 & wdata) >> 24
 
-    # TODO: when memory gets loaded with program *before* simulation, simulation start
-    # will cause a reset. So for now, we skip the reset here.
+    # TODO: when memory gets loaded with program *before* simulation,
+    # simulation start will cause a reset. So for now, we skip the reset here.
     def _reset(self):
         return
         """Reset memory.
