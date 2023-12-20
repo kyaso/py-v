@@ -13,8 +13,9 @@ class Clock:
     def tick():
         """Performs a clock tick (rising edge).
 
-        First, saves the current inputs (`RegList.prepareNextVal()`, `MemList.prepareNextVal()`).
-        Then, applies tick to all registers (`RegList.tick()`) and memories (`MemList.tick()`).
+        First, saves the current inputs (`RegList.prepareNextVal()`,
+        `MemList.prepareNextVal()`). Then, applies tick to all registers
+        (`RegList.tick()`) and memories (`MemList.tick()`).
         """
         RegList.prepareNextVal()
         MemList.prepareNextVal()
@@ -23,13 +24,17 @@ class Clock:
 
     @staticmethod
     def reset():
-        """Resets registers (`RegList.reset()`) and memories (`MemList.reset()`)."""
+        """Resets registers (`RegList.reset()`) and memories
+        (`MemList.reset()`).
+        """
         RegList.reset()
         MemList.reset()
 
     @staticmethod
     def clear():
-        """Clears list of registers (`RegList.clear()`) and memories (`MemList.clear()`)."""
+        """Clears list of registers (`RegList.clear()`) and memories
+        (`MemList.clear()`).
+        """
         RegList.clear()
         MemList.clear()
 
@@ -37,8 +42,8 @@ class Clock:
 class Clocked(ABC):
     """Base class for all clocked elements.
 
-    Methods `_prepareNextVal()`, `_tick()`, and `_reset()` must be implemented by any class
-    inheriting.
+    Methods `_prepareNextVal()`, `_tick()`, and `_reset()` must be implemented
+    by any class inheriting.
     """
     @abstractmethod
     def _prepareNextVal(self):
@@ -91,6 +96,7 @@ class RegList():
     def clear():
         """Clears the list of registers."""
         RegList._reg_list = []
+
 
 class MemList():
     """Base class for all memories.
