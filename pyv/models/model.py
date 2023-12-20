@@ -1,7 +1,7 @@
 from pyv.module import Module
 from pyv.simulator import Simulator
-import warnings
 import traceback
+
 
 class Model:
     """Base class for all core models.
@@ -15,7 +15,7 @@ class Model:
         # Initialize modules
         try:
             self.top._init()
-        except:
+        except:  # noqa: E722
             print(traceback.format_exc())
             print("Something went wrong during init. Aborting.")
             exit()
