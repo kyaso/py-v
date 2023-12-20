@@ -13,6 +13,7 @@
   - Read: "A is driven by B"
     - Or: "A gets its value from B"
 - Codebase now adheres to PEP8 guidelines
+- Added a requirements.txt to streamline project setup
 
 # 0.2.0
 
