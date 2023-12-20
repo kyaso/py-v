@@ -1,9 +1,11 @@
-from pyv.stages import EXMEM_t, IFID_t, IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit
+from pyv.stages import EXMEM_t, IFID_t, IFStage, IDStage, EXStage, MEMStage, \
+    WBStage, BranchUnit
 from pyv.mem import Memory
 from pyv.reg import Regfile
 from pyv.module import Module
 from pyv.models.model import Model
 from pyv.port import Wire
+
 
 class SingleCycle(Module):
     """Implements a simple, 5-stage, single cylce RISC-V CPU.
@@ -15,7 +17,7 @@ class SingleCycle(Module):
         # Stages/modules
         self.regf = Regfile()
         """RISC-V 32-bit base register file"""
-        self.mem = Memory(8*1024)
+        self.mem = Memory(8 * 1024)
         """Main Memory (for both instructions and data)"""
         self.if_stg = IFStage(self.mem.read_port1)
         """Instruction Fetch"""
@@ -84,7 +86,7 @@ class SingleCycleModel(Model):
             instructions (list): List of instruction words.
         """
         self.core.mem.mem[:len(instructions)] = instructions
-    
+
     def load_binary(self, file):
         """Load a program binary into the instruction memory.
 
@@ -97,7 +99,7 @@ class SingleCycleModel(Model):
         inst = list(ba)
 
         self.core.mem.mem[:len(inst)] = inst
-    
+
     def readReg(self, reg):
         """Read a register in the register file.
 
@@ -108,7 +110,7 @@ class SingleCycleModel(Model):
             int: Value of register.
         """
         return self.core.regf.read(reg)
-    
+
     def readPC(self):
         """Read current program counter (PC).
 
@@ -116,7 +118,7 @@ class SingleCycleModel(Model):
             int: current program counter
         """
         return self.core.if_stg.pc_reg.cur.read()
-    
+
     def readDataMem(self, addr, nbytes):
         """Read bytes from data memory.
 
@@ -127,8 +129,8 @@ class SingleCycleModel(Model):
         Returns:
             list: List of bytes.
         """
-        return [hex(self.core.mem.mem[addr+i])  for i in range(0, nbytes)]
-    
+        return [hex(self.core.mem.mem[addr + i]) for i in range(0, nbytes)]
+
     def readInstMem(self, addr, nbytes):
         """Read bytes from instruction memory.
 
@@ -139,4 +141,4 @@ class SingleCycleModel(Model):
         Returns:
             list: List of bytes.
         """
-        return [hex(self.core.mem.mem[addr+i])  for i in range(0, nbytes)]
+        return [hex(self.core.mem.mem[addr + i]) for i in range(0, nbytes)]
