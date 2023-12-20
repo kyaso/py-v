@@ -5,15 +5,16 @@ from pyv.port import Constant, Input, Output, PortList, Wire
 from pyv.module import Module
 from pyv.simulator import Simulator
 
+
 class TestPort:
     def test_init(self):
         A = Input(int)
-        assert type(A._val) == int
+        assert type(A._val) is int
         assert A._val == 0
         assert A._processMethodHandler._processMethods == []
 
         A = Output(float)
-        assert type(A._val) == float
+        assert type(A._val) is float
         assert A._val == 0
 
     def test_port_list(self):
@@ -224,12 +225,12 @@ class TestPort:
         class modA(Module):
             def __init__(self):
                 super().__init__()
-                self.pi = Input(int) # Default value: 0
+                self.pi = Input(int)  # Default value: 0
                 self.po = Output(int)
 
             def process(self):
                 # Simply add 3 to the input
-                self.po.write(self.pi.read()+3)
+                self.po.write(self.pi.read() + 3)
 
         # Initialize module
         A = modA()
@@ -258,6 +259,7 @@ class TestPort:
     def test_sensitive_methods(self, caplog):
         def foo():
             pass
+
         def bar():
             pass
 
@@ -268,6 +270,7 @@ class TestPort:
     def test_basic_change(self, sim):
         def foo():
             pass
+
         def bar():
             pass
 
