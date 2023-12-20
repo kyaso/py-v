@@ -1,0 +1,18 @@
+[flake8]
+exclude =
+    __pycache__,
+    venv
+
+ignore =
+    # Multiple spaces before operator
+    E221
+    # https://www.flake8rules.com/rules/W503.html
+    W503
+
+per-file-ignores =
+    # Don't care about in tests:
+    # - E501: Long lines
+    # - E704: Multiple statements on one line
+    # - E712: Comparison to True/False
+    # - E702: Multiple statements on one line (semicolon)
+    test/*:E501,E704,E712,E702

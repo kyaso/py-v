@@ -1,9 +1,9 @@
-from pyv.module import *
-from pyv.port import *
-from pyv.reg import *
-from pyv.mem import *
+from pyv.module import Module
+from pyv.port import Input, Output, Wire, Constant
+from pyv.reg import Reg, Regfile
+from pyv.mem import ReadPort, WritePort
 import pyv.isa as isa
-from pyv.util import *
+from pyv.util import getBit, getBits, MASK_32, XLEN, msb_32, signext
 from pyv.log import logger
 from dataclasses import dataclass
 
@@ -12,6 +12,7 @@ from dataclasses import dataclass
 class IFID_t:
     inst: int = 0
     pc: int = 0
+
 
 @dataclass
 class IDEX_t:
@@ -27,6 +28,7 @@ class IDEX_t:
     funct7: int = 0
     mem: int = 0
 
+
 @dataclass
 class EXMEM_t:
     rd: int = 0
@@ -39,6 +41,7 @@ class EXMEM_t:
     mem: int = 0
     funct3: int = 0
 
+
 @dataclass
 class MEMWB_t:
     rd: int = 0
@@ -48,8 +51,10 @@ class MEMWB_t:
     mem_rdata: int = 0
     wb_sel: int = 0
 
+
 LOAD = 1
 STORE = 2
+
 
 class IFStage(Module):
     """Instruction Fetch Stage.
@@ -93,6 +98,7 @@ class IFStage(Module):
 
     def writeOutput(self):
         self.IFID_o.write(IFID_t(self.ir_reg_w.read(), self.pc_reg_w.read()))
+
 
 class IDStage(Module):
     """Instruction decode stage.
@@ -151,7 +157,8 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # Outputs
-        self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel, opcode, funct3, funct7, mem))
+        self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
+                                 opcode, funct3, funct7, mem))
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -163,9 +170,9 @@ class IDStage(Module):
             A special value when the instruction is LOAD/STORE.
             0 otherwise.
         """
-        if opcode==isa.OPCODES['LOAD']:
+        if opcode == isa.OPCODES['LOAD']:
             return LOAD
-        elif opcode==isa.OPCODES['STORE']:
+        elif opcode == isa.OPCODES['STORE']:
             return STORE
         else:
             return 0
@@ -210,36 +217,44 @@ class IDStage(Module):
             imm_11_0 = getBits(inst, 31, 20)
             imm = imm_11_0
             if sign:
-                sign_ext = 0xfffff<<12
+                sign_ext = 0xfffff << 12
 
         elif opcode in isa.INST_S:
             imm_11_5 = getBits(inst, 31, 25)
             imm_4_0 = getBits(inst, 11, 7)
-            imm = (imm_11_5<<5) | imm_4_0
+            imm = (imm_11_5 << 5) | imm_4_0
             if sign:
-                sign_ext = 0xfffff<<12
+                sign_ext = 0xfffff << 12
 
         elif opcode in isa.INST_B:
             imm_12 = getBit(inst, 31)
             imm_10_5 = getBits(inst, 30, 25)
             imm_4_1 = getBits(inst, 11, 8)
             imm_11 = getBits(inst, 7, 7)
-            imm =  (imm_12<<12) | (imm_11<<11) | (imm_10_5<<5) | (imm_4_1<<1)
+            imm = (
+                (imm_12 << 12)
+                | (imm_11 << 11)
+                | (imm_10_5 << 5)
+                | (imm_4_1 << 1))
             if sign:
-                sign_ext = 0x7ffff<<13
+                sign_ext = 0x7ffff << 13
 
         elif opcode in isa.INST_U:
             imm_31_12 = getBits(inst, 31, 12)
-            imm = imm_31_12<<12
+            imm = imm_31_12 << 12
 
         elif opcode in isa.INST_J:
             imm_20 = getBit(inst, 31)
             imm_10_1 = getBits(inst, 30, 21)
             imm_11 = getBits(inst, 20, 20)
             imm_19_12 = getBits(inst, 19, 12)
-            imm = (imm_20<<20) | (imm_19_12<<12) | (imm_11<<11) | (imm_10_1<<1)
+            imm = (
+                (imm_20 << 20)
+                | (imm_19_12 << 12)
+                | (imm_11 << 11)
+                | (imm_10_1 << 1))
             if sign:
-                sign_ext = 0x7ff<<21
+                sign_ext = 0x7ff << 21
 
         return (sign_ext | imm)
 
@@ -260,50 +275,50 @@ class IDStage(Module):
         if (inst & 0x3) != 0x3:
             raise isa.IllegalInstructionException(self.pc, inst)
 
-
         if opcode not in isa.OPCODES.values():
             raise isa.IllegalInstructionException(self.pc, inst)
 
-        if opcode==isa.OPCODES['OP-IMM']:
-            if f3==0b001 and f7!=0: # SLLI
+        if opcode == isa.OPCODES['OP-IMM']:
+            if f3 == 0b001 and f7 != 0:  # SLLI
                 raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
-            elif f3==0b101 and not(f7==0 or f7==0b0100000): # SRLI, SRAI
-                raise isa.IllegalInstructionException(self.pc, inst)
-                illinst = True
-
-        if opcode==isa.OPCODES['OP']:
-            if not (f7==0 or f7==0b0100000):
-                raise isa.IllegalInstructionException(self.pc, inst)
-                illinst = True
-            elif f7==0b0100000 and not(f3==0b000 or f3==0b101):
+            elif f3 == 0b101 and not (f7 == 0 or f7 == 0b0100000):  # SRLI,SRAI
                 raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
-        if opcode==isa.OPCODES['JALR']:
+        if opcode == isa.OPCODES['OP']:
+            if not (f7 == 0 or f7 == 0b0100000):
+                raise isa.IllegalInstructionException(self.pc, inst)
+                illinst = True
+            elif f7 == 0b0100000 and not (f3 == 0b000 or f3 == 0b101):
+                raise isa.IllegalInstructionException(self.pc, inst)
+                illinst = True
+
+        if opcode == isa.OPCODES['JALR']:
             if f3 != 0:
                 raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
-        if opcode==isa.OPCODES['BRANCH']:
+        if opcode == isa.OPCODES['BRANCH']:
             if f3 == 2 or f3 == 3:
                 raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
-        if opcode==isa.OPCODES['LOAD']:
+        if opcode == isa.OPCODES['LOAD']:
             if f3 == 3 or f3 == 6 or f3 == 7:
                 raise isa.IllegalInstructionException(self.pc, inst)
                 illinst = True
 
-        if opcode==isa.OPCODES['STORE']:
+        if opcode == isa.OPCODES['STORE']:
             if f3 > 2:
                 raise isa.IllegalInstructionException(self.pc, inst)
-                illinst = True
+                illinst = True  # noqa: F841
 
         # TODO: do something with illinst
 
         # TODO: Return some exception type
         return False
+
 
 class EXStage(Module):
     """Execute stage.
@@ -316,7 +331,8 @@ class EXStage(Module):
     """
     def __init__(self):
         super().__init__()
-        self.IDEX_i = Input(IDEX_t, sensitive_methods=[self.process, self.passThrough])
+        self.IDEX_i = Input(
+            IDEX_t, sensitive_methods=[self.process, self.passThrough])
 
         self.EXMEM_o = Output(EXMEM_t)
         self.exmem_val = EXMEM_t()
@@ -345,7 +361,6 @@ class EXStage(Module):
 
         self.writeOutput()
 
-
     def process(self):
         # Read inputs
         val: IDEX_t = self.IDEX_i.read()
@@ -359,12 +374,12 @@ class EXStage(Module):
 
         # Check for branch/jump
         take_branch = False
-        if opcode==isa.OPCODES['BRANCH']:
+        if opcode == isa.OPCODES['BRANCH']:
             take_branch = self.branch(f3, rs1, rs2)
-        elif opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['JALR']:
+        elif opcode == isa.OPCODES['JAL'] or opcode == isa.OPCODES['JALR']:
             take_branch = True
 
-        pc4 = pc+4
+        pc4 = pc + 4
 
         # ALU
         alu_res = self.alu(opcode, rs1, rs2, imm, pc, f3, f7)
@@ -411,16 +426,16 @@ class EXStage(Module):
             msb_i = getBit(val2, 31)
 
             # Check if both operands are positive
-            if (msb_r==0) and (msb_i==0):
+            if (msb_r == 0) and (msb_i == 0):
                 if val1 < val2:
                     return 1
                 else:
                     return 0
             # val1 negative; val2 positive
-            elif (msb_r==1) and (msb_i==0):
+            elif (msb_r == 1) and (msb_i == 0):
                 return 1
             # val1 positive, val2 negative
-            elif (msb_r==0) and (msb_i==1):
+            elif (msb_r == 0) and (msb_i == 1):
                 return 0
             # both negative
             else:
@@ -457,7 +472,8 @@ class EXStage(Module):
                 Logical left shift of val1 by val2 (5 bits)
             """
 
-            return (MASK_32 & (val1<<(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+            # Mask so that bits above bit 31 turn to zero (for Python)
+            return (MASK_32 & (val1 << (0x1f & val2)))
 
         def _srl(val1, val2):
             """ SRL[I] instruction
@@ -470,7 +486,8 @@ class EXStage(Module):
                 Logical right shift of val1 by val2 (5 bits)
             """
 
-            return (MASK_32 & (val1>>(0x1f&val2))) # Mask so that bits above bit 31 turn to zero (for Python)
+            # Mask so that bits above bit 31 turn to zero (for Python)
+            return (MASK_32 & (val1 >> (0x1f & val2)))
 
         def _sra(val1, val2):
             """ SRA[I] instruction
@@ -485,12 +502,13 @@ class EXStage(Module):
 
             msb_r = getBit(val1, 31)
             shamt = 0x1f & val2
-            rshift = (MASK_32 & (val1>>shamt)) # Mask so that bits above bit 31 turn to zero (for Python)
-            if msb_r==0:
-                return rshift 
+            # Mask so that bits above bit 31 turn to zero (for Python)
+            rshift = (MASK_32 & (val1 >> shamt))
+            if msb_r == 0:
+                return rshift
             else:
                 # Fill upper bits with 1s
-                return (MASK_32 & (rshift | (0xffffffff<<(XLEN-shamt))))
+                return (MASK_32 & (rshift | (0xffffffff << (XLEN - shamt))))
 
         # ------------------
         # ALU start
@@ -499,76 +517,80 @@ class EXStage(Module):
         # Select operands
         op1 = op2 = 0
         # op1
-        if opcode==isa.OPCODES['AUIPC'] or opcode==isa.OPCODES['JAL'] or opcode==isa.OPCODES['BRANCH']:
+        if (opcode == isa.OPCODES['AUIPC']
+                or opcode == isa.OPCODES['JAL']
+                or opcode == isa.OPCODES['BRANCH']):
             op1 = pc
         else:
             op1 = rs1
         # op2
-        if opcode!=isa.OPCODES['OP']:
+        if opcode != isa.OPCODES['OP']:
             op2 = imm
         else:
             op2 = rs2
 
         # Perform ALU op
         alu_res = 0
-        if opcode==isa.OPCODES['LUI']:
+        if opcode == isa.OPCODES['LUI']:
             alu_res = op2
 
-        elif (opcode==isa.OPCODES['AUIPC']
-              or opcode==isa.OPCODES['JAL']
-              or opcode==isa.OPCODES['BRANCH']
-              or opcode==isa.OPCODES['LOAD']
-              or opcode==isa.OPCODES['STORE']):
+        elif (opcode == isa.OPCODES['AUIPC']
+              or opcode == isa.OPCODES['JAL']
+              or opcode == isa.OPCODES['BRANCH']
+              or opcode == isa.OPCODES['LOAD']
+              or opcode == isa.OPCODES['STORE']):
             alu_res = op1 + op2
 
-        elif opcode==isa.OPCODES['JALR']:
+        elif opcode == isa.OPCODES['JALR']:
             alu_res = 0xfffffffe & (op1 + op2)
 
-        elif opcode==isa.OPCODES['OP-IMM']:
-            if f3==0b000: # ADDI
+        elif opcode == isa.OPCODES['OP-IMM']:
+            if f3 == 0b000:  # ADDI
                 alu_res = op1 + op2
-            elif f3==0b010: # SLTI
+            elif f3 == 0b010:  # SLTI
                 alu_res = _slt(op1, op2)
-            elif f3==0b011: # SLTIU
+            elif f3 == 0b011:  # SLTIU
                 alu_res = _sltu(op1, op2)
-            elif f3==0b100: # XORI
+            elif f3 == 0b100:  # XORI
                 alu_res = op1 ^ op2
-            elif f3==0b110: # ORI
+            elif f3 == 0b110:  # ORI
                 alu_res = op1 | op2
-            elif f3==0b111: # ANDI
+            elif f3 == 0b111:  # ANDI
                 alu_res = op1 & op2
-            elif f3==0b001: # SLLI
-                if f7==0: # TODO: We could remove this check if IDStage catches f7!=0 case
+            elif f3 == 0b001:  # SLLI
+                # TODO: We could remove this check if IDStage catches
+                # f7!=0 case
+                if f7 == 0:
                     alu_res = _sll(op1, op2)
-            elif f3==0b101:
-                if f7==0: # SRLI
+            elif f3 == 0b101:
+                if f7 == 0:  # SRLI
                     alu_res = _srl(op1, op2)
-                elif f7==0b0100000: # SRAI
+                elif f7 == 0b0100000:  # SRAI
                     alu_res = _sra(op1, op2)
 
-        elif opcode==isa.OPCODES['OP']:
-            if f7==0:
-                if f3==0b000: # ADD
+        elif opcode == isa.OPCODES['OP']:
+            if f7 == 0:
+                if f3 == 0b000:  # ADD
                     alu_res = op1 + op2
-                elif f3==0b001: # SLL
+                elif f3 == 0b001:  # SLL
                     alu_res = _sll(op1, op2)
-                elif f3==0b010: # SLT
+                elif f3 == 0b010:  # SLT
                     alu_res = _slt(op1, op2)
-                elif f3==0b011: # SLTU
+                elif f3 == 0b011:  # SLTU
                     alu_res = _sltu(op1, op2)
-                elif f3==0b100: # XOR
+                elif f3 == 0b100:  # XOR
                     alu_res = op1 ^ op2
-                elif f3==0b101: # SRL
+                elif f3 == 0b101:  # SRL
                     alu_res = _srl(op1, op2)
-                elif f3==0b110: # OR
+                elif f3 == 0b110:  # OR
                     alu_res = op1 | op2
-                elif f3==0b111: # AND
+                elif f3 == 0b111:  # AND
                     alu_res = op1 & op2
 
-            elif f7==0b0100000:
-                if f3==0b000: # SUB
+            elif f7 == 0b0100000:
+                if f3 == 0b000:  # SUB
                     alu_res = op1 - op2
-                elif f3==0b101: # SRA
+                elif f3 == 0b101:  # SRA
                     alu_res = _sra(op1, op2)
 
         return MASK_32 & alu_res
@@ -582,31 +604,31 @@ class EXStage(Module):
 
         # Branch less-than (BLT) logic
         def _blt(rs1, rs2):
-            if msb_32(rs1)==msb_32(rs2):
-                return rs1<rs2
-            elif msb_32(rs1)==1:
+            if msb_32(rs1) == msb_32(rs2):
+                return rs1 < rs2
+            elif msb_32(rs1) == 1:
                 return True
             else:
                 return False
 
-        if f3==0:               # BEQ
-            return rs1==rs2
-        elif f3==1:             # BNE
-            return rs1!=rs2
-        elif f3==4:             # BLT
+        if f3 == 0:               # BEQ
+            return rs1 == rs2
+        elif f3 == 1:             # BNE
+            return rs1 != rs2
+        elif f3 == 4:             # BLT
             return _blt(rs1, rs2)
-        elif f3==5:             # BGE
+        elif f3 == 5:             # BGE
             return not _blt(rs1, rs2)
-        elif f3==6:             # BLTU
-            return rs1<rs2
-        elif f3==7:             # BGEU
-            return rs1>=rs2
+        elif f3 == 6:             # BLTU
+            return rs1 < rs2
+        elif f3 == 7:             # BGEU
+            return rs1 >= rs2
 
     def check_exception(self, take_branch, alu_res, pc):
         # --- Branch/jump target misaligned ------
         if take_branch:
             if alu_res & 0x3 != 0:
-                raise Exception(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")
+                raise Exception(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")  # noqa: E501
 
 
 class MEMStage(Module):
@@ -628,8 +650,8 @@ class MEMStage(Module):
         self.read_port = dmem_read
         self.write_port = dmem_write
         self.load_val << self.read_port.rdata_o
-        self.w = 1 # data width
-        self.signext_w = 0 # signext width
+        self.w = 1  # data width
+        self.signext_w = 0  # signext width
 
         self.out_val = MEMWB_t()
 
@@ -670,33 +692,33 @@ class MEMStage(Module):
 
         if op == LOAD:                                          # Read memory
             re = True
-            if f3 == 0: # LB
+            if f3 == 0:  # LB
                 self.w = 1
                 self.signext_w = 8
-            elif f3 == 1: # LH
+            elif f3 == 1:  # LH
                 self.w = 2
                 self.signext_w = 16
-            elif f3 == 2: # LW
+            elif f3 == 2:  # LW
                 self.w = 4
-            elif f3 == 4: # LBU
+            elif f3 == 4:  # LBU
                 self.w = 1
-            elif f3 == 5: # LHU
+            elif f3 == 5:  # LHU
                 self.w = 2
             else:
                 raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
 
         elif op == STORE:                                       # Store memory
             we = True
-            if f3 == 0: # SB
+            if f3 == 0:  # SB
                 self.w = 1
-            elif f3 == 1: # SH
+            elif f3 == 1:  # SH
                 self.w = 2
-            elif f3 == 2: # SW
+            elif f3 == 2:  # SW
                 self.w = 4
             else:
                 raise Exception(f'ERROR (MEMStage, process): Illegal f3 {f3}')
         # else:
-        #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op))
+        #     raise Exception('ERROR (MEMStage, process): Invalid op {}'.format(op)) # noqa: E501
 
         # TODO: Illegal address execption handling
 
@@ -718,12 +740,13 @@ class MEMStage(Module):
 
         op_str = "load from" if op == LOAD else "store to"
 
-        if f3 == 1: # Half word
+        if f3 == 1:  # Half word
             if addr & 0x1 != 0:
                 logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
-        elif f3 == 2: # Word
+        elif f3 == 2:  # Word
             if addr & 0x11 != 0:
                 logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
+
 
 class WBStage(Module):
     """Write-back stage.
@@ -754,16 +777,18 @@ class WBStage(Module):
         self.regfile.we = False
 
         if we:
-            if wb_sel==0: # ALU op
+            if wb_sel == 0:  # ALU op
                 wb_val = alu_res
-            elif wb_sel==1: # PC+4 (JAL)
+            elif wb_sel == 1:  # PC+4 (JAL)
                 wb_val = pc4
-            elif wb_sel==2: # Load
+            elif wb_sel == 2:  # Load
                 wb_val = mem_rdata
             else:
-                raise Exception(f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
+                raise Exception(
+                    f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
 
             self.regfile.writeRequest(rd, wb_val)
+
 
 class BranchUnit(Module):
     """Branch unit.
@@ -790,7 +815,7 @@ class BranchUnit(Module):
         target = self.target_i.read()
 
         # Compute NPC
-        npc = pc+4
+        npc = pc + 4
         if take_branch:
             npc = target
 

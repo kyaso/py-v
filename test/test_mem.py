@@ -4,6 +4,7 @@ from pyv.port import Input, Output
 from pyv.mem import Memory
 from pyv.simulator import Simulator
 
+
 @pytest.fixture
 def mem() -> Memory:
     mem = Memory()
@@ -12,9 +13,11 @@ def mem() -> Memory:
     mem._init()
     return mem
 
+
 def test_MemList():
     mem = Memory()
     assert MemList._mem_list == [mem]
+
 
 class TestInit():
     def test_init(self, mem: Memory):
@@ -62,6 +65,7 @@ class TestInit():
 
         assert isinstance(wp.wdata_i, Input)
         assert wp.wdata_i._type == int
+
 
 class TestLoad:
     def test_load_re_disabled(self, mem: Memory, sim: Simulator):
@@ -188,6 +192,7 @@ class TestLoad:
         assert "Potentially illegal memory address 0x00000008. This might be normal during cycle processing." in caplog.text
         caplog.clear()
         assert mem.read_port1.rdata_o.read() == 0
+
 
 class TestStore:
     def test_store_we_disabled(self, mem: Memory, sim: Simulator):

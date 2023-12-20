@@ -1,7 +1,6 @@
 import copy
-import warnings
+from pyv.util import PyVObj
 from pyv.port import Input, Output
-from pyv.util import PyVObj, bitVector2num, getBitVector
 from pyv.clocked import Clocked, RegList
 from pyv.log import logger
 from typing import TypeVar, Generic, Type
@@ -40,8 +39,8 @@ class Reg(PyVObj, Clocked, Generic[T]):
         """Copies the next value to an internal variable.
 
         This method is required to prevent the next val input from being
-        overridden after the _propagateNextVal() of a potentially preceding register
-        has been called.
+        overridden after the _propagateNextVal() of a potentially preceding
+        register has been called.
         """
         self._doReset = False
         self._doTick = False
@@ -57,7 +56,7 @@ class Reg(PyVObj, Clocked, Generic[T]):
 
     def _tick(self):
         if self._doReset:
-            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")
+            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")  # noqa: E501
             self._reset()
         elif self._doTick:
             self.cur.write(self._nextv)
@@ -71,7 +70,7 @@ class Regfile(Clocked):
 
     def __init__(self):
         RegList.add_to_reg_list(self)
-        self.regs = [0  for _ in range(0, 32)]
+        self.regs = [0 for _ in range(0, 32)]
         self._nextWIdx = 0
         self._nextWval = 0
         self.we = False
@@ -103,7 +102,7 @@ class Regfile(Clocked):
                 val = self.regs[reg]
                 logger.debug(f"Regfile READ: x{reg} = {val}")
             except IndexError:
-                logger.warn(f"Potentially illegal register index 0x{reg:08X}. This might be normal during cycle processing.")
+                logger.warn(f"Potentially illegal register index 0x{reg:08X}. This might be normal during cycle processing.")  # noqa: E501
                 val = 0
 
             return val
@@ -130,22 +129,22 @@ class Regfile(Clocked):
     def _tick(self):
         """Register file tick.
 
-        Commits a write request (when `we` is set). 
+        Commits a write request (when `we` is set).
         """
         if not self.we:
             return
 
-        logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")
+        logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")  # noqa: E501
         self.regs[self._nextWidx] = self._nextWval
 
-        # TODO: Technically, it shouldn't be the regfile's responsibility to reset
-        # the write enables. But we leave it now for safety.
+        # TODO: Technically, it shouldn't be the regfile's responsibility to
+        # reset the write enables. But we leave it now for safety.
         self.we = False
 
     def _reset(self):
         """Resets the register file."""
-        self.regs = [0  for _ in range(0, 32)]
-        # TODO: Similar story as above in _tick(): These signals are driven by external
-        # modules, so it's actually not the memories responsibility to reset them.
-        # We still do for additional simulation safety.
+        self.regs = [0 for _ in range(0, 32)]
+        # TODO: Similar story as above in _tick(): These signals are driven by
+        # external modules, so it's actually not the memories responsibility to
+        # reset them. We still do for additional simulation safety.
         self.we = False

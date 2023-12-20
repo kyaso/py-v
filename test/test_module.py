@@ -1,7 +1,7 @@
-from unittest.mock import MagicMock
 import pytest
 from pyv.port import Input, Output
 from pyv.module import Module
+
 
 class ModA(Module):
     def __init__(self, name):
@@ -15,9 +15,11 @@ class ModA(Module):
     def foo(self):
         pass
 
+
 @pytest.fixture
 def modA() -> Module:
     return ModA('ModA')
+
 
 class TestModule:
     def test_init(self, modA: ModA):

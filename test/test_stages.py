@@ -1,14 +1,13 @@
 import pytest
-from pyv.clocked import Clock
-from pyv.stages import *
-from pyv.reg import *
+from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit, IFID_t, IDEX_t, EXMEM_t, MEMWB_t
+from pyv.reg import Regfile
 from pyv.util import MASK_32
 from pyv.mem import Memory
-from pyv.simulator import Simulator
 
 
 def test_sanity():
     assert True
+
 
 # ---------------------------------------
 # Test data types
@@ -34,6 +33,7 @@ def test_data_types():
     attr_list = ['rd', 'we', 'alu_res', 'pc4', 'mem_rdata', 'wb_sel']
     check_attrs(foo, attr_list)
 
+
 # ---------------------------------------
 # Test FETCH
 # ---------------------------------------
@@ -55,6 +55,7 @@ def test_IFStage(sim):
     out = fetch.IFID_o.read()
     assert out.inst == 0xfea42623
     assert out.pc == 0x00000000
+
 
 # ---------------------------------------
 # Test DECODE
@@ -138,92 +139,92 @@ class TestIDStage:
         pc = 0
 
         # No exception for valid instruction
-        inst = 0x23 # store
+        inst = 0x23  # store
         dec.IFID_i.write(IFID_t(inst, pc))
         sim.step()
 
-        ## Inst[1:0] != 2'b11
+        # --- Inst[1:0] != 2'b11
         inst = 0x10
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
-        ## Unsupported RV32base Opcodes
-        inst = 0x1F # opcode = 0011111
+        # --- Unsupported RV32base Opcodes
+        inst = 0x1F  # opcode = 0011111
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
-        inst = 0x73 # opcode = 1110011
+        inst = 0x73  # opcode = 1110011
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
-        ## Illegal combinations of funct3, funct7
+        # --- Illegal combinations of funct3, funct7
 
         # ADDI - SRAI -> opcode = 0010011
         # If funct3 == 1 => funct7 == 0
-        inst = 0x02001013 # funct7 = 1
+        inst = 0x02001013  # funct7 = 1
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct3 == 5 => funct7 == {0, 0100000}
-        inst = 0xc0005013 # funct7 = 1100000
+        inst = 0xc0005013  # funct7 = 1100000
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # ADD - AND -> opcode = 0110011
         # If funct7 != {0, 0100000} -> illegal
-        inst = 0x80000033 # funct7 = 1000000
+        inst = 0x80000033  # funct7 = 1000000
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct7 == 0100000 => funct3 == {0, 5}
-        inst = 0x40002033 # funct3 = 2
+        inst = 0x40002033  # funct3 = 2
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # JALR -> opcode = 1100111 => funct3 == 0
-        inst = 0x00005067 # funct3 = 5
+        inst = 0x00005067  # funct3 = 5
         pc += 1
         dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # BEQ - BGEU -> opcode = 1100011 => funct3 = {0,1,4,5,6,7}
-        funct3 = [2,3]
+        funct3 = [2, 3]
         for f3 in funct3:
             pc += 1
             inst = 0x63 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+            with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
         # LB - LHU -> opcode = 0000011 => funct3 = {0,1,2,4,5}
-        funct3 = [3,6,7]
+        funct3 = [3, 6, 7]
         for f3 in funct3:
             pc += 1
             inst = 0x3 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+            with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
         # SB, SH, SW -> opcode = 0100011 => funct3 = {0,1,2}
-        funct3 = [3,4,5,6,7]
+        funct3 = [3, 4, 5, 6, 7]
         for f3 in funct3:
             pc += 1
             inst = 0x23 | (f3 << 12)
             dec.IFID_i.write(IFID_t(inst, pc))
-            with pytest.raises(Exception, match = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
+            with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
     def test_wbSel(self, sim):
@@ -432,7 +433,7 @@ class TestIDStage:
             out=out,
             rs1=None,
             rs2=None,
-            imm=546<<12,
+            imm=546 << 12,
             pc=0x80000004,
             rd=6,
             we=True,
@@ -452,7 +453,7 @@ class TestIDStage:
             out=out,
             rs1=None,
             rs2=None,
-            imm=123<<12,
+            imm=123 << 12,
             pc=0x80000004,
             rd=12,
             we=True,
@@ -486,6 +487,7 @@ class TestIDStage:
         # TODO: Test FENCE
 
         # TODO: Test ECALL / EBREAK
+
 
 # ---------------------------------------
 # Test EXECUTE
@@ -630,7 +632,7 @@ class TestEXStage:
 
         res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=31, pc=0, f3=0b001, f7=0)
         assert res == 0x80000000
-        
+
         res = ex.alu(opcode=0b00100, rs1=0xffffffff, rs2=0, imm=7, pc=0, f3=0b001, f7=0)
         assert res == 0xffffff80
 
@@ -649,7 +651,7 @@ class TestEXStage:
 
         res = ex.alu(opcode=0b00100, rs1=0x00000001, rs2=0, imm=31, pc=0, f3=0b101, f7=0)
         assert res == 0x00000000
-        
+
         res = ex.alu(opcode=0b00100, rs1=0xffffffff, rs2=0, imm=7, pc=0, f3=0b101, f7=0)
         assert res == 0x01ffffff
 
@@ -707,7 +709,7 @@ class TestEXStage:
 
         res = ex.alu(opcode=0b01100, rs1=1, rs2=31, imm=0, pc=0, f3=0b001, f7=0b0000000)
         assert res == 0x80000000
-        
+
         res = ex.alu(opcode=0b01100, rs1=0xffffffff, rs2=7, imm=0, pc=0, f3=0b001, f7=0b0000000)
         assert res == 0xffffff80
 
@@ -774,7 +776,7 @@ class TestEXStage:
 
         res = ex.alu(opcode=0b01100, rs1=0x00000001, imm=0, rs2=31, pc=0, f3=0b101, f7=0)
         assert res == 0x00000000
-        
+
         res = ex.alu(opcode=0b01100, rs1=0xffffffff, imm=0, rs2=7, pc=0, f3=0b101, f7=0)
         assert res == 0x01ffffff
 
@@ -856,53 +858,53 @@ class TestEXStage:
         res = ex.branch(f3=4, rs1=0, rs2=1)
         assert res == True
 
-        res = ex.branch(f3=4, rs1=MASK_32&(-1), rs2=1)
+        res = ex.branch(f3=4, rs1=MASK_32 & (-1), rs2=1)
         assert res == True
 
-        res = ex.branch(f3=4, rs1=MASK_32&(-2), rs2=MASK_32&(-1))
+        res = ex.branch(f3=4, rs1=MASK_32 & (-2), rs2=MASK_32 & (-1))
         assert res == True
 
         res = ex.branch(f3=4, rs1=1, rs2=0)
         assert res == False
 
-        res = ex.branch(f3=4, rs1=1, rs2=MASK_32&(-1))
+        res = ex.branch(f3=4, rs1=1, rs2=MASK_32 & (-1))
         assert res == False
 
-        res = ex.branch(f3=4, rs1=MASK_32&(-1), rs2=MASK_32&(-2))
+        res = ex.branch(f3=4, rs1=MASK_32 & (-1), rs2=MASK_32 & (-2))
         assert res == False
 
-        res = ex.branch(f3=4, rs1=1, rs2=MASK_32&(-2))
+        res = ex.branch(f3=4, rs1=1, rs2=MASK_32 & (-2))
         assert res == False
 
         # BGE
         res = ex.branch(f3=5, rs1=0, rs2=0)
         assert res == True
-    
+
         res = ex.branch(f3=5, rs1=1, rs2=1)
         assert res == True
-    
-        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=MASK_32&(-1))
+
+        res = ex.branch(f3=5, rs1=MASK_32 & (-1), rs2=MASK_32 & (-1))
         assert res == True
-    
+
         res = ex.branch(f3=5, rs1=1, rs2=0)
         assert res == True
-    
-        res = ex.branch(f3=5, rs1=1, rs2=MASK_32&(-1))
+
+        res = ex.branch(f3=5, rs1=1, rs2=MASK_32 & (-1))
         assert res == True
-    
-        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=MASK_32&(-2))
+
+        res = ex.branch(f3=5, rs1=MASK_32 & (-1), rs2=MASK_32 & (-2))
         assert res == True
 
         res = ex.branch(f3=5, rs1=0, rs2=1)
         assert res == False
-    
-        res = ex.branch(f3=5, rs1=MASK_32&(-1), rs2=1)
-        assert res == False
-    
-        res = ex.branch(f3=5, rs1=MASK_32&(-2), rs2=MASK_32&(-1))
+
+        res = ex.branch(f3=5, rs1=MASK_32 & (-1), rs2=1)
         assert res == False
 
-        res = ex.branch(f3=5, rs1=MASK_32&(-2), rs2=1)
+        res = ex.branch(f3=5, rs1=MASK_32 & (-2), rs2=MASK_32 & (-1))
+        assert res == False
+
+        res = ex.branch(f3=5, rs1=MASK_32 & (-2), rs2=1)
         assert res == False
 
         # BLTU
@@ -930,7 +932,7 @@ class TestEXStage:
         # BGEU
         res = ex.branch(f3=7, rs1=0x00000000, rs2=0x00000000)
         assert res == True
-        
+
         res = ex.branch(f3=7, rs1=0x00000001, rs2=0x00000001)
         assert res == True
 
@@ -965,7 +967,7 @@ class TestEXStage:
             pc=42
         ))
         sim.step()
-        assert ex.EXMEM_o.read().pc4 == (42+4)
+        assert ex.EXMEM_o.read().pc4 == (42 + 4)
 
     def test_take_branch(self, sim):
         def step_and_assert(expected):
@@ -1047,7 +1049,7 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
-            imm=0xaffe<<12,
+            imm=0xaffe << 12,
             pc=0x80000000,
             rd=24,
             we=True,
@@ -1059,7 +1061,7 @@ class TestEXStage:
         validate(
             out=out,
             take_branch=False,
-            alu_res=0xaffe<<12,
+            alu_res=0xaffe << 12,
             pc4=0x80000004,
             rd=None,
             we=None,
@@ -1073,7 +1075,7 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
-            imm=0xaffe<<12,
+            imm=0xaffe << 12,
             pc=0x80000004,
             rd=24,
             we=True,
@@ -1099,7 +1101,7 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
-            imm=0x2DA8A<<1,
+            imm=0x2DA8A << 1,
             pc=0x80000008,
             rd=13,
             we=True,
@@ -1274,12 +1276,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
-            imm=0x2DA89<<1,
+            imm=0x2DA89 << 1,
             pc=pc,
             rd=13,
             opcode=0b11011
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1292,7 +1294,7 @@ class TestEXStage:
             rd=13,
             opcode=0b11001
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1300,12 +1302,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=0,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=0,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1313,12 +1315,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=1,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=1,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1326,12 +1328,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=1,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=4,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1339,12 +1341,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=1,
             rs2=0,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=5,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1352,12 +1354,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=0,
             rs2=1,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=6,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1365,12 +1367,12 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=1,
             rs2=0,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=7,
             opcode=0b11000
         ))
-        with pytest.raises(Exception, match = f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
+        with pytest.raises(Exception, match=f"Target instruction address misaligned exception at PC = 0x{pc:08X}"):
             sim.step()
         pc += 4
 
@@ -1379,15 +1381,13 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(
             rs1=1,
             rs2=0,
-            imm=0xA8B<<1,
+            imm=0xA8B << 1,
             pc=pc,
             funct3=0,
             opcode=0b11000
         ))
         sim.step()
         pc += 4
-
-
 
 
 # ---------------------------------------
@@ -1434,61 +1434,61 @@ class TestMEMStage:
 
         # LB
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=2, # addr
-            funct3=0 #lb
+            mem=1,  # load
+            alu_res=2,  # addr
+            funct3=0  # lb
         ))
         sim.step()
         assert mem_stage.MEMWB_o.read().mem_rdata == 0xffffffad
 
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=5, # addr
-            funct3=0 #lb
+            mem=1,  # load
+            alu_res=5,  # addr
+            funct3=0  # lb
         ))
         sim.step()
-        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000001 
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000001
 
         # LH
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=2, # addr
-            funct3=1 # lh
+            mem=1,  # load
+            alu_res=2,  # addr
+            funct3=1  # lh
         ))
         sim.step()
         assert mem_stage.MEMWB_o.read().mem_rdata == 0xffffdead
 
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=4, # addr
-            funct3=1 # lh
+            mem=1,  # load
+            alu_res=4,  # addr
+            funct3=1  # lh
         ))
         sim.step()
-        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000123 
+        assert mem_stage.MEMWB_o.read().mem_rdata == 0x00000123
 
         # LW
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=0, # addr
-            funct3=2 # lw
+            mem=1,  # load
+            alu_res=0,  # addr
+            funct3=2  # lw
         ))
         sim.step()
         assert mem_stage.MEMWB_o.read().mem_rdata == 0xdeadbeef
 
         # LBU
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=2, # addr
-            funct3=4 # lbu
+            mem=1,  # load
+            alu_res=2,  # addr
+            funct3=4  # lbu
         ))
         sim.step()
         assert mem_stage.MEMWB_o.read().mem_rdata == 0xad
 
         # LHU
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=2, # addr
-            funct3=5 # lbu
+            mem=1,  # load
+            alu_res=2,  # addr
+            funct3=5  # lbu
         ))
         sim.step()
         assert mem_stage.MEMWB_o.read().mem_rdata == 0xdead
@@ -1498,30 +1498,30 @@ class TestMEMStage:
 
         # SB
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=2, # store
-            alu_res=3, # addr
-            rs2=0xabadbabe, # wdata
-            funct3=0 # sb
+            mem=2,  # store
+            alu_res=3,  # addr
+            rs2=0xabadbabe,  # wdata
+            funct3=0  # sb
         ))
         sim.step()
         assert mem.mem[3] == 0xbe
 
         # SH
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=2, # store
-            alu_res=0, # addr
-            rs2=0xabadbabe, # wdata
-            funct3=1 # sh
+            mem=2,  # store
+            alu_res=0,  # addr
+            rs2=0xabadbabe,  # wdata
+            funct3=1  # sh
         ))
         sim.step()
         assert mem.mem[0:2] == [0xbe, 0xba]
 
         # SW
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=2, # store
-            alu_res=0, # addr
-            rs2=0xabadbabe, # wdata
-            funct3=2 # sw
+            mem=2,  # store
+            alu_res=0,  # addr
+            rs2=0xabadbabe,  # wdata
+            funct3=2  # sw
         ))
         sim.step()
         assert mem.mem[0:4] == [0xbe, 0xba, 0xad, 0xab]
@@ -1532,44 +1532,45 @@ class TestMEMStage:
         # --- Load address misaligned ---------------
         # LH/LHU
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=1, # addr
-            funct3=1 # lh
+            mem=1,  # load
+            alu_res=1,  # addr
+            funct3=1  # lh
         ))
         sim.step()
-        assert f"Misaligned load from address 0x00000001" in caplog.text
+        assert "Misaligned load from address 0x00000001" in caplog.text
         caplog.clear()
 
         # LW
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=1, # load
-            alu_res=3, # addr
-            funct3=2 # lw
+            mem=1,  # load
+            alu_res=3,  # addr
+            funct3=2  # lw
         ))
         sim.step()
-        assert f"Misaligned load from address 0x00000003" in caplog.text
+        assert "Misaligned load from address 0x00000003" in caplog.text
         caplog.clear()
 
         # --- Store address misaligned --------------
         # SH
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=2, # store
-            alu_res=1, # addr
-            funct3=1 # sh
+            mem=2,  # store
+            alu_res=1,  # addr
+            funct3=1  # sh
         ))
         sim.step()
-        assert f"Misaligned store to address 0x00000001" in caplog.text
+        assert "Misaligned store to address 0x00000001" in caplog.text
         caplog.clear()
 
         # SW
         mem_stage.EXMEM_i.write(EXMEM_t(
-            mem=2, # store
-            alu_res=3, # addr
-            funct3=2 # sw
+            mem=2,  # store
+            alu_res=3,  # addr
+            funct3=2  # sw
         ))
         sim.step()
-        assert f"Misaligned store to address 0x00000003" in caplog.text
+        assert "Misaligned store to address 0x00000003" in caplog.text
         caplog.clear()
+
 
 # ---------------------------------------
 # Test WRITE-BACK
@@ -1653,6 +1654,7 @@ class TestWBStage:
         sim.step()
         assert wb.regfile.read(25) == 1234
 
+
 # ---------------------------------------
 # Test Branch Unit
 # ---------------------------------------
@@ -1671,7 +1673,7 @@ def test_branch_unit(sim):
     bu.take_branch_i.write(False)
     bu.target_i.write(0x40000000)
     sim.step()
-    assert bu.npc_o.read() == 0x80000004 
+    assert bu.npc_o.read() == 0x80000004
 
     # Test taken branch
     bu.pc_i.write(0x80000000)

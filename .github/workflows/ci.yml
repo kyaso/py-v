@@ -28,9 +28,15 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: |
-          pip3 install -U pytest coverage
+          pip3 install -r requirements.txt
           pytest --version
           coverage --version
+          flake8 --version
+
+      # Run style checks
+      - name: Run PEP8 style checks
+        run: |
+          flake8
 
       # Run tests
       - name: Run tests
