@@ -1,14 +1,15 @@
 from unittest.mock import MagicMock
 import pytest
-import random
-from pyv.reg import *
+from pyv.reg import Reg, Regfile
 from pyv.clocked import RegList
+
 
 @pytest.fixture
 def reg():
     reg = Reg(int)
     reg._init()
     return reg
+
 
 def test_reg_init():
     reg = Reg(float, 42)
@@ -17,6 +18,7 @@ def test_reg_init():
     assert reg.cur._type == float
     assert reg.rst._type == int
     assert reg._resetVal == 42
+
 
 def test_reg(reg):
     RegList.reset()
@@ -36,6 +38,7 @@ def test_reg(reg):
     RegList.tick()
     assert reg.cur.read() == 0x69
 
+
 def test_reg_tick(reg):
     reg.next.write(42)
     RegList.prepareNextVal()
@@ -53,6 +56,7 @@ def test_reg_tick(reg):
 
 def test_RegList(reg):
     assert RegList._reg_list == [reg]
+
 
 def test_regfile():
     rf = Regfile()
@@ -88,11 +92,12 @@ def test_regfile():
     # This shouldn't raise an IndexError exception.
     # Check the log for the warning.
     # TODO: we should probably assert the the log message (maybe using caplog?)
-    val = rf.read(33)
+    _ = rf.read(33)
 
     # Test reset
     rf._reset()
-    assert rf.regs == [0 for _ in range(0,32)]
+    assert rf.regs == [0 for _ in range(0, 32)]
+
 
 def test_regChain():
     A = Reg(int)
@@ -138,18 +143,20 @@ def test_regChain():
     assert C.cur.read() == 0
     assert D.cur.read() == 0x42
 
+
 def test_next_value_does_not_propagate():
     A = Reg(list)
     A._init()
 
-    foo = [1,2]
+    foo = [1, 2]
 
     A.next.write(foo)
     RegList.prepareNextVal()
     RegList.tick()
 
     foo[0] = 3
-    assert A.cur._val == [1,2]
+    assert A.cur._val == [1, 2]
+
 
 def test_reset():
     reg1 = Reg(int)
@@ -159,6 +166,7 @@ def test_reset():
 
     assert reg1.cur.read() == 0
     assert reg2.cur.read() == 42
+
 
 def test_sync_reset(reg):
 
@@ -177,6 +185,6 @@ def test_sync_reset(reg):
 
     # Throw exception on wrong reset value
     reg.rst.write(44)
-    with pytest.raises(Exception, match = "Error: Invalid rst signal!"):
+    with pytest.raises(Exception, match="Error: Invalid rst signal!"):
         RegList.prepareNextVal()
         RegList.tick()
