@@ -2,6 +2,7 @@ from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.simulator import Simulator
 
+
 class A(Module):
     def __init__(self):
         super().__init__()
@@ -10,6 +11,7 @@ class A(Module):
 
     def process(self):
         self.OUT.write(self.IN.read() * 2)
+
 
 class B(Module):
     def __init__(self):
@@ -23,8 +25,9 @@ class B(Module):
         in1 = self.IN1.read()
         in2 = self.IN2.read()
 
-        self.OUT1.write(in1*3)
-        self.OUT2.write(in2+5)
+        self.OUT1.write(in1 * 3)
+        self.OUT2.write(in2 + 5)
+
 
 class C(Module):
     def __init__(self):
@@ -38,8 +41,9 @@ class C(Module):
         in1 = self.IN1.read()
         in2 = self.IN2.read()
 
-        self.OUT1.write(in1*6)
-        self.OUT2.write(in2*2)
+        self.OUT1.write(in1 * 6)
+        self.OUT2.write(in2 * 2)
+
 
 class Top(Module):
     def __init__(self):
@@ -60,6 +64,7 @@ class Top(Module):
 
     def process(self):
         return
+
 
 def test_feedback():
     dut = Top()
