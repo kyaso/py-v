@@ -1,8 +1,3 @@
-from typing import Any
-import pyv.simulator as simulator
-from pyv.port import Port, Input
-from pyv.reg import Reg
-import pyv.log as log
 from pyv.util import PyVObj
 
 
@@ -16,5 +11,7 @@ class Module(PyVObj):
         super().__init__(name)
 
     def process(self):
-        """Generates module's combinatorial outputs for current cycle based on inputs."""
+        """Generates module's combinatorial outputs for current cycle based on
+        inputs.
+        """
         pass
