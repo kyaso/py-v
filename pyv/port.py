@@ -7,6 +7,7 @@ from pyv.util import PyVObj
 
 T = TypeVar('T')
 
+
 class Port(PyVObj, ABC):
     """Abstract base class for ports."""
     def __init__(self, type, val) -> None:
@@ -42,6 +43,7 @@ class Port(PyVObj, ABC):
         del self._val
         self._downstreamInputs = []
 
+
 class PortList:
     port_list: list[Port] = []
 
@@ -57,6 +59,7 @@ class PortList:
     def logPorts():
         for p in PortList.port_list:
             logger.info(f"{p.name}: {p.read()}")
+
 
 class _ProcessMethodHandler():
     def __init__(self, sensitive_methods) -> None:
@@ -79,6 +82,7 @@ class _ProcessMethodHandler():
         import pyv.simulator as simulator
         for func in self._processMethods:
             simulator.Simulator.globalSim._addToProcessQueue(func)
+
 
 class PortRW(Port, Generic[T]):
     """Base class for read/write ports"""
@@ -131,8 +135,8 @@ class PortRW(Port, Generic[T]):
             # propagate the change to all children ports.
 
             # Make sure the type is correct
-            if type(val) != self._type:
-                raise TypeError(f"ERROR: Cannot write value of type {type(val)} to Port {self.name} which is of type {self._type}.")
+            if type(val) is not self._type:
+                raise TypeError(f"ERROR: Cannot write value of type {type(val)} to Port {self.name} which is of type {self._type}.")  # noqa: E501
 
             # When the port has not been written to yet, force a propagation
             # even if the new value is the same as the default value
@@ -140,12 +144,13 @@ class PortRW(Port, Generic[T]):
                 # Port has been written to
                 self._isUntouched = False
                 update_val_and_propagate()
-            # This is the default behavior: Only propagate when the new value is different
+            # This is the default behavior: Only propagate when the new value
+            # is different
             elif self._val != val:
                 update_val_and_propagate()
 
         else:
-            raise Exception(f"ERROR (Port '{self.name}'): Only root driver port allowed to write!")
+            raise Exception(f"ERROR (Port '{self.name}'): Only root driver port allowed to write!")  # noqa: E501
 
     def _propagate(self, oldVal: T, newVal: T):
         """Propagate a value change.
@@ -193,7 +198,7 @@ class PortRW(Port, Generic[T]):
         if not isinstance(driver, Port):
             raise TypeError(f"{driver} is not a Port!")
         if self._type != driver._type:
-            raise TypeError(f"Port type mismatch: This port is of type {self._type}, while driver is of type {driver._type}.")
+            raise TypeError(f"Port type mismatch: This port is of type {self._type}, while driver is of type {driver._type}.")  # noqa: E501
 
         # Make the driver this port's parent.
         # Add this port to the list of the driver's children.
@@ -203,7 +208,8 @@ class PortRW(Port, Generic[T]):
             self._update_root_driver(driver)
             self._clear_root_attrs()
         else:
-            raise Exception(f"ERROR (Port): Port {self.name} already has a parent!")
+            raise Exception(
+                f"ERROR (Port): Port {self.name} already has a parent!")
 
     def __lshift__(self, driver: 'PortRW'):
         """Overload << operator for port connection.
@@ -217,7 +223,6 @@ class PortRW(Port, Generic[T]):
         self.connect(driver)
 
 
-
 class Input(PortRW[T]):
     """Represents an **Input** port."""
     def __init__(self, type: type[T], sensitive_methods=[]):
@@ -228,11 +233,13 @@ class Input(PortRW[T]):
         Args:
             type (type[T]): Data type of this input
             sensitive_methods (list, optional): List of methods to trigger when
-                a write to this input changes its current value. If omitted, only the parent module's `pyv.module.Module.process()`
-                method is taken. If `[None]` is passed, no sensitive method will
-                be associated with this port. **Important**: if you provide a custom sensitivity list,
-                but still want the default `process()` to be triggered as well, you have to
-                include it explicitly in the list.
+                a write to this input changes its current value. If omitted,
+                only the parent module's `pyv.module.Module.process()` method
+                is taken. If `[None]` is passed, no sensitive method will be
+                associated with this port. **Important**: if you provide a
+                custom sensitivity list, but still want the default `process()`
+                to be triggered as well, you have to include it explicitly in
+                the list.
         """
         super().__init__(type)
         self._processMethodHandler = _ProcessMethodHandler(sensitive_methods)
@@ -248,7 +255,9 @@ class Input(PortRW[T]):
         newRoot._addDownstreamInput(self)
 
     def _propagate(self, oldVal: T, newVal: T):
-        # TODO: Figure out how to log the change before the log of process queue
+        # TODO: Figure out how to log the change before the log of process
+        # queue
+
         # logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
         self._processMethodHandler.add_methods_to_sim_queue()
@@ -256,6 +265,7 @@ class Input(PortRW[T]):
 
     def _notify(self):
         self._processMethodHandler.add_methods_to_sim_queue()
+
 
 class Output(PortRW[T]):
     """Represents an **Output** port."""
@@ -269,7 +279,7 @@ class Output(PortRW[T]):
         """
         super().__init__(type)
 
-# A Wire has the same methods and attributes as a Port.
+
 class Wire(Input[T]):
     """Represents a **Wire**.
 
@@ -279,7 +289,7 @@ class Wire(Input[T]):
 
     If wire value changes, sensitive methods are triggered.
     """
-    def __init__(self, type: Type[T], sensitive_methods = []):
+    def __init__(self, type: Type[T], sensitive_methods=[]):
         """Create a new wire.
 
         Args:
@@ -288,8 +298,10 @@ class Wire(Input[T]):
         """
         super().__init__(type, sensitive_methods)
 
+
 class Constant(Port):
-    """Represents a constant signal. Once initialized, its value cannot be changed.
+    """Represents a constant signal. Once initialized, its value cannot be
+    changed.
     """
     def __init__(self, constVal: Any):
         """Create a new constant signal.
