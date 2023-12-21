@@ -1,4 +1,5 @@
 import pytest
+from pyv.simulator import Simulator
 from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit, IFID_t, IDEX_t, EXMEM_t, MEMWB_t
 from pyv.reg import Regfile
 from pyv.util import MASK_32
@@ -39,6 +40,7 @@ def test_data_types():
 # ---------------------------------------
 def test_IFStage(sim):
     imem = Memory(1024)
+    imem._init()
     fetch = IFStage(imem.read_port1)
     fetch._init()
 
@@ -46,9 +48,8 @@ def test_IFStage(sim):
     # 0xfea42623
     imem.mem[0:4] = [0x23, 0x26, 0xa4, 0xfe]
 
-    sim.step()
     fetch.npc_i.write(0x00000000)
-
+    # We need two ticks here to account for the instruction register
     sim.step()
     sim.step()
 
@@ -236,7 +237,7 @@ class TestIDStage:
         res = decode.wb_sel(0b01100)
         assert res == 0
 
-    def test_IDStage(self, sim):
+    def test_IDStage(self, sim: Simulator):
         def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
             if rs1 is not None:
                 assert out.rs1 == rs1
@@ -261,13 +262,12 @@ class TestIDStage:
         decode._init()
 
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
-        # Write some values into the relevant registers
-        regf.writeRequest(8, 0x80000000)
-        sim.step()
-        regf.writeRequest(10, 42)
-        sim.step()
 
-        # Set inputs
+        # Write some values into the relevant registers
+        regf.regs[8] = 0x80000000
+        regf.regs[10] = 42
+
+        # Set input
         decode.IFID_i.write(IFID_t(0xfea42623, 0x80000004))
         sim.step()
 

@@ -1,3 +1,14 @@
+# Next version
+
+- **Port**: Sensitive methods will now be added to the simulation queue on Port init
+  - This ensures all process methods are run in the first cycle, eliminating
+    the need for the "untouched" logic
+  - Also, this now allows special cases where a module is only driven by
+    `Constant` signals
+    - Previously, the corresponding process method(s) would have never been
+      executed as constant signals never change, resulting in incorrect
+      outputs
+
 # 0.3.0
 
 - Logging:

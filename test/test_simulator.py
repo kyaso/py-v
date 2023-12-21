@@ -140,6 +140,8 @@ class TestSimulator:
         dut = ExampleTop()
         dut.name = 'ExampleTop'
         dut._init()
+        # Clear pre-populated process queue; we want to test it in isolation here
+        sim._process_q = deque()
         Clock.reset()
 
         dut.inA.write(42)

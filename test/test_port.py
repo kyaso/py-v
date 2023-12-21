@@ -254,6 +254,17 @@ class TestPort:
         p = Input(int, sensitive_methods=[foo, bar, bar])
         assert p._processMethodHandler._processMethods == [foo, bar]
 
+    def test_sensitive_methods_get_added_to_simq_on_init(self, sim):
+        def foo():
+            pass
+
+        def bar():
+            pass
+
+        p = Input(int, sensitive_methods=[foo, bar])
+        p._init(parent=None)
+        assert sim._process_q == deque([foo, bar])
+
     def test_basic_change(self, sim):
         def foo():
             pass

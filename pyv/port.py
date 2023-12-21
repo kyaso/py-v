@@ -93,6 +93,10 @@ class _ProcessMethodHandler():
         elif self._processMethods == [None]:
             self._processMethods = []
 
+        # Add process methods to simulation queue so they get executed in the
+        # first cycle no matter what
+        self.add_methods_to_sim_queue()
+
     def add_methods_to_sim_queue(self):
         import pyv.simulator as simulator
         for func in self._processMethods:
@@ -153,15 +157,7 @@ class PortRW(Port, Generic[T]):
             if type(val) is not self._type:
                 raise TypeError(f"ERROR: Cannot write value of type {type(val)} to Port {self.name} which is of type {self._type}.")  # noqa: E501
 
-            # When the port has not been written to yet, force a propagation
-            # even if the new value is the same as the default value
-            if self._isUntouched:
-                # Port has been written to
-                self._isUntouched = False
-                update_val_and_propagate()
-            # This is the default behavior: Only propagate when the new value
-            # is different
-            elif self._val != val:
+            if self._val != val:
                 update_val_and_propagate()
 
         else:
