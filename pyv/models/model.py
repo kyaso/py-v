@@ -33,7 +33,7 @@ class Model:
         # Register module as global top module
         self.top = mod
 
-    def setProbes(self, probes: list[str]=[]):
+    def setProbes(self, probes: list[str] = []):
         """Setup probes for ports.
 
         Only ports whose full hierarchical name match at least one element from

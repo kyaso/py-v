@@ -48,7 +48,7 @@ class Simulator:
         self._event_q = _EventQueue()
         self._cycles = 0
 
-    def setProbes(self, probes: list[str]=[]):
+    def setProbes(self, probes: list[str] = []):
         """Setup probes for ports.
 
         Only ports whose full hierarchical name match at least one element from
