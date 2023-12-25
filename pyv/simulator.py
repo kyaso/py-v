@@ -64,10 +64,13 @@ class Simulator:
         self._process_events()
         self._process_changes()
 
+    def _log_cycle(self):
+        logger.info(f"\n**** Cycle {self._cycles} ****")
+
     def step(self):
         """Perform one simulation step (cycle).
         """
-        logger.info(f"\n**** Cycle {self._cycles} ****")
+        self._log_cycle()
 
         self._process_queues()
 
