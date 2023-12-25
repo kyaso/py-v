@@ -60,13 +60,16 @@ class Simulator:
         """
         PortList.filter(probes)
 
+    def _process_queues(self):
+        self._process_events()
+        self._process_changes()
+
     def step(self):
         """Perform one simulation step (cycle).
         """
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
-        self._process_events()
-        self._process_changes()
+        self._process_queues()
 
         PortList.logPorts()
 
