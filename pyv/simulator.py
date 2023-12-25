@@ -73,7 +73,8 @@ class Simulator:
         self._cycles += 1
 
     def step(self):
-        """Peform one simulation step (cycle).
+        """Peform a single simulation step (cycle).
+        This is method is intended for use in tests.
         """
         self._cycle()
         self._process_queues()
