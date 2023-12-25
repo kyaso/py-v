@@ -45,7 +45,7 @@ class Simulator:
         Simulator.globalSim = self
 
         self._change_queue = deque()
-        self._event_q = _EventQueue()
+        self._event_queue = _EventQueue()
         self._cycles = 0
 
     def setProbes(self, probes: list[str] = []):
@@ -105,11 +105,11 @@ class Simulator:
             nextFn()
 
     def _events_pending(self):
-        return self._cycles == self._event_q.next_event_time()
+        return self._cycles == self._event_queue.next_event_time()
 
     def _process_events(self):
         while self._events_pending():
-            event: Event = self._event_q.get_next_event()
+            event: Event = self._event_queue.get_next_event()
             callback = event[2]
             logger.info(f"Triggering event -> {callback.__qualname__}()")
             callback()
@@ -147,7 +147,7 @@ class Simulator:
         if time_abs <= self._cycles:
             raise Exception("Error: Event must lie in the future!")
 
-        self._event_q.add_event(time_abs, callback)
+        self._event_queue.add_event(time_abs, callback)
 
     def postEventRel(self, time_rel, callback):
         """Post an event into the future with *relative* time.

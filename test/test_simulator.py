@@ -269,14 +269,14 @@ class TestEventQueue:
 
 class TestEvents:
     def test_event_queue_exists(self, sim: Simulator):
-        assert isinstance(sim._event_q, _EventQueue)
+        assert isinstance(sim._event_queue, _EventQueue)
 
     def test_add_event_absolute(self, sim: Simulator):
         def callback():
             pass
         sim._cycles = 100
 
-        add_event = sim._event_q.add_event = MagicMock()
+        add_event = sim._event_queue.add_event = MagicMock()
         sim.postEventAbs(1024, callback)
         add_event.assert_called_once_with(1024, callback)
 
@@ -284,7 +284,7 @@ class TestEvents:
         def callback():
             pass
         sim._cycles = 100
-        add_event = sim._event_q.add_event = MagicMock()
+        add_event = sim._event_queue.add_event = MagicMock()
         sim.postEventRel(42, callback)
         add_event.assert_called_once_with(142, callback)
 
@@ -305,26 +305,26 @@ class TestEvents:
 
         sim._cycles = 1
         sim._process_events()
-        assert sim._event_q._get_num_events() == 4
-        assert sim._event_q.next_event_time() == 5
+        assert sim._event_queue._get_num_events() == 4
+        assert sim._event_queue.next_event_time() == 5
 
         sim._cycles = 5
         sim._process_events()
         callback1.assert_called_once()
-        assert sim._event_q._get_num_events() == 3
-        assert sim._event_q.next_event_time() == 10
+        assert sim._event_queue._get_num_events() == 3
+        assert sim._event_queue.next_event_time() == 10
 
         sim._cycles = 10
         sim._process_events()
         callback2.assert_called_once()
-        assert sim._event_q._get_num_events() == 2
-        assert sim._event_q.next_event_time() == 11
+        assert sim._event_queue._get_num_events() == 2
+        assert sim._event_queue.next_event_time() == 11
 
         sim._cycles = 11
         sim._process_events()
         callback3.assert_called_once()
         callback4.assert_called_once()
-        assert sim._event_q.next_event_time() == -1
+        assert sim._event_queue.next_event_time() == -1
 
     def test_invalid_event_time(self, sim: Simulator):
         sim._cycles = 10
