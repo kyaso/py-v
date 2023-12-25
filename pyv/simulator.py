@@ -87,6 +87,11 @@ class Simulator:
 
         self._tick()
 
+    def reset(self):
+        """Applies global reset (registers, memories).
+        """
+        Clock.reset()
+
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
 
@@ -100,7 +105,7 @@ class Simulator:
         logger.info(f"**** Simulation started on {current_time} ****\n")
 
         if reset_regs:
-            Clock.reset()
+            self.reset()
 
         for i in range(0, num_cycles):
             self._cycle()
