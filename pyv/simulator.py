@@ -73,18 +73,12 @@ class Simulator:
         self._cycles += 1
 
     def step(self):
-        self._log_cycle()
-
-        self._process_queues()
-
-        PortList.logPorts()
-
-        self.tick()
-        self._process_queues()
-
-    def cycle(self):
-        """Perform one simulation cycle.
+        """Peform one simulation step (cycle).
         """
+        self._cycle()
+        self._process_queues()
+
+    def _cycle(self):
         self._log_cycle()
 
         self._process_queues()
@@ -109,7 +103,7 @@ class Simulator:
             Clock.reset()
 
         for i in range(0, num_cycles):
-            self.cycle()
+            self._cycle()
 
     @staticmethod
     def clear():
