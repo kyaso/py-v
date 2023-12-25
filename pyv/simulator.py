@@ -67,7 +67,7 @@ class Simulator:
     def _log_cycle(self):
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
-    def tick(self):
+    def _tick(self):
         logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
@@ -91,7 +91,7 @@ class Simulator:
 
         PortList.logPorts()
 
-        self.tick()
+        self._tick()
 
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
