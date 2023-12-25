@@ -74,8 +74,6 @@ class TestCSRUnit:
         csr_unit.write_val_i.write(0x42)
         assert csr_unit.read_val_o.read() == 0x4000_0100
         sim.step()
-        # Second step is required to run process method of CSROutMux
-        sim.step()
         assert csr_unit.read_val_o.read() == 0x42
 
 

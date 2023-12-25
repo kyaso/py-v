@@ -80,6 +80,7 @@ class Simulator:
         PortList.logPorts()
 
         self.tick()
+        self._process_queues()
 
     def cycle(self):
         """Perform one simulation cycle.

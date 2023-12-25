@@ -51,7 +51,6 @@ def test_IFStage(sim):
     fetch.npc_i.write(0x00000000)
     # We need two ticks here to account for the instruction register
     sim.step()
-    sim.step()
 
     out = fetch.IFID_o.read()
     assert out.inst == 0xfea42623

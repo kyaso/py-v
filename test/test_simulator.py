@@ -174,8 +174,8 @@ class TestSimulator:
         pq = sim._process_changes = MagicMock()
 
         sim.step()
-        pe.assert_called_once()
-        pq.assert_called_once()
+        assert pe.call_count == 2
+        assert pq.call_count == 2
         assert sim._cycles == 1
 
     def test_run(self, sim: Simulator):
