@@ -67,10 +67,33 @@ class Simulator:
     def _log_cycle(self):
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
-    def _tick(self):
+    def _log_ports(self):
+        PortList.logPorts()
+
+    def tick(self):
+        """Advance simulation to next cycle. Applies clock tick to registers
+        and memories.
+        """
         logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
+        return self
+
+    def run_comb_logic(self):
+        """Runs combinatorial logic for the current cycle.
+
+        Returns:
+            The current simulator instance to allow dot-chaining multiple
+            commands.
+        """
+        self._log_cycle()
+        self._process_queues()
+        self._log_ports()
+        return self
+
+    def _cycle(self):
+        self.run_comb_logic()
+        self.tick()
 
     def step(self):
         """Peform a single simulation step (cycle).
@@ -78,15 +101,7 @@ class Simulator:
         """
         self._cycle()
         self._process_queues()
-
-    def _cycle(self):
-        self._log_cycle()
-
-        self._process_queues()
-
-        PortList.logPorts()
-
-        self._tick()
+        return self
 
     def reset(self):
         """Applies global reset (registers, memories).
