@@ -49,7 +49,6 @@ def test_IFStage(sim):
     imem.mem[0:4] = [0x23, 0x26, 0xa4, 0xfe]
 
     fetch.npc_i.write(0x00000000)
-    # We need two ticks here to account for the instruction register
     sim.step()
 
     out = fetch.IFID_o.read()
