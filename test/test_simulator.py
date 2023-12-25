@@ -124,7 +124,7 @@ class ExampleTop2(Module):
 
 class TestSimulator:
     def test_init(self, sim: Simulator):
-        assert sim._process_q == deque([])
+        assert sim._change_queue == deque([])
         assert sim._cycles == 0
         assert Simulator.globalSim == sim
 
@@ -141,37 +141,37 @@ class TestSimulator:
         dut.name = 'ExampleTop'
         dut._init()
         # Clear pre-populated process queue; we want to test it in isolation here
-        sim._process_q = deque()
+        sim._change_queue = deque()
         Clock.reset()
 
         dut.inA.write(42)
         dut.inB.write(43)
-        assert sim._process_q == deque([dut.process, dut.A_i.process])
+        assert sim._change_queue == deque([dut.process, dut.A_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.A_i.process])
+        assert sim._change_queue == deque([dut.A_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.B1_i.process, dut.B2_i.process])
+        assert sim._change_queue == deque([dut.B1_i.process, dut.B2_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.B2_i.process, dut.C_i.process])
+        assert sim._change_queue == deque([dut.B2_i.process, dut.C_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.C_i.process])
+        assert sim._change_queue == deque([dut.C_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([])
+        assert sim._change_queue == deque([])
         assert dut.out.read() == 42 + 43
 
     def test_step(self, sim: Simulator):
         pe = sim._process_events = MagicMock()
-        pq = sim._process_queue = MagicMock()
+        pq = sim._process_changes = MagicMock()
 
         sim.step()
         pe.assert_called_once()

@@ -263,7 +263,7 @@ class TestPort:
 
         p = Input(int, sensitive_methods=[foo, bar])
         p._init(parent=None)
-        assert sim._process_q == deque([foo, bar])
+        assert sim._change_queue == deque([foo, bar])
 
     def test_basic_change(self, sim):
         def foo():
@@ -275,7 +275,7 @@ class TestPort:
         p = Input(int, sensitive_methods=[foo, bar])
 
         p.write(42)
-        assert sim._process_q == deque([foo, bar])
+        assert sim._change_queue == deque([foo, bar])
 
     def test_downstream_change(self, sim: Simulator):
         def fooA(): pass
@@ -305,7 +305,7 @@ class TestPort:
         D.connect(B)
 
         A.write(42)
-        assert sim._process_q == deque([fooA, fooB, fooE, fooG])
+        assert sim._change_queue == deque([fooA, fooB, fooE, fooG])
 
     def test_constant(self):
         c = Constant(42)

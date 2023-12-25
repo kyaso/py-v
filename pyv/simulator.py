@@ -44,7 +44,7 @@ class Simulator:
     def __init__(self):
         Simulator.globalSim = self
 
-        self._process_q = deque()
+        self._change_queue = deque()
         self._event_q = _EventQueue()
         self._cycles = 0
 
@@ -66,7 +66,7 @@ class Simulator:
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
         self._process_events()
-        self._process_queue()
+        self._process_changes()
 
         PortList.logPorts()
 
@@ -98,9 +98,9 @@ class Simulator:
         Clock.clear()
         PortList.clear()
 
-    def _process_queue(self):
-        while len(self._process_q) > 0:
-            nextFn = self._process_q.popleft()
+    def _process_changes(self):
+        while len(self._change_queue) > 0:
+            nextFn = self._change_queue.popleft()
             logger.debug(f"Running {nextFn.__qualname__}")
             nextFn()
 
@@ -114,15 +114,15 @@ class Simulator:
             logger.info(f"Triggering event -> {callback.__qualname__}()")
             callback()
 
-    def _addToProcessQueue(self, fn):
+    def _addToChangeQueue(self, fn):
         """Add a function to the simulation queue.
 
         Args:
             fn (function): The function we want to add to the queue.
         """
-        if fn not in self._process_q:
+        if fn not in self._change_queue:
             logger.debug(f"Adding {fn.__qualname__} to queue.")
-            self._process_q.append(fn)
+            self._change_queue.append(fn)
         else:
             logger.debug(f"{fn.__qualname__} already in queue.")
 

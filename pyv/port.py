@@ -100,7 +100,7 @@ class _ProcessMethodHandler():
     def add_methods_to_sim_queue(self):
         import pyv.simulator as simulator
         for func in self._processMethods:
-            simulator.Simulator.globalSim._addToProcessQueue(func)
+            simulator.Simulator.globalSim._addToChangeQueue(func)
 
 
 class PortRW(Port, Generic[T]):
