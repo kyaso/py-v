@@ -60,10 +60,6 @@ class Simulator:
         """
         PortList.filter(probes)
 
-    def _process_queues(self):
-        self._process_events()
-        self._process_changes()
-
     def _log_cycle(self):
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
@@ -74,6 +70,8 @@ class Simulator:
         """Advance simulation to next cycle. Applies clock tick to registers
         and memories.
         """
+        self._log_cycle()
+        self._log_ports()
         logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
@@ -86,12 +84,11 @@ class Simulator:
             The current simulator instance to allow dot-chaining multiple
             commands.
         """
-        self._log_cycle()
-        self._process_queues()
-        self._log_ports()
+        self._process_changes()
         return self
 
     def _cycle(self):
+        self._process_events()
         self.run_comb_logic()
         self.tick()
 
@@ -100,7 +97,7 @@ class Simulator:
         This is method is intended for use in tests.
         """
         self._cycle()
-        self._process_queues()
+        self.run_comb_logic()
         return self
 
     def reset(self):

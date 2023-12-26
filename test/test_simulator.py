@@ -1,6 +1,6 @@
 import pytest
 from pyv.module import Module
-from pyv.port import Input, Output, PortList
+from pyv.port import Input, Output, PortList, Wire
 from pyv.simulator import Simulator, _EventQueue
 from pyv.reg import Reg
 from pyv.clocked import Clock
@@ -201,9 +201,50 @@ class TestStep:
         pq = sim._process_changes = MagicMock()
 
         sim.step()
-        assert pe.call_count == 2
+        assert pe.call_count == 1
         assert pq.call_count == 2
         assert sim._cycles == 1
+
+    def test_comb_step(self, sim: Simulator):
+        class Foo(Module):
+            def __init__(self):
+                super().__init__()
+                self.A_i = Input(int)
+                self.pass_o = Output(int)
+                self.reg_o = Output(int)
+                self.comb_o = Output(int)
+
+                self.reg = Reg(int, 42)
+                self.reg_w = Wire(int)
+
+                self.reg.next << self.A_i
+                self.pass_o << self.A_i
+                self.reg_o << self.reg.cur
+                self.reg_w << self.reg.cur
+
+            def process(self):
+                a = self.A_i.read()
+                r = self.reg_w.read()
+                sum = a + r
+                self.comb_o.write(sum)
+
+        foo = Foo()
+        foo._init()
+        sim.reset()
+
+        foo.A_i.write(10)
+        sim.run_comb_logic()
+        assert foo.pass_o.read() == 10
+        assert foo.reg_o.read() == 42
+        assert foo.comb_o.read() == 52
+
+        foo.A_i.write(20)
+        # This should make sure that the process method gets executed after the
+        # clock tick to get the correct output value
+        sim.step()
+        assert foo.pass_o.read() == 20
+        assert foo.reg_o.read() == 20
+        assert foo.comb_o.read() == 40
 
 
 class TestEventQueue:
