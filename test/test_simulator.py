@@ -169,15 +169,6 @@ class TestSimulator:
         assert sim._change_queue == deque([])
         assert dut.out.read() == 42 + 43
 
-    def test_step(self, sim: Simulator):
-        pe = sim._process_events = MagicMock()
-        pq = sim._process_changes = MagicMock()
-
-        sim.step()
-        assert pe.call_count == 2
-        assert pq.call_count == 2
-        assert sim._cycles == 1
-
     def test_run(self, sim: Simulator):
         dut = ExampleTop2()
         dut.name = 'ExampleTop2'
@@ -203,6 +194,16 @@ class TestSimulator:
 
         assert sim.getCycles() == 4
         assert sim._process_events.call_count == 4
+
+class TestStep:
+    def test_step(self, sim: Simulator):
+        pe = sim._process_events = MagicMock()
+        pq = sim._process_changes = MagicMock()
+
+        sim.step()
+        assert pe.call_count == 2
+        assert pq.call_count == 2
+        assert sim._cycles == 1
 
 
 class TestEventQueue:
