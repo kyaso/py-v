@@ -61,7 +61,7 @@ class CSRUnit(Module):
         # TODO: interesting for docs: we shouldn't nest declare PyObjs inside
         # non-PyObjs -> Use Container class
         self.write_addr_i = Input(int, [self.write])
-        self.read_addr_i = Input(int, [self.write])
+        self.read_addr_i = Input(int, [None])
         self.write_val_i = Input(int, [None])
         self.write_en_i = Input(bool, [self.write])
         self.read_val_o = Output(int)
