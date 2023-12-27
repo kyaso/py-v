@@ -59,6 +59,14 @@ def test_IFStage(sim):
 # ---------------------------------------
 # Test DECODE
 # ---------------------------------------
+
+@pytest.fixture
+def decode():
+    regf = Regfile()
+    decode = IDStage(regf)
+    decode._init()
+    return decode
+
 class TestIDStage:
     def test_constructor(self):
         regf = Regfile()
@@ -67,98 +75,99 @@ class TestIDStage:
         assert regf == dec.regfile
         assert dec.IFID_i._type == IFID_t
         assert dec.IDEX_o._type == IDEX_t
+        decode = IDStage(regf)
 
-    def test_decImm(self):
-        dec = IDStage(None)
+        assert regf == decode.regfile
+        assert decode.IFID_i._type == IFID_t
+        assert decode.IDEX_o._type == IDEX_t
+
+    def test_decImm(self, sim: Simulator, decode: IDStage):
         # --- Test I-type -------------------------
         # 001100110000 10000 000 00001 0010011
         inst = 0b00110011000010000000000010010011
-        imm = dec.decImm(0b00100, inst)
+        imm = decode.decImm(0b00100, inst)
         assert imm == 0b001100110000
 
         # Test sign-ext
         # 101100110000 10000 000 00001 0010011
         inst = 0b10110011000010000000000010010011
-        imm = dec.decImm(0b00100, inst)
+        imm = decode.decImm(0b00100, inst)
         assert imm == 0xFFFFFB30
 
         # --- Test S-type -------------------------
         # 0111010 00000 00000 010 11100 0100011
         inst = 0b01110100000000000010111000100011
-        imm = dec.decImm(0b01000, inst)
+        imm = decode.decImm(0b01000, inst)
         assert imm == 0b011101011100
 
         # Test sign-ext
         # 1111010 00000 00000 010 11100 0100011
         inst = 0b11110100000000000010111000100011
-        imm = dec.decImm(0b01000, inst)
+        imm = decode.decImm(0b01000, inst)
         assert imm == 0xFFFFFF5C
 
         # --- Test B-type -------------------------
         # 0 100110 00000 00000 000 0110 1 1100011
         inst = 0b01001100000000000000011011100011
-        imm = dec.decImm(0b11000, inst)
+        imm = decode.decImm(0b11000, inst)
         assert imm == 0b0110011001100
 
         # Test sign-ext
         # 1 100110 00000 00000 000 0110 1 1100011
         inst = 0b11001100000000000000011011100011
-        imm = dec.decImm(0b11000, inst)
+        imm = decode.decImm(0b11000, inst)
         assert imm == 0xFFFFFCCC
 
         # --- Test U-type -------------------------
         # 00001011001111000101 00000 0110111
         inst = 0b00001011001111000101000000110111
-        imm = dec.decImm(0b01101, inst)
+        imm = decode.decImm(0b01101, inst)
         assert imm == 0x0B3C5000
 
         # Test sign-ext
         # 10001011001111000101 00000 0110111
         inst = 0b10001011001111000101000000110111
-        imm = dec.decImm(0b01101, inst)
+        imm = decode.decImm(0b01101, inst)
         assert imm == 0x8B3C5000
 
         # --- Test J-type -------------------------
         # 0 1111010110 0 00011010 00000 1101111
         inst = 0b01111010110000011010000001101111
-        imm = dec.decImm(0b11011, inst)
+        imm = decode.decImm(0b11011, inst)
         assert imm == 0x1A7AC
 
         # Test sign-ext
         # 1 1111010110 0 00011010 00000 1101111
         inst = 0b11111010110000011010000001101111
-        imm = dec.decImm(0b11011, inst)
+        imm = decode.decImm(0b11011, inst)
         assert imm == 0xFFF1A7AC
 
-    def test_exception(self, caplog, sim):
-        dec = IDStage(Regfile())
-        dec._init()
-
+    def test_exception(self, caplog, sim: Simulator, decode: IDStage):
         # --- Illegal Instruction -----------------
         pc = 0
 
         # No exception for valid instruction
         inst = 0x23  # store
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         sim.step()
 
         # --- Inst[1:0] != 2'b11
         inst = 0x10
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # --- Unsupported RV32base Opcodes
         inst = 0x1F  # opcode = 0011111
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         inst = 0x73  # opcode = 1110011
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -168,13 +177,13 @@ class TestIDStage:
         # If funct3 == 1 => funct7 == 0
         inst = 0x02001013  # funct7 = 1
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013  # funct7 = 1100000
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -182,20 +191,20 @@ class TestIDStage:
         # If funct7 != {0, 0100000} -> illegal
         inst = 0x80000033  # funct7 = 1000000
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033  # funct3 = 2
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067  # funct3 = 5
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -204,7 +213,7 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x63 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
@@ -213,7 +222,7 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x3 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
@@ -222,12 +231,11 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x23 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
-    def test_wbSel(self, sim):
-        decode = IDStage(None)
+    def test_wbSel(self, sim: Simulator, decode: IDStage):
         res = decode.wb_sel(0b11011)
         assert res == 1
         res = decode.wb_sel(0)
@@ -235,7 +243,7 @@ class TestIDStage:
         res = decode.wb_sel(0b01100)
         assert res == 0
 
-    def test_IDStage(self, sim: Simulator):
+    def test_IDStage(self, sim: Simulator, decode: IDStage):
         def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
             if rs1 is not None:
                 assert out.rs1 == rs1
@@ -255,15 +263,11 @@ class TestIDStage:
                 assert out.funct7 == funct7
             assert out.mem == mem
 
-        regf = Regfile()
-        decode = IDStage(regf)
-        decode._init()
-
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
 
         # Write some values into the relevant registers
-        regf.regs[8] = 0x80000000
-        regf.regs[10] = 42
+        decode.regfile.regs[8] = 0x80000000
+        decode.regfile.regs[10] = 42
 
         # Set input
         decode.IFID_i.write(IFID_t(0xfea42623, 0x80000004))
@@ -288,8 +292,8 @@ class TestIDStage:
 
         # ---- Test OP-IMM -----------------------------------
         # addi x7, x3, 89
-        regf.regs[3] = 120
-        regf.we = False
+        decode.regfile.regs[3] = 120
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x05918393, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
@@ -310,8 +314,8 @@ class TestIDStage:
 
         # ---- Test SHAMT -----------------------------------
         # srli x8, x1, 8
-        regf.regs[1] = 120
-        regf.we = False
+        decode.regfile.regs[1] = 120
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x0080d413, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
@@ -332,9 +336,9 @@ class TestIDStage:
 
         # ---- Test OP -----------------------------------
         # SUB x14, x7, x5
-        regf.writeRequest(7, 43)
+        decode.regfile.writeRequest(7, 43)
         sim.step()
-        regf.writeRequest(5, 12)
+        decode.regfile.writeRequest(5, 12)
         sim.step()
 
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
@@ -357,7 +361,7 @@ class TestIDStage:
 
         # ---- Test LOAD -----------------------------------
         # LW x15, x8, 0x456
-        regf.writeRequest(8, 0x40000000)
+        decode.regfile.writeRequest(8, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
         sim.step()
@@ -379,7 +383,7 @@ class TestIDStage:
 
         # ---- Test JALR -----------------------------------
         # jalr x13, 1025(x28)
-        regf.writeRequest(28, 0x40000000)
+        decode.regfile.writeRequest(28, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x401e06e7, 0x80000004))
         sim.step()
@@ -401,9 +405,9 @@ class TestIDStage:
 
         # ---- Test BRANCH -----------------------------------
         # bne x4, x8, 564
-        regf.regs[4] = 42
-        regf.regs[8] = 12
-        regf.we = False
+        decode.regfile.regs[4] = 42
+        decode.regfile.regs[8] = 12
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x22821a63, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
