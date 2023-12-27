@@ -34,14 +34,14 @@ def csr_unit() -> CSRUnit:
     return csr_unit
 
 def csr_write(csr_unit: CSRUnit, csr_num: int, value: int, sim: Simulator):
-    csr_unit.csr_num_i.write(csr_num)
+    csr_unit.write_addr_i.write(csr_num)
     csr_unit.write_en_i.write(True)
     csr_unit.write_val_i.write(value)
     sim.step()
 
 def csr_read(csr_unit: CSRUnit, csr_num: int, sim: Simulator):
     csr_unit.write_en_i.write(False)
-    csr_unit.csr_num_i.write(csr_num)
+    csr_unit.read_addr_i.write(csr_num)
     sim.step()
     return csr_unit.read_val_o.read()
 
@@ -60,14 +60,15 @@ class TestCSRUnit:
     def test_csr_write_not_enable(self, sim: Simulator, csr_unit: CSRUnit):
         misa = 0x301
         csr_unit.csr_bank.misa._csr_reg.cur._val = 0x1234
-        csr_unit.csr_num_i.write(misa)
+        csr_unit.write_addr_i.write(misa)
         csr_unit.write_en_i.write(False)
         csr_unit.write_val_i.write(0x43)
         sim.step()
         assert csr_unit.csr_bank.misa._csr_reg.cur._val == 0x1234
 
     def test_read_and_write_in_same_cycle(self, sim: Simulator, csr_unit: CSRUnit):
-        csr_unit.csr_num_i.write(0x301)
+        csr_unit.write_addr_i.write(0x301)
+        csr_unit.read_addr_i.write(0x301)
         csr_unit.write_en_i.write(False)
         sim.step()
         csr_unit.write_en_i.write(True)

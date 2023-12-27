@@ -60,7 +60,8 @@ class CSRUnit(Module):
 
         # TODO: interesting for docs: we shouldn't nest declare PyObjs inside
         # non-PyObjs -> Use Container class
-        self.csr_num_i = Input(int, [self.write])
+        self.write_addr_i = Input(int, [self.write])
+        self.read_addr_i = Input(int, [self.write])
         self.write_val_i = Input(int, [None])
         self.write_en_i = Input(bool, [self.write])
         self.read_val_o = Output(int)
@@ -68,7 +69,7 @@ class CSRUnit(Module):
         self.csr_bank.misa.write_val_i << self.write_val_i
 
         # Out mux
-        self.out_mux.select_i << self.csr_num_i
+        self.out_mux.select_i << self.read_addr_i
         self.out_mux.misa_i << self.csr_bank.misa.csr_val_o
         self.read_val_o << self.out_mux.out_o
 
@@ -78,6 +79,6 @@ class CSRUnit(Module):
     def write(self):
         self._disable_write()
         if self.write_en_i.read():
-            addr = self.csr_num_i.read()
+            addr = self.write_addr_i.read()
             csr = self.csr_bank.get_csr(addr)
             csr.we_i.write(True)
