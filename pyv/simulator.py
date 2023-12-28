@@ -66,12 +66,15 @@ class Simulator:
     def _log_ports(self):
         PortList.logPorts()
 
+    def _log(self):
+        self._log_cycle()
+        self._log_ports()
+
     def tick(self):
         """Advance simulation to next cycle. Applies clock tick to registers
         and memories.
         """
-        self._log_cycle()
-        self._log_ports()
+        self._log()
         logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
