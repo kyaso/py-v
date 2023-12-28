@@ -491,7 +491,7 @@ class TestIDStage:
         # TODO: Test ECALL / EBREAK
 
     def test_csr(self, sim: Simulator, decode: IDStage):
-        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None):
+        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None):
             if csr_addr is not None:
                 assert out.csr_addr == csr_addr
             if csr_read_val is not None:
@@ -506,6 +506,8 @@ class TestIDStage:
                 assert out.csr_write_en == csr_write_en
             if f3 is not None:
                 assert out.funct3 == f3
+            if we is not None:
+                assert out.we == we
 
         # Not a CSR inst
         decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
@@ -532,7 +534,8 @@ class TestIDStage:
             rs1=0x89,
             rd=5,
             wb_sel=0,
-            f3=1
+            f3=1,
+            we=1
         )
 
         # rd=0 -> No read to CSR

@@ -161,7 +161,7 @@ class IDStage(Module):
         imm = self.decImm(opcode, inst)
 
         # Determine register file write enable
-        we = opcode in isa.REG_OPS
+        we = self.we(opcode, funct3)
 
         # Determine what to write-back into regfile
         wb_sel = self.wb_sel(opcode)
@@ -177,6 +177,14 @@ class IDStage(Module):
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
                                  opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
 
+    def is_csr(self, opcode, f3):
+        return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
+
+    def we(self, opcode, f3):
+        return (
+            opcode in isa.REG_OPS
+            or self.is_csr(opcode, f3)
+        )
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -279,7 +287,7 @@ class IDStage(Module):
     def dec_csr(self, inst, opcode, f3, rd):
         csr_addr = 0
         csr_write_en = False
-        if opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values():
+        if self.is_csr(opcode, f3):
             csr_write_en = True
             if rd != 0:
                 csr_addr = getBits(inst, 31, 20)
