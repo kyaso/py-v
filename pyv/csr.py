@@ -28,7 +28,9 @@ class CSRBank(Container):
         self.misa = CSRBlock(0x4000_0100, read_only=False)
 
     def get_csr(self, addr) -> CSRBlock:
-        if addr == 0x301:
+        if addr == 0:
+            return None
+        elif addr == 0x301:
             return self.misa
         else:
             logger.warn(f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
