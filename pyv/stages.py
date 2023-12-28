@@ -129,18 +129,15 @@ class IDStage(Module):
 
         # Inputs
         self.IFID_i = Input(IFID_t)
-        self.csr_read_val_i = Input(int)
 
         # Outputs
         self.IDEX_o = Output(IDEX_t)
-        self.csr_read_addr_o = Output(int)
 
     def process(self):
         # Read inputs
         val: IFID_t = self.IFID_i.read()
         inst = val.inst
         self.pc = val.pc
-        csr_read_val = self.csr_read_val_i.read()
 
         # Determine opcode (inst[6:2])
         opcode = getBits(inst, 6, 2)
@@ -179,7 +176,7 @@ class IDStage(Module):
         # Outputs
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
                                  opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
-        self.csr_read_addr_o.write(csr_addr)
+
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
