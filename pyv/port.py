@@ -113,11 +113,6 @@ class PortRW(Port, Generic[T]):
         """
         super().__init__(type, None)
 
-        # Whether the port has not been written to in the entire simulation.
-        # For most (if not all) ports this will only be the case during the
-        # first cycle.
-        self._isUntouched = True
-
     def read(self) -> T:
         """Reads the current value of the port.
 
