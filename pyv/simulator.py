@@ -100,8 +100,13 @@ class Simulator:
         This is method is intended for use in tests.
         """
         self._cycle()
-        self.run_comb_logic()
+        self._process_remaining()
         return self
+
+    def _process_remaining(self):
+        self._process_events()
+        self.run_comb_logic()
+        self._log()
 
     def reset(self):
         """Applies global reset (registers, memories).
@@ -125,6 +130,7 @@ class Simulator:
 
         for i in range(0, num_cycles):
             self._cycle()
+        self._process_remaining()
 
     @staticmethod
     def clear():

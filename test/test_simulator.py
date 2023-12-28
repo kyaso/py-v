@@ -178,7 +178,7 @@ class TestSimulator:
         Clock.reset()
 
         sim.run(4)
-        assert dut.out.read() == 4475
+        assert dut.out.read() == -2225
 
         # sim.step()
         # assert dut.out.read() == -25
@@ -193,7 +193,7 @@ class TestSimulator:
         # assert dut.out.read() == 4475
 
         assert sim.getCycles() == 4
-        assert sim._process_events.call_count == 4
+        assert sim._process_events.call_count == 5
 
 class TestStep:
     def test_step(self, sim: Simulator):
@@ -201,7 +201,7 @@ class TestStep:
         pq = sim._process_changes = MagicMock()
 
         sim.step()
-        assert pe.call_count == 1
+        assert pe.call_count == 2
         assert pq.call_count == 2
         assert sim._cycles == 1
 
