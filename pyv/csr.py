@@ -32,46 +32,21 @@ class CSRBank(Container):
             return self.misa
         else:
             logger.warn(f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
+            return None
 
-
-class CSROutMux(Module):
-    def __init__(self):
-        super().__init__()
-        # Inputs
-        self.select_i = Input(int)
-        self.misa_i = Input(int)
-
-        # Output
-        self.out_o = Output(int)
-
-    def process(self):
-        addr = self.select_i.read()
-        out_val = 0
-        if addr == 0x301:
-            out_val = self.misa_i.read()
-
-        self.out_o.write(out_val)
 
 class CSRUnit(Module):
     def __init__(self):
         super().__init__()
         self.csr_bank = CSRBank()
-        self.out_mux = CSROutMux()
 
         # TODO: interesting for docs: we shouldn't nest declare PyObjs inside
         # non-PyObjs -> Use Container class
         self.write_addr_i = Input(int, [self.write])
-        self.read_addr_i = Input(int, [None])
         self.write_val_i = Input(int, [None])
         self.write_en_i = Input(bool, [self.write])
-        self.read_val_o = Output(int)
 
         self.csr_bank.misa.write_val_i << self.write_val_i
-
-        # Out mux
-        self.out_mux.select_i << self.read_addr_i
-        self.out_mux.misa_i << self.csr_bank.misa.csr_val_o
-        self.read_val_o << self.out_mux.out_o
 
     def _disable_write(self):
         self.csr_bank.misa.we_i.write(False)
@@ -82,3 +57,10 @@ class CSRUnit(Module):
             addr = self.write_addr_i.read()
             csr = self.csr_bank.get_csr(addr)
             csr.we_i.write(True)
+
+    def read(self, addr):
+        csr = self.csr_bank.get_csr(addr)
+        if csr is not None:
+            return csr.csr_val_o.read()
+        else:
+            return 0

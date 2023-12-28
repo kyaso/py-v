@@ -1,3 +1,4 @@
+from unittest.mock import MagicMock
 import pytest
 from pyv.csr import CSRUnit
 from pyv.simulator import Simulator
@@ -64,7 +65,8 @@ def test_IFStage(sim):
 @pytest.fixture
 def decode():
     regf = Regfile()
-    decode = IDStage(regf)
+    csr = CSRUnit()
+    decode = IDStage(regf, csr)
     decode._init()
     return decode
 
@@ -78,11 +80,10 @@ class TestIDStage:
     def test_constructor(self):
         regf = Regfile()
         csr = CSRUnit()
-        decode = IDStage(regf)
-        decode.csr_read_val_i << csr.read_val_o
-        csr.read_addr_i << decode.csr_read_addr_o
+        decode = IDStage(regf, csr)
 
         assert regf == decode.regfile
+        assert csr == decode.csr
         assert decode.IFID_i._type == IFID_t
         assert decode.IDEX_o._type == IDEX_t
 
@@ -489,7 +490,7 @@ class TestIDStage:
 
         # TODO: Test ECALL / EBREAK
 
-    def test_csr(self, sim: Simulator, decode: IDStage, csr: CSRUnit):
+    def test_csr(self, sim: Simulator, decode: IDStage):
         def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None):
             if csr_addr is not None:
                 assert out.csr_addr == csr_addr
@@ -506,14 +507,9 @@ class TestIDStage:
             if f3 is not None:
                 assert out.funct3 == f3
 
-        # Connect csr unit to decode stage
-        decode.csr_read_val_i << csr.read_val_o
-        csr.read_addr_i << decode.csr_read_addr_o
-
         # Not a CSR inst
         decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
         sim.run_comb_logic()
-        assert decode.csr_read_addr_o.read() == 0
         out = decode.IDEX_o.read()
         validate(
             out=out,
@@ -524,10 +520,9 @@ class TestIDStage:
 
         # csrrw x5, misa, x12
         decode.regfile.regs[12] = 0x89
-        csr.csr_bank.misa._csr_reg.cur.write(0x42)
+        decode.csr.csr_bank.misa._csr_reg.cur.write(0x42)
         decode.IFID_i.write(IFID_t(0x301612f3, 0x80000004))
         sim.run_comb_logic()
-        assert decode.csr_read_addr_o.read() == 0x301
         out = decode.IDEX_o.read()
         validate(
             out=out,
@@ -542,9 +537,10 @@ class TestIDStage:
 
         # rd=0 -> No read to CSR
         # csrrw x0, misa, x12
+        read = decode.csr.read = MagicMock()
         decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
         sim.run_comb_logic()
-        assert decode.csr_read_addr_o.read() == 0
+        read.assert_called_with(0)
 
 
 

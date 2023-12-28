@@ -1,3 +1,4 @@
+from pyv.csr import CSRUnit
 from pyv.module import Module
 from pyv.port import Input, Output, Wire, Constant
 from pyv.reg import Reg, Regfile
@@ -121,9 +122,10 @@ class IDStage(Module):
         IDEX_o: Interface to EXStage
     """
 
-    def __init__(self, regf: Regfile):
+    def __init__(self, regf: Regfile, csr: CSRUnit):
         super().__init__()
         self.regfile = regf
+        self.csr = csr
 
         # Inputs
         self.IFID_i = Input(IFID_t)
@@ -172,6 +174,7 @@ class IDStage(Module):
 
         # CSR
         csr_addr, csr_write_en = self.dec_csr(inst, opcode, funct3, rd_idx)
+        csr_read_val = self.csr.read(csr_addr)
 
         # Outputs
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
