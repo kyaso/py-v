@@ -27,6 +27,9 @@ class IDEX_t:
     funct3: int = 0
     funct7: int = 0
     mem: int = 0
+    csr_addr: int = 0
+    csr_read_val: int = 0
+    csr_write_en: bool = False
 
 
 @dataclass
@@ -40,6 +43,10 @@ class EXMEM_t:
     rs2: int = 0
     mem: int = 0
     funct3: int = 0
+    csr_addr: int = 0
+    csr_read_val: int = 0
+    csr_write_en: bool = False
+    csr_write_val: int = 0
 
 
 @dataclass
@@ -50,6 +57,10 @@ class MEMWB_t:
     pc4: int = 0
     mem_rdata: int = 0
     wb_sel: int = 0
+    csr_addr: int = 0
+    csr_read_val: int = 0
+    csr_write_en: bool = False
+    csr_write_val: int = 0
 
 
 LOAD = 1
@@ -116,15 +127,18 @@ class IDStage(Module):
 
         # Inputs
         self.IFID_i = Input(IFID_t)
+        self.csr_read_val_i = Input(int)
 
         # Outputs
         self.IDEX_o = Output(IDEX_t)
+        self.csr_read_addr_o = Output(int)
 
     def process(self):
         # Read inputs
         val: IFID_t = self.IFID_i.read()
         inst = val.inst
         self.pc = val.pc
+        csr_read_val = self.csr_read_val_i.read()
 
         # Determine opcode (inst[6:2])
         opcode = getBits(inst, 6, 2)
@@ -156,9 +170,13 @@ class IDStage(Module):
         # Determine none/load/store
         mem = self.mem_sel(opcode)
 
+        # CSR
+        csr_addr, csr_write_en = self.dec_csr(inst, opcode, funct3, rd_idx)
+
         # Outputs
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
-                                 opcode, funct3, funct7, mem))
+                                 opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
+        self.csr_read_addr_o.write(csr_addr)
 
     def mem_sel(self, opcode):
         """Generates control signal for memory access.
@@ -258,6 +276,16 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
+    def dec_csr(self, inst, opcode, f3, rd):
+        csr_addr = 0
+        csr_write_en = False
+        if opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values():
+            csr_write_en = True
+            if rd != 0:
+                csr_addr = getBits(inst, 31, 20)
+
+        return csr_addr, csr_write_en
+
     def check_exception(self, inst, opcode, f3, f7):
         """[summary]
 
@@ -347,7 +375,11 @@ class EXStage(Module):
             self.exmem_val.pc4,
             self.exmem_val.rs2,
             self.exmem_val.mem,
-            self.exmem_val.funct3
+            self.exmem_val.funct3,
+            self.exmem_val.csr_addr,
+            self.exmem_val.csr_read_val,
+            self.exmem_val.csr_write_en,
+            self.exmem_val.csr_write_val
         ))
 
     def passThrough(self):
@@ -358,6 +390,9 @@ class EXStage(Module):
         self.exmem_val.rs2 = val.rs2
         self.exmem_val.mem = val.mem
         self.exmem_val.funct3 = val.funct3
+        self.exmem_val.csr_addr = val.csr_addr
+        self.exmem_val.csr_write_en = val.csr_write_en
+        self.exmem_val.csr_read_val = val.csr_read_val
 
         self.writeOutput()
 
@@ -371,6 +406,8 @@ class EXStage(Module):
         pc = val.pc
         f3 = val.funct3
         f7 = val.funct7
+        is_csr = val.csr_write_en
+        csr_read_val = val.csr_read_val
 
         # Check for branch/jump
         take_branch = False
@@ -387,10 +424,16 @@ class EXStage(Module):
         # Check for exceptions
         self.check_exception(take_branch, alu_res, pc)
 
+        # CSR
+        csr_write_val = 0
+        if is_csr:
+            csr_write_val = self.csr(f3, csr_read_val, rs1)
+
         # Outputs
         self.exmem_val.take_branch = take_branch
         self.exmem_val.pc4 = pc4
         self.exmem_val.alu_res = alu_res
+        self.exmem_val.csr_write_val = csr_write_val
         self.writeOutput()
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
@@ -630,6 +673,13 @@ class EXStage(Module):
             if alu_res & 0x3 != 0:
                 raise Exception(f"Target instruction address misaligned exception at PC = 0x{pc:08X}")  # noqa: E501
 
+    def csr(self, f3, csr_read_val, rs1):
+        ret_val = 0
+        if f3 == isa.CSR_F3['CSRRW']:
+            ret_val = rs1
+        return ret_val
+
+
 
 class MEMStage(Module):
     """Memory stage.
@@ -662,7 +712,11 @@ class MEMStage(Module):
             alu_res=self.out_val.alu_res,
             pc4=self.out_val.pc4,
             mem_rdata=self.out_val.mem_rdata,
-            wb_sel=self.out_val.wb_sel
+            wb_sel=self.out_val.wb_sel,
+            csr_addr=self.out_val.csr_addr,
+            csr_read_val=self.out_val.csr_read_val,
+            csr_write_en=self.out_val.csr_write_en,
+            csr_write_val=self.out_val.csr_write_val
         ))
 
     def process_load(self):
@@ -732,6 +786,10 @@ class MEMStage(Module):
         self.out_val.alu_res = in_val.alu_res
         self.out_val.pc4 = in_val.pc4
         self.out_val.wb_sel = in_val.wb_sel
+        self.out_val.csr_addr = in_val.csr_addr
+        self.out_val.csr_read_val = in_val.csr_read_val
+        self.out_val.csr_write_en = in_val.csr_write_en
+        self.out_val.csr_write_val = in_val.csr_write_val
         self.write_output()
 
     def check_exception(self, op, addr, f3):
@@ -759,6 +817,9 @@ class WBStage(Module):
         self.regfile = regf
 
         self.MEMWB_i = Input(MEMWB_t)
+        self.csr_write_addr_o = Output(int)
+        self.csr_write_en_o = Output(bool)
+        self.csr_write_val_o = Output(int)
 
     def process(self):
         # Read inputs
@@ -769,6 +830,10 @@ class WBStage(Module):
         pc4 = in_val.pc4
         mem_rdata = in_val.mem_rdata
         wb_sel = in_val.wb_sel
+        is_csr = in_val.csr_write_en
+        csr_read_val = in_val.csr_read_val
+        csr_addr = in_val.csr_addr
+        csr_write_val = in_val.csr_write_val
 
         wb_val = 0
         # Default to no write.
@@ -778,7 +843,10 @@ class WBStage(Module):
 
         if we:
             if wb_sel == 0:  # ALU op
-                wb_val = alu_res
+                if not is_csr:
+                    wb_val = alu_res
+                else:
+                    wb_val = csr_read_val
             elif wb_sel == 1:  # PC+4 (JAL)
                 wb_val = pc4
             elif wb_sel == 2:  # Load
@@ -788,6 +856,10 @@ class WBStage(Module):
                     f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
 
             self.regfile.writeRequest(rd, wb_val)
+
+        self.csr_write_addr_o.write(csr_addr)
+        self.csr_write_val_o.write(csr_write_val)
+        self.csr_write_en_o.write(is_csr)
 
 
 class BranchUnit(Module):

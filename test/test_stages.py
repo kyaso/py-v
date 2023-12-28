@@ -1,4 +1,5 @@
 import pytest
+from pyv.csr import CSRUnit
 from pyv.simulator import Simulator
 from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit, IFID_t, IDEX_t, EXMEM_t, MEMWB_t
 from pyv.reg import Regfile
@@ -67,15 +68,19 @@ def decode():
     decode._init()
     return decode
 
+@pytest.fixture
+def csr():
+    csr = CSRUnit()
+    csr._init()
+    return csr
+
 class TestIDStage:
     def test_constructor(self):
         regf = Regfile()
-        dec = IDStage(regf)
-
-        assert regf == dec.regfile
-        assert dec.IFID_i._type == IFID_t
-        assert dec.IDEX_o._type == IDEX_t
+        csr = CSRUnit()
         decode = IDStage(regf)
+        decode.csr_read_val_i << csr.read_val_o
+        csr.read_addr_i << decode.csr_read_addr_o
 
         assert regf == decode.regfile
         assert decode.IFID_i._type == IFID_t
@@ -160,12 +165,6 @@ class TestIDStage:
 
         # --- Unsupported RV32base Opcodes
         inst = 0x1F  # opcode = 0011111
-        pc += 1
-        decode.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
-            sim.step()
-
-        inst = 0x73  # opcode = 1110011
         pc += 1
         decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
@@ -490,21 +489,92 @@ class TestIDStage:
 
         # TODO: Test ECALL / EBREAK
 
+    def test_csr(self, sim: Simulator, decode: IDStage, csr: CSRUnit):
+        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None):
+            if csr_addr is not None:
+                assert out.csr_addr == csr_addr
+            if csr_read_val is not None:
+                assert out.csr_read_val == csr_read_val
+            if rs1 is not None:
+                assert out.rs1 == rs1
+            if rd is not None:
+                assert out.rd == rd
+            if wb_sel is not None:
+                assert out.wb_sel == wb_sel
+            if csr_write_en is not None:
+                assert out.csr_write_en == csr_write_en
+            if f3 is not None:
+                assert out.funct3 == f3
+
+        # Connect csr unit to decode stage
+        decode.csr_read_val_i << csr.read_val_o
+        csr.read_addr_i << decode.csr_read_addr_o
+
+        # Not a CSR inst
+        decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
+        sim.run_comb_logic()
+        assert decode.csr_read_addr_o.read() == 0
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0,
+            csr_read_val=0,
+            csr_write_en=False
+        )
+
+        # csrrw x5, misa, x12
+        decode.regfile.regs[12] = 0x89
+        csr.csr_bank.misa._csr_reg.cur.write(0x42)
+        decode.IFID_i.write(IFID_t(0x301612f3, 0x80000004))
+        sim.run_comb_logic()
+        assert decode.csr_read_addr_o.read() == 0x301
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=0x89,
+            rd=5,
+            wb_sel=0,
+            f3=1
+        )
+
+        # rd=0 -> No read to CSR
+        # csrrw x0, misa, x12
+        decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
+        sim.run_comb_logic()
+        assert decode.csr_read_addr_o.read() == 0
+
+
 
 # ---------------------------------------
 # Test EXECUTE
 # ---------------------------------------
-class TestEXStage:
-    def test_constructor(self):
-        ex = EXStage()
 
+@pytest.fixture
+def ex() -> EXStage:
+    ex = EXStage()
+    ex._init()
+    return ex
+
+class TestEXStage:
+    def test_constructor(self, sim: Simulator, ex: EXStage):
         assert ex.IDEX_i._type == IDEX_t
         assert ex.EXMEM_o._type == EXMEM_t
 
-    def test_passThrough(self, sim):
-        ex = EXStage()
-
-        ex.IDEX_i.write(IDEX_t(rd=1, we=1, wb_sel=2, rs2=23, mem=1, funct3=5))
+    def test_passThrough(self, sim: Simulator, ex: EXStage):
+        ex.IDEX_i.write(IDEX_t(
+            rd=1,
+            we=1,
+            wb_sel=2,
+            rs2=23,
+            mem=1,
+            funct3=5,
+            csr_addr=123,
+            csr_write_en=True,
+            csr_read_val=45)
+        )
 
         sim.step()
 
@@ -515,10 +585,11 @@ class TestEXStage:
         assert out.rs2 == 23
         assert out.mem == 1
         assert out.funct3 == 5
+        assert out.csr_addr == 123
+        assert out.csr_write_en == True
+        assert out.csr_read_val == 45
 
-    def test_alu(self):
-        ex = EXStage()
-
+    def test_alu(self, sim: Simulator, ex: EXStage):
         # LUI
         res = ex.alu(0b01101, 0, 0, 0x41AF3000, 0, 0, 0)
         assert res == 0x41AF3000
@@ -815,9 +886,7 @@ class TestEXStage:
         res = ex.alu(opcode=0b01100, rs1=0x00ff00ff, imm=0, rs2=0x0000070f, pc=0, f3=0b111, f7=0)
         assert res == 0x0000000f
 
-    def test_branch(self):
-        ex = EXStage()
-
+    def test_branch(self, sim: Simulator, ex: EXStage):
         # BEQ
         res = ex.branch(f3=0, rs1=0, rs2=0)
         assert res == True
@@ -962,21 +1031,18 @@ class TestEXStage:
         res = ex.branch(f3=7, rs1=0x7fffffff, rs2=0x80000000)
         assert res == False
 
-    def test_pc4(self, sim):
-        ex = EXStage()
-
+    def test_pc4(self, sim: Simulator, ex: EXStage):
         ex.IDEX_i.write(IDEX_t(
             pc=42
         ))
         sim.step()
         assert ex.EXMEM_o.read().pc4 == (42 + 4)
 
-    def test_take_branch(self, sim):
+    def test_take_branch(self, sim: Simulator, ex: EXStage):
         def step_and_assert(expected):
             sim.step()
             assert ex.EXMEM_o.read().take_branch == expected
 
-        ex = EXStage()
         # BEQ (B-type) -> take_branch should be set
         ex.IDEX_i.write(IDEX_t(opcode=0b11000, funct3=0, rs1=42, rs2=42))
         step_and_assert(True)
@@ -1021,7 +1087,22 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(opcode=0b11100))
         step_and_assert(False)
 
-    def test_EXStage(self, sim):
+    def test_csr(self, sim: Simulator, ex: EXStage):
+        # csrrw
+        ex.IDEX_i.write(IDEX_t(
+            rs1=34,
+            funct3=1,
+            csr_read_val=123,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 34
+
+
+
+
+    def test_EXStage(self, sim: Simulator, ex: EXStage):
         def validate(out: EXMEM_t, take_branch, alu_res, pc4, rd, we, wb_sel, rs2, mem, funct3):
             # Generated outputs
             assert out.take_branch == take_branch
@@ -1044,8 +1125,6 @@ class TestEXStage:
                 assert out.mem == mem
             if funct3 is not None:
                 assert out.funct3 == funct3
-
-        ex = EXStage()
 
         # LUI x24, 0xaffe
         ex.IDEX_i.write(IDEX_t(
@@ -1268,9 +1347,7 @@ class TestEXStage:
             funct3=None
         )
 
-    def test_exception(self, caplog, sim):
-        ex = EXStage()
-
+    def test_exception(self, caplog, sim: Simulator, ex: EXStage):
         pc = 0x80004000
 
         # --- Misaligned instruction address ---------
@@ -1421,7 +1498,11 @@ class TestMEMStage:
             we=1,
             wb_sel=2,
             pc4=0xdeadbeef,
-            alu_res=0xaffeaffe
+            alu_res=0xaffeaffe,
+            csr_addr=123,
+            csr_read_val=42,
+            csr_write_en=True,
+            csr_write_val=34
         ))
         sim.step()
         out = mem_stage.MEMWB_o.read()
@@ -1430,6 +1511,10 @@ class TestMEMStage:
         assert out.wb_sel == 2
         assert out.pc4 == 0xdeadbeef
         assert out.alu_res == 0xaffeaffe
+        assert out.csr_addr == 123
+        assert out.csr_read_val == 42
+        assert out.csr_write_en == True
+        assert out.csr_write_val == 34
 
     def test_load(self, mem_stage, sim):
         mem_stage._init()
@@ -1577,17 +1662,18 @@ class TestMEMStage:
 # ---------------------------------------
 # Test WRITE-BACK
 # ---------------------------------------
-class TestWBStage:
-    def test_constructor(self):
-        regf = Regfile()
-        wb = WBStage(regf)
+@pytest.fixture
+def wb() -> WBStage:
+    regf = Regfile()
+    wb = WBStage(regf)
+    wb._init()
+    return wb
 
+class TestWBStage:
+    def test_constructor(self, sim: Simulator, wb: WBStage):
         assert wb.MEMWB_i._type == MEMWB_t
 
-    def test_wb(self, sim):
-        wb = WBStage(Regfile())
-        wb._init()
-
+    def test_wb(self, sim: Simulator, wb: WBStage):
         # ALU op
         wb.MEMWB_i.write(MEMWB_t(
             rd=18,
@@ -1624,11 +1710,8 @@ class TestWBStage:
         sim.step()
         assert wb.regfile.read(4) == 0xdeadbeef
 
-    def test_no_wb(self, sim):
-        wb = WBStage(Regfile())
-
-        wb.regfile.writeRequest(25, 1234)
-        sim.step()
+    def test_no_wb(self, sim: Simulator, wb: WBStage):
+        wb.regfile.regs[25] = 1234
 
         val = MEMWB_t(
             we=0,
@@ -1655,6 +1738,44 @@ class TestWBStage:
         wb.MEMWB_i.write(val)
         sim.step()
         assert wb.regfile.read(25) == 1234
+
+    def test_csr(self, sim: Simulator, wb: WBStage, csr: CSRUnit):
+        csr.write_addr_i << wb.csr_write_addr_o
+        csr.write_en_i << wb.csr_write_en_o
+        csr.write_val_i << wb.csr_write_val_o
+
+        wb.MEMWB_i.write(MEMWB_t(
+            rd=5,
+            we=1,
+            alu_res=42,
+            pc4=87,
+            mem_rdata=0xdeadbeef,
+            wb_sel=0,
+            csr_addr=0x301,
+            csr_read_val=65,
+            csr_write_en=True,
+            csr_write_val=45
+        ))
+        sim.step()
+        assert wb.regfile.regs[5] == 65
+        assert csr.csr_bank.misa.csr_val_o.read() == 45
+
+        # No CSR
+        wb.MEMWB_i.write(MEMWB_t(
+            rd=5,
+            we=1,
+            alu_res=42,
+            pc4=87,
+            mem_rdata=0xdeadbeef,
+            wb_sel=0,
+            csr_addr=0x301,
+            csr_read_val=65,
+            csr_write_en=False,
+            csr_write_val=56
+        ))
+        sim.step()
+        assert wb.regfile.regs[5] == 42
+        assert csr.csr_bank.misa.csr_val_o.read() == 45
 
 
 # ---------------------------------------

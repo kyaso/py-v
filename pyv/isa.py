@@ -13,7 +13,8 @@ OPCODES = {
     "LUI": 0x0D,
     "BRANCH": 0x18,
     "JALR": 0x19,
-    "JAL": 0x1B
+    "JAL": 0x1B,
+    "SYSTEM": 0x1C
 }
 
 # --------------------------------
@@ -68,3 +69,16 @@ class IllegalInstructionException(Exception):
     def __init__(self, pc, inst):
         msg = f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"
         super().__init__(msg)
+
+
+# --------------------------------
+# Ziscr
+# --------------------------------
+CSR_F3 = {
+    "CSRRW": 0b001,
+    "CSRRS": 0b010,
+    "CSRRC": 0b011,
+    "CSRRWI": 0b101,
+    "CSRRSI": 0b110,
+    "CSRRCI": 0b111
+}
