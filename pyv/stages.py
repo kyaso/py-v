@@ -308,7 +308,7 @@ class IDStage(Module):
             # side effects on a read, so it's safe to always read.
             csr_read_val = self.csr.read(csr_addr)
             csr_write_en = True
-            if f3 == isa.CSR_F3['CSRRW']:
+            if f3 in [isa.CSR_F3['CSRRW'], isa.CSR_F3['CSRRWI']]:
                 if rd_idx == isa.I_REGS['x0']:
                     csr_read_val = 0
             elif f3 == isa.CSR_F3['CSRRS'] or f3 == isa.CSR_F3['CSRRC']:

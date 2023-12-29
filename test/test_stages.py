@@ -615,6 +615,22 @@ class TestIDStage:
             we=1
         )
 
+        # csrrwi x0, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d5073, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0,
+            csr_write_en=True,
+            rs1=26,
+            rd=0,
+            wb_sel=0,
+            f3=5,
+            we=1
+        )
+
 
 
 # ---------------------------------------
