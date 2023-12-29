@@ -1098,6 +1098,17 @@ class TestEXStage:
         out = ex.EXMEM_o.read()
         assert out.csr_write_val == 34
 
+        # csrrs
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0xCCCC_CCCC,
+            funct3=2,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0xEEEE_EEEE
+
 
 
 
