@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 from pyv.csr import CSRUnit
 from pyv.simulator import Simulator
@@ -538,12 +538,56 @@ class TestIDStage:
             we=1
         )
 
-        # rd=0 -> No read to CSR
+        # csrrw: rd=x0 -> no read from CSR
         # csrrw x0, misa, x12
-        read = decode.csr.read = MagicMock()
-        decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
+        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
+            decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
+            sim.run_comb_logic()
+            read_mock.assert_called_with(0)
+
+        # csrrs/csrrc: rs1=x0 -> no write to CSR
+        # csrrs x5, misa, x0
+        decode.IFID_i.write(IFID_t(0x301022f3, 0x80000004))
         sim.run_comb_logic()
-        read.assert_called_with(0)
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rd=5,
+            wb_sel=0,
+            f3=2,
+            we=1
+        )
+
+        # csrrc x5, misa, x0
+        decode.IFID_i.write(IFID_t(0x301032f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rd=5,
+            wb_sel=0,
+            f3=3,
+            we=1
+        )
+
+        # csrrs/csrrc: rd=0 -> read has to happen regardless
+        # csrrs x0, misa, x12
+        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
+            decode.IFID_i.write(IFID_t(0x30162073, 0x80000004))
+            sim.run_comb_logic()
+            read_mock.assert_called_with(0x301)
+
+        # csrrc x0, misa, x12
+        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
+            decode.IFID_i.write(IFID_t(0x30163073, 0x80000004))
+            sim.run_comb_logic()
+            read_mock.assert_called_with(0x301)
 
 
 

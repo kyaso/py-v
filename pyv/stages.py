@@ -170,7 +170,7 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # CSR
-        csr_addr, csr_write_en = self.dec_csr(inst, opcode, funct3, rd_idx)
+        csr_addr, csr_write_en = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
         csr_read_val = self.csr.read(csr_addr)
 
         # Outputs
@@ -284,13 +284,19 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
-    def dec_csr(self, inst, opcode, f3, rd):
+    def dec_csr(self, inst, opcode, f3, rd, rs1):
         csr_addr = 0
         csr_write_en = False
+
         if self.is_csr(opcode, f3):
-            csr_write_en = True
-            if rd != 0:
-                csr_addr = getBits(inst, 31, 20)
+            csr_addr = getBits(inst, 31, 20)
+            if f3 == isa.CSR_F3['CSRRW']:
+                csr_write_en = True
+                if rd == 0:
+                    csr_addr = 0
+            elif f3 == isa.CSR_F3['CSRRS'] or f3 == isa.CSR_F3['CSRRC']:
+                if rs1 != 0:
+                    csr_write_en = True
 
         return csr_addr, csr_write_en
 
