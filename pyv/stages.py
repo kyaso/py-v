@@ -311,8 +311,8 @@ class IDStage(Module):
             if f3 in [isa.CSR_F3['CSRRW'], isa.CSR_F3['CSRRWI']]:
                 if rd_idx == isa.I_REGS['x0']:
                     csr_read_val = 0
-            elif f3 == isa.CSR_F3['CSRRS'] or f3 == isa.CSR_F3['CSRRC']:
-                if rs1_idx == isa.I_REGS['x0']:
+            elif f3 in [isa.CSR_F3['CSRRS'], isa.CSR_F3['CSRRC'], isa.CSR_F3['CSRRSI'], isa.CSR_F3['CSRRCI']]:
+                if rs1_idx == 0:
                     csr_write_en = False
 
         # TODO: Check for illegal instruction (e.g. write to RO CSR)
@@ -439,7 +439,7 @@ class EXStage(Module):
         pc = val.pc
         f3 = val.funct3
         f7 = val.funct7
-        is_csr = val.csr_write_en
+        csr_write_en = val.csr_write_en
         csr_read_val = val.csr_read_val
 
         # Check for branch/jump
@@ -459,7 +459,7 @@ class EXStage(Module):
 
         # CSR
         csr_write_val = 0
-        if is_csr:
+        if csr_write_en:
             csr_write_val = self.csr(f3, csr_read_val, rs1)
 
         # Outputs
@@ -710,7 +710,7 @@ class EXStage(Module):
         ret_val = 0
         if f3 in [isa.CSR_F3['CSRRW'], isa.CSR_F3['CSRRWI']]:
             ret_val = rs1
-        elif f3 == isa.CSR_F3['CSRRS']:
+        elif f3 in [isa.CSR_F3['CSRRS'], isa.CSR_F3['CSRRSI']]:
             ret_val = rs1 | csr_read_val
         elif f3 == isa.CSR_F3['CSRRC']:
             ret_val = ~rs1 & csr_read_val
@@ -867,7 +867,7 @@ class WBStage(Module):
         pc4 = in_val.pc4
         mem_rdata = in_val.mem_rdata
         wb_sel = in_val.wb_sel
-        is_csr = in_val.csr_write_en
+        is_csr = csr_write_en = in_val.csr_write_en
         csr_read_val = in_val.csr_read_val
         csr_addr = in_val.csr_addr
         csr_write_val = in_val.csr_write_val
@@ -896,7 +896,7 @@ class WBStage(Module):
 
         self.csr_write_addr_o.write(csr_addr)
         self.csr_write_val_o.write(csr_write_val)
-        self.csr_write_en_o.write(is_csr)
+        self.csr_write_en_o.write(csr_write_en)
 
 
 class BranchUnit(Module):

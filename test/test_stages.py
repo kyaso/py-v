@@ -631,6 +631,38 @@ class TestIDStage:
             we=1
         )
 
+        # csrrsi x5, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d62f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=26,
+            rd=5,
+            wb_sel=0,
+            f3=6,
+            we=1
+        )
+
+        # csrrsi x5, misa, 0
+        decode.IFID_i.write(IFID_t(0x301062f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rs1=0,
+            rd=5,
+            wb_sel=0,
+            f3=6,
+            we=1
+        )
+
 
 
 # ---------------------------------------
@@ -1216,6 +1248,17 @@ class TestEXStage:
         sim.step()
         out = ex.EXMEM_o.read()
         assert out.csr_write_val == 26
+
+        # csrrsi
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1A,
+            funct3=6,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0xAAAA_AABA
 
 
 
