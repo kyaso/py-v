@@ -29,6 +29,19 @@ class TestCSR:
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0xdeadbeef
 
+    def test_csrrw_no_read(self, sim: Simulator, core: SingleCycle):
+        sim.reset()
+
+        # csrrw x0, misa, x12
+        inst = 0x30161073
+        nop = 0x13
+        core.regf.regs[12] = 0xdeadbeef
+        mem_write_word(core.mem.mem, 0, inst)
+        mem_write_word(core.mem.mem, 4, nop)
+        sim.run(2, False)
+        assert core.regf.regs[5] != 0x4000_0100
+        assert core.csr_unit.read(0x301) == 0xdeadbeef
+
     def test_csrrs(self, sim: Simulator, core: SingleCycle):
         sim.reset()
 
