@@ -91,3 +91,15 @@ class TestCSR:
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x4000_011A
+
+    def test_csrrci(self, sim: Simulator, core: SingleCycle):
+        sim.reset()
+
+        # csrrci x5, misa, 26
+        inst = 0x301d72f3
+        nop = 0x13
+        mem_write_word(core.mem.mem, 0, inst)
+        mem_write_word(core.mem.mem, 4, nop)
+        sim.run(2, False)
+        assert core.regf.regs[5] == 0x4000_0100
+        assert core.csr_unit.read(0x301) == 0x4000_0100

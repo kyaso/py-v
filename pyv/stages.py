@@ -712,7 +712,7 @@ class EXStage(Module):
             ret_val = rs1
         elif f3 in [isa.CSR_F3['CSRRS'], isa.CSR_F3['CSRRSI']]:
             ret_val = rs1 | csr_read_val
-        elif f3 == isa.CSR_F3['CSRRC']:
+        elif f3 in [isa.CSR_F3['CSRRC'], isa.CSR_F3['CSRRCI']]:
             ret_val = ~rs1 & csr_read_val
         return ret_val
 
