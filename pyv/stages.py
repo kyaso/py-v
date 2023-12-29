@@ -170,8 +170,9 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # CSR
-        csr_addr, csr_write_en = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
-        csr_read_val = self.csr.read(csr_addr)
+        csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
+        if csr_isImm:
+            rs1 = csr_uimm
 
         # Outputs
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
@@ -179,6 +180,13 @@ class IDStage(Module):
 
     def is_csr(self, opcode, f3):
         return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
+
+    def is_csr_imm(self, f3):
+        return f3 in [
+            isa.CSR_F3["CSRRWI"],
+            isa.CSR_F3["CSRRSI"],
+            isa.CSR_F3["CSRRCI"]
+        ]
 
     def we(self, opcode, f3):
         return (
@@ -284,21 +292,32 @@ class IDStage(Module):
 
         return (sign_ext | imm)
 
-    def dec_csr(self, inst, opcode, f3, rd, rs1):
+    def dec_csr(self, inst, opcode, f3, rd_idx, rs1_idx):
         csr_addr = 0
+        csr_read_val = 0
         csr_write_en = False
+        csr_isImm = False
+        csr_uimm = rs1_idx
 
         if self.is_csr(opcode, f3):
             csr_addr = getBits(inst, 31, 20)
+            csr_isImm = self.is_csr_imm(f3)
+            # Note that we do a CSR read regardless of which CSR instruction.
+            # The spec says for example that, for CSRRW, if rd=x0, no read
+            # should happen to the CSR. -> But our CSR implementation has no
+            # side effects on a read, so it's safe to always read.
+            csr_read_val = self.csr.read(csr_addr)
+            csr_write_en = True
             if f3 == isa.CSR_F3['CSRRW']:
-                csr_write_en = True
-                if rd == 0:
-                    csr_addr = 0
+                if rd_idx == isa.I_REGS['x0']:
+                    csr_read_val = 0
             elif f3 == isa.CSR_F3['CSRRS'] or f3 == isa.CSR_F3['CSRRC']:
-                if rs1 != 0:
-                    csr_write_en = True
+                if rs1_idx == isa.I_REGS['x0']:
+                    csr_write_en = False
 
-        return csr_addr, csr_write_en
+        # TODO: Check for illegal instruction (e.g. write to RO CSR)
+
+        return csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm
 
     def check_exception(self, inst, opcode, f3, f7):
         """[summary]

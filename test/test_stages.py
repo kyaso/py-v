@@ -540,10 +540,19 @@ class TestIDStage:
 
         # csrrw: rd=x0 -> no read from CSR
         # csrrw x0, misa, x12
-        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
-            decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
-            sim.run_comb_logic()
-            read_mock.assert_called_with(0)
+        decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0,
+            csr_write_en=True,
+            rd=0,
+            wb_sel=0,
+            f3=1,
+            we=1
+        )
 
         # csrrs/csrrc: rs1=x0 -> no write to CSR
         # csrrs x5, misa, x0
@@ -588,6 +597,23 @@ class TestIDStage:
             decode.IFID_i.write(IFID_t(0x30163073, 0x80000004))
             sim.run_comb_logic()
             read_mock.assert_called_with(0x301)
+
+        # CSR-imm instructions
+        # csrrwi x5, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d52f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=26,
+            rd=5,
+            wb_sel=0,
+            f3=5,
+            we=1
+        )
 
 
 
