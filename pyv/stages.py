@@ -708,7 +708,7 @@ class EXStage(Module):
 
     def csr(self, f3, csr_read_val, rs1):
         ret_val = 0
-        if f3 == isa.CSR_F3['CSRRW']:
+        if f3 in [isa.CSR_F3['CSRRW'], isa.CSR_F3['CSRRWI']]:
             ret_val = rs1
         elif f3 == isa.CSR_F3['CSRRS']:
             ret_val = rs1 | csr_read_val
