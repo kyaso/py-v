@@ -68,7 +68,7 @@ class TestInit():
 
 
 class TestLoad:
-    def test_load_re_disabled(self, mem: Memory, sim: Simulator):
+    def test_load_re_disabled(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(False)
         mem.read_port0.addr_i.write(0)
@@ -85,7 +85,7 @@ class TestLoad:
         sim.step()
         assert mem.read_port1.rdata_o.read() == 0
 
-    def test_load_byte(self, mem: Memory, sim: Simulator):
+    def test_load_byte(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(0)
@@ -102,7 +102,7 @@ class TestLoad:
         sim.step()
         assert mem.read_port1.rdata_o.read() == 0xef
 
-    def test_load_half_word(self, mem: Memory, sim: Simulator):
+    def test_load_half_word(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(0)
@@ -119,7 +119,7 @@ class TestLoad:
         sim.step()
         assert mem.read_port1.rdata_o.read() == 0xbeef
 
-    def test_load_word(self, mem: Memory, sim: Simulator):
+    def test_load_word(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(0)
@@ -136,7 +136,7 @@ class TestLoad:
         sim.step()
         assert mem.read_port1.rdata_o.read() == 0xdeadbeef
 
-    def test_load_misaligned(self, mem: Memory, sim: Simulator):
+    def test_load_misaligned(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(1)
@@ -153,7 +153,7 @@ class TestLoad:
         sim.step()
         assert mem.read_port1.rdata_o.read() == 0xadbe
 
-    def test_load_invalid_width(self, mem: Memory, sim: Simulator):
+    def test_load_invalid_width(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(0)
@@ -170,7 +170,7 @@ class TestLoad:
         with pytest.raises(Exception):
             sim.step()
 
-    def test_read_invalid_idx(self, mem: Memory, sim: Simulator, caplog):
+    def test_read_invalid_idx(self, sim: Simulator, mem: Memory, caplog):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(8)
