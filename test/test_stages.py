@@ -1,4 +1,6 @@
+from unittest.mock import MagicMock, patch
 import pytest
+from pyv.csr import CSRUnit
 from pyv.simulator import Simulator
 from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit, IFID_t, IDEX_t, EXMEM_t, MEMWB_t
 from pyv.reg import Regfile
@@ -49,8 +51,6 @@ def test_IFStage(sim):
     imem.mem[0:4] = [0x23, 0x26, 0xa4, 0xfe]
 
     fetch.npc_i.write(0x00000000)
-    # We need two ticks here to account for the instruction register
-    sim.step()
     sim.step()
 
     out = fetch.IFID_o.read()
@@ -61,106 +61,115 @@ def test_IFStage(sim):
 # ---------------------------------------
 # Test DECODE
 # ---------------------------------------
+
+@pytest.fixture
+def decode():
+    regf = Regfile()
+    csr = CSRUnit()
+    decode = IDStage(regf, csr)
+    decode._init()
+    return decode
+
+
+@pytest.fixture
+def csr():
+    csr = CSRUnit()
+    csr._init()
+    return csr
+
+
 class TestIDStage:
     def test_constructor(self):
         regf = Regfile()
-        dec = IDStage(regf)
+        csr = CSRUnit()
+        decode = IDStage(regf, csr)
 
-        assert regf == dec.regfile
-        assert dec.IFID_i._type == IFID_t
-        assert dec.IDEX_o._type == IDEX_t
+        assert regf == decode.regfile
+        assert csr == decode.csr
+        assert decode.IFID_i._type == IFID_t
+        assert decode.IDEX_o._type == IDEX_t
 
-    def test_decImm(self):
-        dec = IDStage(None)
+    def test_decImm(self, decode: IDStage):
         # --- Test I-type -------------------------
         # 001100110000 10000 000 00001 0010011
         inst = 0b00110011000010000000000010010011
-        imm = dec.decImm(0b00100, inst)
+        imm = decode.decImm(0b00100, inst)
         assert imm == 0b001100110000
 
         # Test sign-ext
         # 101100110000 10000 000 00001 0010011
         inst = 0b10110011000010000000000010010011
-        imm = dec.decImm(0b00100, inst)
+        imm = decode.decImm(0b00100, inst)
         assert imm == 0xFFFFFB30
 
         # --- Test S-type -------------------------
         # 0111010 00000 00000 010 11100 0100011
         inst = 0b01110100000000000010111000100011
-        imm = dec.decImm(0b01000, inst)
+        imm = decode.decImm(0b01000, inst)
         assert imm == 0b011101011100
 
         # Test sign-ext
         # 1111010 00000 00000 010 11100 0100011
         inst = 0b11110100000000000010111000100011
-        imm = dec.decImm(0b01000, inst)
+        imm = decode.decImm(0b01000, inst)
         assert imm == 0xFFFFFF5C
 
         # --- Test B-type -------------------------
         # 0 100110 00000 00000 000 0110 1 1100011
         inst = 0b01001100000000000000011011100011
-        imm = dec.decImm(0b11000, inst)
+        imm = decode.decImm(0b11000, inst)
         assert imm == 0b0110011001100
 
         # Test sign-ext
         # 1 100110 00000 00000 000 0110 1 1100011
         inst = 0b11001100000000000000011011100011
-        imm = dec.decImm(0b11000, inst)
+        imm = decode.decImm(0b11000, inst)
         assert imm == 0xFFFFFCCC
 
         # --- Test U-type -------------------------
         # 00001011001111000101 00000 0110111
         inst = 0b00001011001111000101000000110111
-        imm = dec.decImm(0b01101, inst)
+        imm = decode.decImm(0b01101, inst)
         assert imm == 0x0B3C5000
 
         # Test sign-ext
         # 10001011001111000101 00000 0110111
         inst = 0b10001011001111000101000000110111
-        imm = dec.decImm(0b01101, inst)
+        imm = decode.decImm(0b01101, inst)
         assert imm == 0x8B3C5000
 
         # --- Test J-type -------------------------
         # 0 1111010110 0 00011010 00000 1101111
         inst = 0b01111010110000011010000001101111
-        imm = dec.decImm(0b11011, inst)
+        imm = decode.decImm(0b11011, inst)
         assert imm == 0x1A7AC
 
         # Test sign-ext
         # 1 1111010110 0 00011010 00000 1101111
         inst = 0b11111010110000011010000001101111
-        imm = dec.decImm(0b11011, inst)
+        imm = decode.decImm(0b11011, inst)
         assert imm == 0xFFF1A7AC
 
-    def test_exception(self, caplog, sim):
-        dec = IDStage(Regfile())
-        dec._init()
-
+    def test_exception(self, caplog, sim: Simulator, decode: IDStage):
         # --- Illegal Instruction -----------------
         pc = 0
 
         # No exception for valid instruction
         inst = 0x23  # store
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         sim.step()
 
         # --- Inst[1:0] != 2'b11
         inst = 0x10
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # --- Unsupported RV32base Opcodes
         inst = 0x1F  # opcode = 0011111
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
-        with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
-            sim.step()
-
-        inst = 0x73  # opcode = 1110011
-        pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -170,13 +179,13 @@ class TestIDStage:
         # If funct3 == 1 => funct7 == 0
         inst = 0x02001013  # funct7 = 1
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct3 == 5 => funct7 == {0, 0100000}
         inst = 0xc0005013  # funct7 = 1100000
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -184,20 +193,20 @@ class TestIDStage:
         # If funct7 != {0, 0100000} -> illegal
         inst = 0x80000033  # funct7 = 1000000
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
         # If funct7 == 0100000 => funct3 == {0, 5}
         inst = 0x40002033  # funct3 = 2
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
         # JALR -> opcode = 1100111 => funct3 == 0
         inst = 0x00005067  # funct3 = 5
         pc += 1
-        dec.IFID_i.write(IFID_t(inst, pc))
+        decode.IFID_i.write(IFID_t(inst, pc))
         with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
             sim.step()
 
@@ -206,7 +215,7 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x63 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
@@ -215,7 +224,7 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x3 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
@@ -224,20 +233,21 @@ class TestIDStage:
         for f3 in funct3:
             pc += 1
             inst = 0x23 | (f3 << 12)
-            dec.IFID_i.write(IFID_t(inst, pc))
+            decode.IFID_i.write(IFID_t(inst, pc))
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
-    def test_wbSel(self, sim):
-        decode = IDStage(None)
-        res = decode.wb_sel(0b11011)
+    def test_wbSel(self, decode: IDStage):
+        res = decode.wb_sel(0b11011, 0)
         assert res == 1
-        res = decode.wb_sel(0)
+        res = decode.wb_sel(0, 0)
         assert res == 2
-        res = decode.wb_sel(0b01100)
+        res = decode.wb_sel(0b01100, 0)
         assert res == 0
+        res = decode.wb_sel(0b11100, 1)
+        assert res == 3
 
-    def test_IDStage(self, sim: Simulator):
+    def test_IDStage(self, sim: Simulator, decode: IDStage):
         def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
             if rs1 is not None:
                 assert out.rs1 == rs1
@@ -257,15 +267,11 @@ class TestIDStage:
                 assert out.funct7 == funct7
             assert out.mem == mem
 
-        regf = Regfile()
-        decode = IDStage(regf)
-        decode._init()
-
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
 
         # Write some values into the relevant registers
-        regf.regs[8] = 0x80000000
-        regf.regs[10] = 42
+        decode.regfile.regs[8] = 0x80000000
+        decode.regfile.regs[10] = 42
 
         # Set input
         decode.IFID_i.write(IFID_t(0xfea42623, 0x80000004))
@@ -290,8 +296,8 @@ class TestIDStage:
 
         # ---- Test OP-IMM -----------------------------------
         # addi x7, x3, 89
-        regf.regs[3] = 120
-        regf.we = False
+        decode.regfile.regs[3] = 120
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x05918393, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
@@ -312,8 +318,8 @@ class TestIDStage:
 
         # ---- Test SHAMT -----------------------------------
         # srli x8, x1, 8
-        regf.regs[1] = 120
-        regf.we = False
+        decode.regfile.regs[1] = 120
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x0080d413, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
@@ -334,9 +340,9 @@ class TestIDStage:
 
         # ---- Test OP -----------------------------------
         # SUB x14, x7, x5
-        regf.writeRequest(7, 43)
+        decode.regfile.writeRequest(7, 43)
         sim.step()
-        regf.writeRequest(5, 12)
+        decode.regfile.writeRequest(5, 12)
         sim.step()
 
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
@@ -359,7 +365,7 @@ class TestIDStage:
 
         # ---- Test LOAD -----------------------------------
         # LW x15, x8, 0x456
-        regf.writeRequest(8, 0x40000000)
+        decode.regfile.writeRequest(8, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
         sim.step()
@@ -381,7 +387,7 @@ class TestIDStage:
 
         # ---- Test JALR -----------------------------------
         # jalr x13, 1025(x28)
-        regf.writeRequest(28, 0x40000000)
+        decode.regfile.writeRequest(28, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x401e06e7, 0x80000004))
         sim.step()
@@ -403,9 +409,9 @@ class TestIDStage:
 
         # ---- Test BRANCH -----------------------------------
         # bne x4, x8, 564
-        regf.regs[4] = 42
-        regf.regs[8] = 12
-        regf.we = False
+        decode.regfile.regs[4] = 42
+        decode.regfile.regs[8] = 12
+        decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x22821a63, 0x80000004))
         sim.step()
         out = decode.IDEX_o.read()
@@ -488,21 +494,240 @@ class TestIDStage:
 
         # TODO: Test ECALL / EBREAK
 
+    def test_csr(self, sim: Simulator, decode: IDStage):
+        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None):
+            if csr_addr is not None:
+                assert out.csr_addr == csr_addr
+            if csr_read_val is not None:
+                assert out.csr_read_val == csr_read_val
+            if rs1 is not None:
+                assert out.rs1 == rs1
+            if rd is not None:
+                assert out.rd == rd
+            if wb_sel is not None:
+                assert out.wb_sel == wb_sel
+            if csr_write_en is not None:
+                assert out.csr_write_en == csr_write_en
+            if f3 is not None:
+                assert out.funct3 == f3
+            if we is not None:
+                assert out.we == we
+
+        # Not a CSR inst
+        decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0,
+            csr_read_val=0,
+            csr_write_en=False
+        )
+
+        # csrrw x5, misa, x12
+        decode.regfile.regs[12] = 0x89
+        decode.csr.csr_bank.misa._csr_reg.cur.write(0x42)
+        decode.IFID_i.write(IFID_t(0x301612f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=0x89,
+            rd=5,
+            wb_sel=3,
+            f3=1,
+            we=1
+        )
+
+        # csrrw: rd=x0 -> no read from CSR
+        # csrrw x0, misa, x12
+        decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0,
+            csr_write_en=True,
+            rd=0,
+            wb_sel=3,
+            f3=1,
+            we=1
+        )
+
+        # csrrs/csrrc: rs1=x0 -> no write to CSR
+        # csrrs x5, misa, x0
+        decode.IFID_i.write(IFID_t(0x301022f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rd=5,
+            wb_sel=3,
+            f3=2,
+            we=1
+        )
+
+        # csrrc x5, misa, x0
+        decode.IFID_i.write(IFID_t(0x301032f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rd=5,
+            wb_sel=3,
+            f3=3,
+            we=1
+        )
+
+        # csrrs/csrrc: rd=0 -> read has to happen regardless
+        # csrrs x0, misa, x12
+        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
+            decode.IFID_i.write(IFID_t(0x30162073, 0x80000004))
+            sim.run_comb_logic()
+            read_mock.assert_called_with(0x301)
+
+        # csrrc x0, misa, x12
+        with patch.object(decode.csr, 'read', MagicMock()) as read_mock:
+            decode.IFID_i.write(IFID_t(0x30163073, 0x80000004))
+            sim.run_comb_logic()
+            read_mock.assert_called_with(0x301)
+
+        # CSR-imm instructions
+        # csrrwi x5, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d52f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=26,
+            rd=5,
+            wb_sel=3,
+            f3=5,
+            we=1
+        )
+
+        # csrrwi x0, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d5073, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0,
+            csr_write_en=True,
+            rs1=26,
+            rd=0,
+            wb_sel=3,
+            f3=5,
+            we=1
+        )
+
+        # csrrsi x5, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d62f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=26,
+            rd=5,
+            wb_sel=3,
+            f3=6,
+            we=1
+        )
+
+        # csrrsi x5, misa, 0
+        decode.IFID_i.write(IFID_t(0x301062f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rs1=0,
+            rd=5,
+            wb_sel=3,
+            f3=6,
+            we=1
+        )
+
+        # csrrci x5, misa, 26
+        decode.IFID_i.write(IFID_t(0x301d72f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=True,
+            rs1=26,
+            rd=5,
+            wb_sel=3,
+            f3=7,
+            we=1
+        )
+
+        # csrrci x5, misa, 0
+        decode.IFID_i.write(IFID_t(0x301072f3, 0x80000004))
+        sim.run_comb_logic()
+        out = decode.IDEX_o.read()
+        validate(
+            out=out,
+            csr_addr=0x301,
+            csr_read_val=0x42,
+            csr_write_en=False,
+            rs1=0,
+            rd=5,
+            wb_sel=3,
+            f3=7,
+            we=1
+        )
+
 
 # ---------------------------------------
 # Test EXECUTE
 # ---------------------------------------
-class TestEXStage:
-    def test_constructor(self):
-        ex = EXStage()
 
+@pytest.fixture
+def ex() -> EXStage:
+    ex = EXStage()
+    ex._init()
+    return ex
+
+
+class TestEXStage:
+    def test_constructor(self, ex: EXStage):
         assert ex.IDEX_i._type == IDEX_t
         assert ex.EXMEM_o._type == EXMEM_t
 
-    def test_passThrough(self, sim):
-        ex = EXStage()
-
-        ex.IDEX_i.write(IDEX_t(rd=1, we=1, wb_sel=2, rs2=23, mem=1, funct3=5))
+    def test_passThrough(self, sim: Simulator, ex: EXStage):
+        ex.IDEX_i.write(IDEX_t(
+            rd=1,
+            we=1,
+            wb_sel=2,
+            rs2=23,
+            mem=1,
+            funct3=5,
+            csr_addr=123,
+            csr_write_en=True,
+            csr_read_val=45)
+        )
 
         sim.step()
 
@@ -513,10 +738,11 @@ class TestEXStage:
         assert out.rs2 == 23
         assert out.mem == 1
         assert out.funct3 == 5
+        assert out.csr_addr == 123
+        assert out.csr_write_en == True
+        assert out.csr_read_val == 45
 
-    def test_alu(self):
-        ex = EXStage()
-
+    def test_alu(self, ex: EXStage):
         # LUI
         res = ex.alu(0b01101, 0, 0, 0x41AF3000, 0, 0, 0)
         assert res == 0x41AF3000
@@ -813,9 +1039,7 @@ class TestEXStage:
         res = ex.alu(opcode=0b01100, rs1=0x00ff00ff, imm=0, rs2=0x0000070f, pc=0, f3=0b111, f7=0)
         assert res == 0x0000000f
 
-    def test_branch(self):
-        ex = EXStage()
-
+    def test_branch(self, ex: EXStage):
         # BEQ
         res = ex.branch(f3=0, rs1=0, rs2=0)
         assert res == True
@@ -960,21 +1184,18 @@ class TestEXStage:
         res = ex.branch(f3=7, rs1=0x7fffffff, rs2=0x80000000)
         assert res == False
 
-    def test_pc4(self, sim):
-        ex = EXStage()
-
+    def test_pc4(self, sim: Simulator, ex: EXStage):
         ex.IDEX_i.write(IDEX_t(
             pc=42
         ))
         sim.step()
         assert ex.EXMEM_o.read().pc4 == (42 + 4)
 
-    def test_take_branch(self, sim):
+    def test_take_branch(self, sim: Simulator, ex: EXStage):
         def step_and_assert(expected):
             sim.step()
             assert ex.EXMEM_o.read().take_branch == expected
 
-        ex = EXStage()
         # BEQ (B-type) -> take_branch should be set
         ex.IDEX_i.write(IDEX_t(opcode=0b11000, funct3=0, rs1=42, rs2=42))
         step_and_assert(True)
@@ -1019,7 +1240,74 @@ class TestEXStage:
         ex.IDEX_i.write(IDEX_t(opcode=0b11100))
         step_and_assert(False)
 
-    def test_EXStage(self, sim):
+    def test_csr(self, sim: Simulator, ex: EXStage):
+        # csrrw
+        ex.IDEX_i.write(IDEX_t(
+            rs1=34,
+            funct3=1,
+            csr_read_val=123,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 34
+
+        # csrrs
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0xCCCC_CCCC,
+            funct3=2,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0xEEEE_EEEE
+
+        # csrrc
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0xCCCC_CCCC,
+            funct3=3,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0x2222_2222
+
+        # csrrwi
+        ex.IDEX_i.write(IDEX_t(
+            rs1=26,
+            funct3=5,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 26
+
+        # csrrsi
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1A,
+            funct3=6,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0xAAAA_AABA
+
+        # csrrci
+        ex.IDEX_i.write(IDEX_t(
+            rs1=0x1A,
+            funct3=7,
+            csr_read_val=0xAAAA_AAAA,
+            csr_write_en=True
+        ))
+        sim.step()
+        out = ex.EXMEM_o.read()
+        assert out.csr_write_val == 0xAAAA_AAA0
+
+    def test_EXStage(self, sim: Simulator, ex: EXStage):
         def validate(out: EXMEM_t, take_branch, alu_res, pc4, rd, we, wb_sel, rs2, mem, funct3):
             # Generated outputs
             assert out.take_branch == take_branch
@@ -1042,8 +1330,6 @@ class TestEXStage:
                 assert out.mem == mem
             if funct3 is not None:
                 assert out.funct3 == funct3
-
-        ex = EXStage()
 
         # LUI x24, 0xaffe
         ex.IDEX_i.write(IDEX_t(
@@ -1266,9 +1552,7 @@ class TestEXStage:
             funct3=None
         )
 
-    def test_exception(self, caplog, sim):
-        ex = EXStage()
-
+    def test_exception(self, caplog, sim: Simulator, ex: EXStage):
         pc = 0x80004000
 
         # --- Misaligned instruction address ---------
@@ -1419,7 +1703,11 @@ class TestMEMStage:
             we=1,
             wb_sel=2,
             pc4=0xdeadbeef,
-            alu_res=0xaffeaffe
+            alu_res=0xaffeaffe,
+            csr_addr=123,
+            csr_read_val=42,
+            csr_write_en=True,
+            csr_write_val=34
         ))
         sim.step()
         out = mem_stage.MEMWB_o.read()
@@ -1428,6 +1716,10 @@ class TestMEMStage:
         assert out.wb_sel == 2
         assert out.pc4 == 0xdeadbeef
         assert out.alu_res == 0xaffeaffe
+        assert out.csr_addr == 123
+        assert out.csr_read_val == 42
+        assert out.csr_write_en == True
+        assert out.csr_write_val == 34
 
     def test_load(self, mem_stage, sim):
         mem_stage._init()
@@ -1575,17 +1867,19 @@ class TestMEMStage:
 # ---------------------------------------
 # Test WRITE-BACK
 # ---------------------------------------
-class TestWBStage:
-    def test_constructor(self):
-        regf = Regfile()
-        wb = WBStage(regf)
+@pytest.fixture
+def wb() -> WBStage:
+    regf = Regfile()
+    wb = WBStage(regf)
+    wb._init()
+    return wb
 
+
+class TestWBStage:
+    def test_constructor(self, wb: WBStage):
         assert wb.MEMWB_i._type == MEMWB_t
 
-    def test_wb(self, sim):
-        wb = WBStage(Regfile())
-        wb._init()
-
+    def test_wb(self, sim: Simulator, wb: WBStage):
         # ALU op
         wb.MEMWB_i.write(MEMWB_t(
             rd=18,
@@ -1622,11 +1916,8 @@ class TestWBStage:
         sim.step()
         assert wb.regfile.read(4) == 0xdeadbeef
 
-    def test_no_wb(self, sim):
-        wb = WBStage(Regfile())
-
-        wb.regfile.writeRequest(25, 1234)
-        sim.step()
+    def test_no_wb(self, sim: Simulator, wb: WBStage):
+        wb.regfile.regs[25] = 1234
 
         val = MEMWB_t(
             we=0,
@@ -1653,6 +1944,44 @@ class TestWBStage:
         wb.MEMWB_i.write(val)
         sim.step()
         assert wb.regfile.read(25) == 1234
+
+    def test_csr(self, sim: Simulator, wb: WBStage, csr: CSRUnit):
+        csr.write_addr_i << wb.csr_write_addr_o
+        csr.write_en_i << wb.csr_write_en_o
+        csr.write_val_i << wb.csr_write_val_o
+
+        wb.MEMWB_i.write(MEMWB_t(
+            rd=5,
+            we=1,
+            alu_res=42,
+            pc4=87,
+            mem_rdata=0xdeadbeef,
+            wb_sel=3,
+            csr_addr=0x301,
+            csr_read_val=65,
+            csr_write_en=True,
+            csr_write_val=45
+        ))
+        sim.step()
+        assert wb.regfile.regs[5] == 65
+        assert csr.csr_bank.misa.csr_val_o.read() == 45
+
+        # No CSR
+        wb.MEMWB_i.write(MEMWB_t(
+            rd=5,
+            we=1,
+            alu_res=42,
+            pc4=87,
+            mem_rdata=0xdeadbeef,
+            wb_sel=0,
+            csr_addr=0x301,
+            csr_read_val=65,
+            csr_write_en=False,
+            csr_write_val=56
+        ))
+        sim.step()
+        assert wb.regfile.regs[5] == 42
+        assert csr.csr_bank.misa.csr_val_o.read() == 45
 
 
 # ---------------------------------------

@@ -102,7 +102,6 @@ class Regfile(Clocked):
                 val = self.regs[reg]
                 logger.debug(f"Regfile READ: x{reg} = {val}")
             except IndexError:
-                logger.warn(f"Potentially illegal register index 0x{reg:08X}. This might be normal during cycle processing.")  # noqa: E501
                 val = 0
 
             return val

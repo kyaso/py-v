@@ -110,7 +110,6 @@ class Memory(Module, Clocked):
 
             logger.debug(f"MEM ({self.name}): read value {val:08X} from address {addr:08X}")  # noqa: E501
         except IndexError:
-            logger.warn(f"Potentially illegal memory address 0x{addr:08X}. This might be normal during cycle processing.")  # noqa: E501
             val = 0
 
         return val

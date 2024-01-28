@@ -44,8 +44,8 @@ class Simulator:
     def __init__(self):
         Simulator.globalSim = self
 
-        self._process_q = deque()
-        self._event_q = _EventQueue()
+        self._change_queue = deque()
+        self._event_queue = _EventQueue()
         self._cycles = 0
 
     def setProbes(self, probes: list[str] = []):
@@ -60,19 +60,58 @@ class Simulator:
         """
         PortList.filter(probes)
 
-    def step(self):
-        """Perform one simulation step (cycle).
-        """
+    def _log_cycle(self):
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
-        self._process_events()
-        self._process_queue()
-
+    def _log_ports(self):
         PortList.logPorts()
 
+    def _log(self):
+        self._log_cycle()
+        self._log_ports()
+
+    def tick(self):
+        """Advance simulation to next cycle. Applies clock tick to registers
+        and memories.
+        """
+        self._log()
         logger.debug("** Clock tick **")
         Clock.tick()
         self._cycles += 1
+        return self
+
+    def run_comb_logic(self):
+        """Runs combinatorial logic for the current cycle.
+
+        Returns:
+            The current simulator instance to allow dot-chaining multiple
+            commands.
+        """
+        self._process_changes()
+        return self
+
+    def _cycle(self):
+        self._process_events()
+        self.run_comb_logic()
+        self.tick()
+
+    def step(self):
+        """Peform a single simulation step (cycle).
+        This is method is intended for use in tests.
+        """
+        self._cycle()
+        self._process_remaining()
+        return self
+
+    def _process_remaining(self):
+        self._process_events()
+        self.run_comb_logic()
+        self._log()
+
+    def reset(self):
+        """Applies global reset (registers, memories).
+        """
+        Clock.reset()
 
     def run(self, num_cycles=1, reset_regs: bool = True):
         """Runs the simulation.
@@ -87,10 +126,11 @@ class Simulator:
         logger.info(f"**** Simulation started on {current_time} ****\n")
 
         if reset_regs:
-            Clock.reset()
+            self.reset()
 
         for i in range(0, num_cycles):
-            self.step()
+            self._cycle()
+        self._process_remaining()
 
     @staticmethod
     def clear():
@@ -98,31 +138,31 @@ class Simulator:
         Clock.clear()
         PortList.clear()
 
-    def _process_queue(self):
-        while len(self._process_q) > 0:
-            nextFn = self._process_q.popleft()
+    def _process_changes(self):
+        while len(self._change_queue) > 0:
+            nextFn = self._change_queue.popleft()
             logger.debug(f"Running {nextFn.__qualname__}")
             nextFn()
 
     def _events_pending(self):
-        return self._cycles == self._event_q.next_event_time()
+        return self._cycles == self._event_queue.next_event_time()
 
     def _process_events(self):
         while self._events_pending():
-            event: Event = self._event_q.get_next_event()
+            event: Event = self._event_queue.get_next_event()
             callback = event[2]
             logger.info(f"Triggering event -> {callback.__qualname__}()")
             callback()
 
-    def _addToProcessQueue(self, fn):
+    def _addToChangeQueue(self, fn):
         """Add a function to the simulation queue.
 
         Args:
             fn (function): The function we want to add to the queue.
         """
-        if fn not in self._process_q:
+        if fn not in self._change_queue:
             logger.debug(f"Adding {fn.__qualname__} to queue.")
-            self._process_q.append(fn)
+            self._change_queue.append(fn)
         else:
             logger.debug(f"{fn.__qualname__} already in queue.")
 
@@ -147,7 +187,7 @@ class Simulator:
         if time_abs <= self._cycles:
             raise Exception("Error: Event must lie in the future!")
 
-        self._event_q.add_event(time_abs, callback)
+        self._event_queue.add_event(time_abs, callback)
 
     def postEventRel(self, time_rel, callback):
         """Post an event into the future with *relative* time.

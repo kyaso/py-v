@@ -1,3 +1,4 @@
+from pyv.csr import CSRUnit
 from pyv.stages import EXMEM_t, IFID_t, IFStage, IDStage, EXStage, MEMStage, \
     WBStage, BranchUnit
 from pyv.mem import Memory
@@ -17,11 +18,13 @@ class SingleCycle(Module):
         # Stages/modules
         self.regf = Regfile()
         """RISC-V 32-bit base register file"""
+        self.csr_unit = CSRUnit()
+        """RISC-V CSRs"""
         self.mem = Memory(8 * 1024)
         """Main Memory (for both instructions and data)"""
         self.if_stg = IFStage(self.mem.read_port1)
         """Instruction Fetch"""
-        self.id_stg = IDStage(self.regf)
+        self.id_stg = IDStage(self.regf, self.csr_unit)
         """Instruction Decode"""
         self.ex_stg = EXStage()
         """Execute"""
@@ -51,6 +54,11 @@ class SingleCycle(Module):
         self.bu.pc_i          << self.pc
         self.bu.take_branch_i << self.take_branch
         self.bu.target_i      << self.alu_res
+
+        # Connect WBStage to CSR unit
+        self.csr_unit.write_en_i << self.wb_stg.csr_write_en_o
+        self.csr_unit.write_addr_i << self.wb_stg.csr_write_addr_o
+        self.csr_unit.write_val_i << self.wb_stg.csr_write_val_o
 
     def connects(self):
         val = self.IFID.read().pc

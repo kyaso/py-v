@@ -1,6 +1,6 @@
 import pytest
 from pyv.module import Module
-from pyv.port import Input, Output, PortList
+from pyv.port import Input, Output, PortList, Wire
 from pyv.simulator import Simulator, _EventQueue
 from pyv.reg import Reg
 from pyv.clocked import Clock
@@ -124,7 +124,7 @@ class ExampleTop2(Module):
 
 class TestSimulator:
     def test_init(self, sim: Simulator):
-        assert sim._process_q == deque([])
+        assert sim._change_queue == deque([])
         assert sim._cycles == 0
         assert Simulator.globalSim == sim
 
@@ -141,42 +141,33 @@ class TestSimulator:
         dut.name = 'ExampleTop'
         dut._init()
         # Clear pre-populated process queue; we want to test it in isolation here
-        sim._process_q = deque()
+        sim._change_queue = deque()
         Clock.reset()
 
         dut.inA.write(42)
         dut.inB.write(43)
-        assert sim._process_q == deque([dut.process, dut.A_i.process])
+        assert sim._change_queue == deque([dut.process, dut.A_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.A_i.process])
+        assert sim._change_queue == deque([dut.A_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.B1_i.process, dut.B2_i.process])
+        assert sim._change_queue == deque([dut.B1_i.process, dut.B2_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.B2_i.process, dut.C_i.process])
+        assert sim._change_queue == deque([dut.B2_i.process, dut.C_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([dut.C_i.process])
+        assert sim._change_queue == deque([dut.C_i.process])
 
-        fn = sim._process_q.popleft()
+        fn = sim._change_queue.popleft()
         fn()
-        assert sim._process_q == deque([])
+        assert sim._change_queue == deque([])
         assert dut.out.read() == 42 + 43
-
-    def test_step(self, sim: Simulator):
-        pe = sim._process_events = MagicMock()
-        pq = sim._process_queue = MagicMock()
-
-        sim.step()
-        pe.assert_called_once()
-        pq.assert_called_once()
-        assert sim._cycles == 1
 
     def test_run(self, sim: Simulator):
         dut = ExampleTop2()
@@ -187,7 +178,7 @@ class TestSimulator:
         Clock.reset()
 
         sim.run(4)
-        assert dut.out.read() == 4475
+        assert dut.out.read() == -2225
 
         # sim.step()
         # assert dut.out.read() == -25
@@ -202,7 +193,59 @@ class TestSimulator:
         # assert dut.out.read() == 4475
 
         assert sim.getCycles() == 4
-        assert sim._process_events.call_count == 4
+        assert sim._process_events.call_count == 5
+
+
+class TestStep:
+    def test_step(self, sim: Simulator):
+        pe = sim._process_events = MagicMock()
+        pq = sim._process_changes = MagicMock()
+
+        sim.step()
+        assert pe.call_count == 2
+        assert pq.call_count == 2
+        assert sim._cycles == 1
+
+    def test_comb_step(self, sim: Simulator):
+        class Foo(Module):
+            def __init__(self):
+                super().__init__()
+                self.A_i = Input(int)
+                self.pass_o = Output(int)
+                self.reg_o = Output(int)
+                self.comb_o = Output(int)
+
+                self.reg = Reg(int, 42)
+                self.reg_w = Wire(int)
+
+                self.reg.next << self.A_i
+                self.pass_o << self.A_i
+                self.reg_o << self.reg.cur
+                self.reg_w << self.reg.cur
+
+            def process(self):
+                a = self.A_i.read()
+                r = self.reg_w.read()
+                sum = a + r
+                self.comb_o.write(sum)
+
+        foo = Foo()
+        foo._init()
+        sim.reset()
+
+        foo.A_i.write(10)
+        sim.run_comb_logic()
+        assert foo.pass_o.read() == 10
+        assert foo.reg_o.read() == 42
+        assert foo.comb_o.read() == 52
+
+        foo.A_i.write(20)
+        # This should make sure that the process method gets executed after the
+        # clock tick to get the correct output value
+        sim.step()
+        assert foo.pass_o.read() == 20
+        assert foo.reg_o.read() == 20
+        assert foo.comb_o.read() == 40
 
 
 class TestEventQueue:
@@ -269,14 +312,14 @@ class TestEventQueue:
 
 class TestEvents:
     def test_event_queue_exists(self, sim: Simulator):
-        assert isinstance(sim._event_q, _EventQueue)
+        assert isinstance(sim._event_queue, _EventQueue)
 
     def test_add_event_absolute(self, sim: Simulator):
         def callback():
             pass
         sim._cycles = 100
 
-        add_event = sim._event_q.add_event = MagicMock()
+        add_event = sim._event_queue.add_event = MagicMock()
         sim.postEventAbs(1024, callback)
         add_event.assert_called_once_with(1024, callback)
 
@@ -284,7 +327,7 @@ class TestEvents:
         def callback():
             pass
         sim._cycles = 100
-        add_event = sim._event_q.add_event = MagicMock()
+        add_event = sim._event_queue.add_event = MagicMock()
         sim.postEventRel(42, callback)
         add_event.assert_called_once_with(142, callback)
 
@@ -305,26 +348,26 @@ class TestEvents:
 
         sim._cycles = 1
         sim._process_events()
-        assert sim._event_q._get_num_events() == 4
-        assert sim._event_q.next_event_time() == 5
+        assert sim._event_queue._get_num_events() == 4
+        assert sim._event_queue.next_event_time() == 5
 
         sim._cycles = 5
         sim._process_events()
         callback1.assert_called_once()
-        assert sim._event_q._get_num_events() == 3
-        assert sim._event_q.next_event_time() == 10
+        assert sim._event_queue._get_num_events() == 3
+        assert sim._event_queue.next_event_time() == 10
 
         sim._cycles = 10
         sim._process_events()
         callback2.assert_called_once()
-        assert sim._event_q._get_num_events() == 2
-        assert sim._event_q.next_event_time() == 11
+        assert sim._event_queue._get_num_events() == 2
+        assert sim._event_queue.next_event_time() == 11
 
         sim._cycles = 11
         sim._process_events()
         callback3.assert_called_once()
         callback4.assert_called_once()
-        assert sim._event_q.next_event_time() == -1
+        assert sim._event_queue.next_event_time() == -1
 
     def test_invalid_event_time(self, sim: Simulator):
         sim._cycles = 10

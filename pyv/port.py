@@ -100,7 +100,7 @@ class _ProcessMethodHandler():
     def add_methods_to_sim_queue(self):
         import pyv.simulator as simulator
         for func in self._processMethods:
-            simulator.Simulator.globalSim._addToProcessQueue(func)
+            simulator.Simulator.globalSim._addToChangeQueue(func)
 
 
 class PortRW(Port, Generic[T]):
@@ -112,11 +112,6 @@ class PortRW(Port, Generic[T]):
             type: Data type for this port.
         """
         super().__init__(type, None)
-
-        # Whether the port has not been written to in the entire simulation.
-        # For most (if not all) ports this will only be the case during the
-        # first cycle.
-        self._isUntouched = True
 
     def read(self) -> T:
         """Reads the current value of the port.

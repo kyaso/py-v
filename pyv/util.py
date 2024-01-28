@@ -32,6 +32,13 @@ class PyVObj:
                 obj._init(self)
 
 
+class Container(PyVObj):
+    """This class can be used to group together one or more `PyVObj`s.
+    """
+    def __init__(self):
+        super().__init__()
+
+
 # XLEN
 XLEN = 32
 
