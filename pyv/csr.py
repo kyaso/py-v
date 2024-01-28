@@ -34,7 +34,7 @@ class CSRBank(Container):
         elif addr == 0x301:
             return self.misa
         else:
-            logger.warn(
+            logger.warning(
                 f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
             return None
 

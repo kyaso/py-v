@@ -841,10 +841,10 @@ class MEMStage(Module):
 
         if f3 == 1:  # Half word
             if addr & 0x1 != 0:
-                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
+                logger.warning(f"Misaligned {op_str} address 0x{addr:08X}.")
         elif f3 == 2:  # Word
             if addr & 0x11 != 0:
-                logger.warn(f"Misaligned {op_str} address 0x{addr:08X}.")
+                logger.warning(f"Misaligned {op_str} address 0x{addr:08X}.")
 
 
 class WBStage(Module):
