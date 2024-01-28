@@ -170,13 +170,15 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # CSR
-        csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
+        csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = \
+            self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
         if csr_isImm:
             rs1 = csr_uimm
 
         # Outputs
-        self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
-                                 opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
+        self.IDEX_o.write(IDEX_t(
+            rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
+            opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
 
     def is_csr(self, opcode, f3):
         return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
@@ -313,7 +315,8 @@ class IDStage(Module):
             if f3 in [isa.CSR_F3['CSRRW'], isa.CSR_F3['CSRRWI']]:
                 if rd_idx == isa.I_REGS['x0']:
                     csr_read_val = 0
-            elif f3 in [isa.CSR_F3['CSRRS'], isa.CSR_F3['CSRRC'], isa.CSR_F3['CSRRSI'], isa.CSR_F3['CSRRCI']]:
+            elif f3 in [isa.CSR_F3['CSRRS'], isa.CSR_F3['CSRRC'],
+                        isa.CSR_F3['CSRRSI'], isa.CSR_F3['CSRRCI']]:
                 if rs1_idx == 0:
                     csr_write_en = False
 
@@ -717,7 +720,6 @@ class EXStage(Module):
         elif f3 in [isa.CSR_F3['CSRRC'], isa.CSR_F3['CSRRCI']]:
             ret_val = ~rs1 & csr_read_val
         return ret_val
-
 
 
 class MEMStage(Module):

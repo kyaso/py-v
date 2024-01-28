@@ -3,11 +3,13 @@ from pyv.clocked import Clock
 from pyv.csr import CSRBlock, CSRUnit
 from pyv.simulator import Simulator
 
+
 @pytest.fixture
 def csr_block() -> CSRBlock:
     csr = CSRBlock(0)
     csr._init()
     return csr
+
 
 class TestCSRBlock:
     def test_read(self, sim: Simulator, csr_block: CSRBlock):
@@ -33,11 +35,13 @@ def csr_unit() -> CSRUnit:
     Clock.reset()
     return csr_unit
 
+
 def csr_write(csr_unit: CSRUnit, csr_num: int, value: int, sim: Simulator):
     csr_unit.write_addr_i.write(csr_num)
     csr_unit.write_en_i.write(True)
     csr_unit.write_val_i.write(value)
     sim.step()
+
 
 def csr_read(csr_unit: CSRUnit, csr_num: int):
     return csr_unit.read(csr_num)
@@ -72,7 +76,6 @@ class TestCSRUnit:
         assert csr_read(csr_unit, 0x301) == 0x4000_0100
         sim.step()
         assert csr_read(csr_unit, 0x301) == 0x42
-
 
     def test_m_mode_csrs(self, sim: Simulator, csr_unit: CSRUnit):
         # ---- misa ----

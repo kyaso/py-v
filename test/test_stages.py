@@ -70,11 +70,13 @@ def decode():
     decode._init()
     return decode
 
+
 @pytest.fixture
 def csr():
     csr = CSRUnit()
     csr._init()
     return csr
+
 
 class TestIDStage:
     def test_constructor(self):
@@ -698,7 +700,6 @@ class TestIDStage:
         )
 
 
-
 # ---------------------------------------
 # Test EXECUTE
 # ---------------------------------------
@@ -708,6 +709,7 @@ def ex() -> EXStage:
     ex = EXStage()
     ex._init()
     return ex
+
 
 class TestEXStage:
     def test_constructor(self, sim: Simulator, ex: EXStage):
@@ -1305,9 +1307,6 @@ class TestEXStage:
         out = ex.EXMEM_o.read()
         assert out.csr_write_val == 0xAAAA_AAA0
 
-
-
-
     def test_EXStage(self, sim: Simulator, ex: EXStage):
         def validate(out: EXMEM_t, take_branch, alu_res, pc4, rd, we, wb_sel, rs2, mem, funct3):
             # Generated outputs
@@ -1874,6 +1873,7 @@ def wb() -> WBStage:
     wb = WBStage(regf)
     wb._init()
     return wb
+
 
 class TestWBStage:
     def test_constructor(self, sim: Simulator, wb: WBStage):

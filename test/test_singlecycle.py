@@ -3,6 +3,7 @@ import pytest
 from pyv.models.singlecycle import SingleCycle
 from pyv.simulator import Simulator
 
+
 @pytest.fixture
 def core() -> SingleCycle:
     core = SingleCycle()
@@ -10,10 +11,12 @@ def core() -> SingleCycle:
     core._init()
     return core
 
+
 def mem_write_word(mem: list, addr, val):
     for i in range(4):
         mem[addr + i] = 0xff & val
         val >>= 8
+
 
 class TestCSR:
     def test_csrrw(self, sim: Simulator, core: SingleCycle):

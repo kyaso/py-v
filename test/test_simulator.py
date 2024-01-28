@@ -195,6 +195,7 @@ class TestSimulator:
         assert sim.getCycles() == 4
         assert sim._process_events.call_count == 5
 
+
 class TestStep:
     def test_step(self, sim: Simulator):
         pe = sim._process_events = MagicMock()
