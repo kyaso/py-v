@@ -89,7 +89,7 @@ class TestIDStage:
         assert decode.IFID_i._type == IFID_t
         assert decode.IDEX_o._type == IDEX_t
 
-    def test_decImm(self, sim: Simulator, decode: IDStage):
+    def test_decImm(self, decode: IDStage):
         # --- Test I-type -------------------------
         # 001100110000 10000 000 00001 0010011
         inst = 0b00110011000010000000000010010011
@@ -237,7 +237,7 @@ class TestIDStage:
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
-    def test_wbSel(self, sim: Simulator, decode: IDStage):
+    def test_wbSel(self, decode: IDStage):
         res = decode.wb_sel(0b11011, 0)
         assert res == 1
         res = decode.wb_sel(0, 0)
@@ -712,7 +712,7 @@ def ex() -> EXStage:
 
 
 class TestEXStage:
-    def test_constructor(self, sim: Simulator, ex: EXStage):
+    def test_constructor(self, ex: EXStage):
         assert ex.IDEX_i._type == IDEX_t
         assert ex.EXMEM_o._type == EXMEM_t
 
@@ -742,7 +742,7 @@ class TestEXStage:
         assert out.csr_write_en == True
         assert out.csr_read_val == 45
 
-    def test_alu(self, sim: Simulator, ex: EXStage):
+    def test_alu(self, ex: EXStage):
         # LUI
         res = ex.alu(0b01101, 0, 0, 0x41AF3000, 0, 0, 0)
         assert res == 0x41AF3000
@@ -1039,7 +1039,7 @@ class TestEXStage:
         res = ex.alu(opcode=0b01100, rs1=0x00ff00ff, imm=0, rs2=0x0000070f, pc=0, f3=0b111, f7=0)
         assert res == 0x0000000f
 
-    def test_branch(self, sim: Simulator, ex: EXStage):
+    def test_branch(self, ex: EXStage):
         # BEQ
         res = ex.branch(f3=0, rs1=0, rs2=0)
         assert res == True
@@ -1876,7 +1876,7 @@ def wb() -> WBStage:
 
 
 class TestWBStage:
-    def test_constructor(self, sim: Simulator, wb: WBStage):
+    def test_constructor(self, wb: WBStage):
         assert wb.MEMWB_i._type == MEMWB_t
 
     def test_wb(self, sim: Simulator, wb: WBStage):

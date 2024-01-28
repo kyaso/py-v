@@ -66,11 +66,10 @@ class Top(Module):
         return
 
 
-def test_feedback():
+def test_feedback(sim: Simulator):
     dut = Top()
     dut.name = "Top"
     dut._init()
-    sim = Simulator()
 
     dut.IN.write(4)
 

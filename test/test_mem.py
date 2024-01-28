@@ -195,7 +195,7 @@ class TestLoad:
 
 
 class TestStore:
-    def test_store_we_disabled(self, mem: Memory, sim: Simulator):
+    def test_store_we_disabled(self, sim: Simulator, mem: Memory):
         mem.write_port.we_i.write(False)
         mem.read_port0.addr_i.write(0)
         mem.write_port.wdata_i.write(42)
@@ -204,7 +204,7 @@ class TestStore:
         sim.step()
         assert mem.mem[0] == 0xef
 
-    def test_store_byte(self, mem: Memory, sim: Simulator):
+    def test_store_byte(self, sim: Simulator, mem: Memory):
         mem.write_port.we_i.write(True)
         mem.read_port0.addr_i.write(0)
         mem.write_port.wdata_i.write(0xaf)
@@ -214,7 +214,7 @@ class TestStore:
         sim.step()
         assert mem.mem[0] == 0xaf
 
-    def test_store_half_word(self, mem: Memory, sim: Simulator):
+    def test_store_half_word(self, sim: Simulator, mem: Memory):
         mem.write_port.we_i.write(True)
         mem.read_port0.addr_i.write(0)
         mem.write_port.wdata_i.write(0xbabe)
@@ -226,7 +226,7 @@ class TestStore:
         assert mem.mem[0] == 0xbe
         assert mem.mem[1] == 0xba
 
-    def test_store_word(self, mem: Memory, sim: Simulator):
+    def test_store_word(self, sim: Simulator, mem: Memory):
         mem.write_port.we_i.write(True)
         mem.read_port0.addr_i.write(0)
         mem.write_port.wdata_i.write(0xaffedead)
@@ -242,7 +242,7 @@ class TestStore:
         assert mem.mem[2] == 0xfe
         assert mem.mem[3] == 0xaf
 
-    def test_store_invalid_width(self, mem: Memory, sim: Simulator):
+    def test_store_invalid_width(self, sim: Simulator, mem: Memory):
         mem.write_port.we_i.write(True)
         mem.read_port0.addr_i.write(0)
         mem.write_port.wdata_i.write(0xaffedead)

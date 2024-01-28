@@ -6,8 +6,9 @@ from pyv.simulator import Simulator
 def clear_sim():
     yield
     Simulator.clear()
+    Simulator.globalSim = None
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def sim() -> Simulator:
     return Simulator()

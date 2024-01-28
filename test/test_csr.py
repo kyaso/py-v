@@ -12,7 +12,7 @@ def csr_block() -> CSRBlock:
 
 
 class TestCSRBlock:
-    def test_read(self, sim: Simulator, csr_block: CSRBlock):
+    def test_read(self, csr_block: CSRBlock):
         csr_block._csr_reg.cur._val = 0x42
         assert csr_block.csr_val_o.read() == 0x42
 
@@ -48,7 +48,7 @@ def csr_read(csr_unit: CSRUnit, csr_num: int):
 
 
 class TestCSRUnit:
-    def test_csr_read(self, sim: Simulator, csr_unit: CSRUnit):
+    def test_csr_read(self, csr_unit: CSRUnit):
         misa = 0x301
         csr_unit.csr_bank.misa._csr_reg.cur._val = 0x456
         assert csr_read(csr_unit, misa) == 0x456
