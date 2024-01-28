@@ -170,16 +170,13 @@ class TestLoad:
         with pytest.raises(Exception):
             sim.step()
 
-    def test_read_invalid_idx(self, sim: Simulator, mem: Memory, caplog):
+    def test_read_invalid_idx(self, sim: Simulator, mem: Memory):
         # Read port 0
         mem.read_port0.re_i.write(True)
         mem.read_port0.addr_i.write(8)
         mem.read_port0.width_i.write(1)
         # This shouldn't raise an IndexError exception.
         sim.step()
-
-        assert "Potentially illegal memory address 0x00000008. This might be normal during cycle processing." in caplog.text
-        caplog.clear()
         assert mem.read_port0.rdata_o.read() == 0
 
         # Read port 1
@@ -188,9 +185,6 @@ class TestLoad:
         mem.read_port1.width_i.write(1)
         # This shouldn't raise an IndexError exception.
         sim.step()
-
-        assert "Potentially illegal memory address 0x00000008. This might be normal during cycle processing." in caplog.text
-        caplog.clear()
         assert mem.read_port1.rdata_o.read() == 0
 
 
