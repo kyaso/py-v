@@ -28,7 +28,6 @@ class IDEX_t:
     funct3: int = 0
     funct7: int = 0
     mem: int = 0
-    is_csr: bool = False
     csr_addr: int = 0
     csr_read_val: int = 0
     csr_write_en: bool = False
@@ -45,7 +44,6 @@ class EXMEM_t:
     rs2: int = 0
     mem: int = 0
     funct3: int = 0
-    is_csr: bool = False
     csr_addr: int = 0
     csr_read_val: int = 0
     csr_write_en: bool = False
@@ -60,7 +58,6 @@ class MEMWB_t:
     pc4: int = 0
     mem_rdata: int = 0
     wb_sel: int = 0
-    is_csr: bool = False
     csr_addr: int = 0
     csr_read_val: int = 0
     csr_write_en: bool = False
@@ -167,19 +164,19 @@ class IDStage(Module):
         we = self.we(opcode, funct3)
 
         # Determine what to write-back into regfile
-        wb_sel = self.wb_sel(opcode)
+        wb_sel = self.wb_sel(opcode, funct3)
 
         # Determine none/load/store
         mem = self.mem_sel(opcode)
 
         # CSR
-        is_csr, csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
+        csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
         if csr_isImm:
             rs1 = csr_uimm
 
         # Outputs
         self.IDEX_o.write(IDEX_t(rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
-                                 opcode, funct3, funct7, mem, is_csr, csr_addr, csr_read_val, csr_write_en))
+                                 opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
 
     def is_csr(self, opcode, f3):
         return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
@@ -214,7 +211,7 @@ class IDStage(Module):
         else:
             return 0
 
-    def wb_sel(self, opcode):
+    def wb_sel(self, opcode, funct3):
         """Generates control signal for write-back.
 
         Args:
@@ -229,6 +226,8 @@ class IDStage(Module):
             return 1
         elif opcode == isa.OPCODES['LOAD']:
             return 2
+        elif self.is_csr(opcode, funct3):
+            return 3
         else:
             return 0
 
@@ -296,7 +295,6 @@ class IDStage(Module):
         return (sign_ext | imm)
 
     def dec_csr(self, inst, opcode, f3, rd_idx, rs1_idx):
-        is_csr = False
         csr_addr = 0
         csr_read_val = 0
         csr_write_en = False
@@ -304,7 +302,6 @@ class IDStage(Module):
         csr_uimm = rs1_idx
 
         if self.is_csr(opcode, f3):
-            is_csr = True
             csr_addr = getBits(inst, 31, 20)
             csr_isImm = self.is_csr_imm(f3)
             # Note that we do a CSR read regardless of which CSR instruction.
@@ -322,7 +319,7 @@ class IDStage(Module):
 
         # TODO: Check for illegal instruction (e.g. write to RO CSR)
 
-        return is_csr, csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm
+        return csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm
 
     def check_exception(self, inst, opcode, f3, f7):
         """[summary]
@@ -414,7 +411,6 @@ class EXStage(Module):
             self.exmem_val.rs2,
             self.exmem_val.mem,
             self.exmem_val.funct3,
-            self.exmem_val.is_csr,
             self.exmem_val.csr_addr,
             self.exmem_val.csr_read_val,
             self.exmem_val.csr_write_en,
@@ -429,7 +425,6 @@ class EXStage(Module):
         self.exmem_val.rs2 = val.rs2
         self.exmem_val.mem = val.mem
         self.exmem_val.funct3 = val.funct3
-        self.exmem_val.is_csr = val.is_csr
         self.exmem_val.csr_addr = val.csr_addr
         self.exmem_val.csr_write_en = val.csr_write_en
         self.exmem_val.csr_read_val = val.csr_read_val
@@ -757,7 +752,6 @@ class MEMStage(Module):
             pc4=self.out_val.pc4,
             mem_rdata=self.out_val.mem_rdata,
             wb_sel=self.out_val.wb_sel,
-            is_csr=self.out_val.is_csr,
             csr_addr=self.out_val.csr_addr,
             csr_read_val=self.out_val.csr_read_val,
             csr_write_en=self.out_val.csr_write_en,
@@ -831,7 +825,6 @@ class MEMStage(Module):
         self.out_val.alu_res = in_val.alu_res
         self.out_val.pc4 = in_val.pc4
         self.out_val.wb_sel = in_val.wb_sel
-        self.out_val.is_csr = in_val.is_csr
         self.out_val.csr_addr = in_val.csr_addr
         self.out_val.csr_read_val = in_val.csr_read_val
         self.out_val.csr_write_en = in_val.csr_write_en
@@ -876,7 +869,6 @@ class WBStage(Module):
         pc4 = in_val.pc4
         mem_rdata = in_val.mem_rdata
         wb_sel = in_val.wb_sel
-        is_csr = in_val.is_csr
         csr_write_en = in_val.csr_write_en
         csr_read_val = in_val.csr_read_val
         csr_addr = in_val.csr_addr
@@ -890,14 +882,13 @@ class WBStage(Module):
 
         if we:
             if wb_sel == 0:  # ALU op
-                if not is_csr:
-                    wb_val = alu_res
-                else:
-                    wb_val = csr_read_val
+                wb_val = alu_res
             elif wb_sel == 1:  # PC+4 (JAL)
                 wb_val = pc4
             elif wb_sel == 2:  # Load
                 wb_val = mem_rdata
+            elif wb_sel == 3:  # CSR
+                wb_val = csr_read_val
             else:
                 raise Exception(
                     f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')

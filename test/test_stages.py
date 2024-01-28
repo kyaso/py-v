@@ -236,12 +236,14 @@ class TestIDStage:
                 sim.step()
 
     def test_wbSel(self, sim: Simulator, decode: IDStage):
-        res = decode.wb_sel(0b11011)
+        res = decode.wb_sel(0b11011, 0)
         assert res == 1
-        res = decode.wb_sel(0)
+        res = decode.wb_sel(0, 0)
         assert res == 2
-        res = decode.wb_sel(0b01100)
+        res = decode.wb_sel(0b01100, 0)
         assert res == 0
+        res = decode.wb_sel(0b11100, 1)
+        assert res == 3
 
     def test_IDStage(self, sim: Simulator, decode: IDStage):
         def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
@@ -491,7 +493,7 @@ class TestIDStage:
         # TODO: Test ECALL / EBREAK
 
     def test_csr(self, sim: Simulator, decode: IDStage):
-        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None, is_csr=None):
+        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None):
             if csr_addr is not None:
                 assert out.csr_addr == csr_addr
             if csr_read_val is not None:
@@ -508,8 +510,6 @@ class TestIDStage:
                 assert out.funct3 == f3
             if we is not None:
                 assert out.we == we
-            if is_csr is not None:
-                assert out.is_csr == is_csr
 
         # Not a CSR inst
         decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
@@ -517,7 +517,6 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=False,
             csr_addr=0,
             csr_read_val=0,
             csr_write_en=False
@@ -531,13 +530,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
             rs1=0x89,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=1,
             we=1
         )
@@ -549,12 +547,11 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0,
             csr_write_en=True,
             rd=0,
-            wb_sel=0,
+            wb_sel=3,
             f3=1,
             we=1
         )
@@ -566,12 +563,11 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=2,
             we=1
         )
@@ -582,12 +578,11 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=3,
             we=1
         )
@@ -612,13 +607,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
             rs1=26,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=5,
             we=1
         )
@@ -629,13 +623,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0,
             csr_write_en=True,
             rs1=26,
             rd=0,
-            wb_sel=0,
+            wb_sel=3,
             f3=5,
             we=1
         )
@@ -646,13 +639,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
             rs1=26,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=6,
             we=1
         )
@@ -663,13 +655,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
             rs1=0,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=6,
             we=1
         )
@@ -680,13 +671,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
             rs1=26,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=7,
             we=1
         )
@@ -697,13 +687,12 @@ class TestIDStage:
         out = decode.IDEX_o.read()
         validate(
             out=out,
-            is_csr=True,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
             rs1=0,
             rd=5,
-            wb_sel=0,
+            wb_sel=3,
             f3=7,
             we=1
         )
@@ -733,7 +722,6 @@ class TestEXStage:
             rs2=23,
             mem=1,
             funct3=5,
-            is_csr=True,
             csr_addr=123,
             csr_write_en=True,
             csr_read_val=45)
@@ -748,7 +736,6 @@ class TestEXStage:
         assert out.rs2 == 23
         assert out.mem == 1
         assert out.funct3 == 5
-        assert out.is_csr == True
         assert out.csr_addr == 123
         assert out.csr_write_en == True
         assert out.csr_read_val == 45
@@ -1718,7 +1705,6 @@ class TestMEMStage:
             wb_sel=2,
             pc4=0xdeadbeef,
             alu_res=0xaffeaffe,
-            is_csr=True,
             csr_addr=123,
             csr_read_val=42,
             csr_write_en=True,
@@ -1731,7 +1717,6 @@ class TestMEMStage:
         assert out.wb_sel == 2
         assert out.pc4 == 0xdeadbeef
         assert out.alu_res == 0xaffeaffe
-        assert out.is_csr == True
         assert out.csr_addr == 123
         assert out.csr_read_val == 42
         assert out.csr_write_en == True
@@ -1971,8 +1956,7 @@ class TestWBStage:
             alu_res=42,
             pc4=87,
             mem_rdata=0xdeadbeef,
-            wb_sel=0,
-            is_csr=True,
+            wb_sel=3,
             csr_addr=0x301,
             csr_read_val=65,
             csr_write_en=True,
@@ -1990,7 +1974,6 @@ class TestWBStage:
             pc4=87,
             mem_rdata=0xdeadbeef,
             wb_sel=0,
-            is_csr=False,
             csr_addr=0x301,
             csr_read_val=65,
             csr_write_en=False,
