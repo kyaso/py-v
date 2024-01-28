@@ -1,5 +1,8 @@
 # Next version
 
+- **NEW**: Added **CSR* instructions
+  - Basic logic for CSR is implemented
+  - Currently, only `misa`, but adding more CSRs is easy
 - **Port**: Sensitive methods will now be added to the simulation queue on Port init
   - This ensures all process methods are run in the first cycle, eliminating
     the need for the "untouched" logic
