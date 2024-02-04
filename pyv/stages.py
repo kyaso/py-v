@@ -127,6 +127,8 @@ class IDStage(Module):
         self.regfile = regf
         self.csr = csr
 
+        self.registerStableCallbacks([self.check_exception])
+
         # Inputs
         self.IFID_i = Input(IFID_t)
 
@@ -146,7 +148,7 @@ class IDStage(Module):
         funct3 = getBits(inst, 14, 12)
         funct7 = getBits(inst, 31, 25)
 
-        self.check_exception(inst, opcode, funct3, funct7)
+        self.check_exception_inputs = (inst, opcode, funct3, funct7)
 
         # Determine register indeces
         rs1_idx = getBits(inst, 19, 15)
@@ -324,17 +326,8 @@ class IDStage(Module):
 
         return csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm
 
-    def check_exception(self, inst, opcode, f3, f7):
-        """[summary]
-
-        Args:
-            opcode ([type]): [description]
-            f3 ([type]): [description]
-            f7 ([type]): [description]
-
-        Returns:
-            [type]: [description]
-        """
+    def check_exception(self):
+        inst, opcode, f3, f7 = self.check_exception_inputs
         illinst = False
 
         # Illegal instruction if bits 1:0 of inst != b11
@@ -400,6 +393,8 @@ class EXStage(Module):
         self.IDEX_i = Input(
             IDEX_t, sensitive_methods=[self.process, self.passThrough])
 
+        self.registerStableCallbacks([self.check_exception])
+
         self.EXMEM_o = Output(EXMEM_t)
         self.exmem_val = EXMEM_t()
 
@@ -460,7 +455,7 @@ class EXStage(Module):
         alu_res = self.alu(opcode, rs1, rs2, imm, pc, f3, f7)
 
         # Check for exceptions
-        self.check_exception(take_branch, alu_res, pc)
+        self.check_exception_inputs = (take_branch, alu_res, pc)
 
         # CSR
         csr_write_val = 0
@@ -705,7 +700,8 @@ class EXStage(Module):
         elif f3 == 7:             # BGEU
             return rs1 >= rs2
 
-    def check_exception(self, take_branch, alu_res, pc):
+    def check_exception(self):
+        take_branch, alu_res, pc = self.check_exception_inputs
         # --- Branch/jump target misaligned ------
         if take_branch:
             if alu_res & 0x3 != 0:
@@ -736,6 +732,8 @@ class MEMStage(Module):
         self.EXMEM_i = Input(EXMEM_t)
         self.MEMWB_o = Output(MEMWB_t)
         self.load_val = Wire(int, [self.process_load])
+
+        self.registerStableCallbacks([self.check_exception])
 
         # Main memory
         self.read_port = dmem_read
@@ -776,7 +774,7 @@ class MEMStage(Module):
         op = in_val.mem
         f3 = in_val.funct3
 
-        self.check_exception(op, addr, f3)
+        self.check_exception_inputs = (op, addr, f3)
 
         # Set inputs for memory module
         we = False
@@ -833,7 +831,9 @@ class MEMStage(Module):
         self.out_val.csr_write_val = in_val.csr_write_val
         self.write_output()
 
-    def check_exception(self, op, addr, f3):
+    def check_exception(self):
+        op, addr, f3 = self.check_exception_inputs
+
         if f3 == 0:
             return
 

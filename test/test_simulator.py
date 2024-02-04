@@ -376,3 +376,25 @@ class TestEvents:
 
         with pytest.raises(Exception):
             sim.postEventRel(-1, None)
+
+
+class TestOnStable:
+    def test_stable_callbacks_are_triggered_during_cycle(self, sim: Simulator):
+        cb1 = MagicMock()
+        cb2 = MagicMock()
+        Simulator._stable_callbacks = [cb1, cb2]
+        sim._cycle()
+        cb1.assert_called_once()
+        cb2.assert_called_once()
+
+    def test_stable_callbacks_are_cleared_on_sim_clear(self, sim: Simulator):
+        sim.clear()
+        assert Simulator._stable_callbacks == []
+
+    def test_register_stable_callback(self, sim: Simulator):
+        cb1 = MagicMock()
+        cb2 = MagicMock()
+        cb3 = MagicMock()
+        Simulator._stable_callbacks = [cb1, cb2]
+        Simulator.registerStableCallback(cb3)
+        assert Simulator._stable_callbacks == [cb1, cb2, cb3]
