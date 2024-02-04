@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/github/license/kyaso/py-v">
 </p>
 
-Py-V is a cycle-accurate simulator for RISC-V CPUs, written in pure Python. It is also a library for designing and modelling any digital hardware.
+Py-V is a cycle-accurate simulator for RISC-V CPUs, written in pure Python. It is also a (WIP) library for designing and modelling any digital hardware.
 
 ## Why Py-V?
 
