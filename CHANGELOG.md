@@ -1,8 +1,17 @@
 # Next version
 
-- **NEW**: Added **CSR* instructions
+- **NEW**: Added **CSR** instructions
   - Basic logic for CSR is implemented
   - Currently, only `misa`, but adding more CSRs is easy
+- **NEW**: Added "**on stable**" mechanism
+  - How it works: During the current cycle, once all signal values have
+    stabilized and _before_ the next clock tick, the simulator will execute all
+    registered "on stable" callbacks
+  - Callback methods can be registered during module definition, or directly
+    in the simulator (see API docs)
+  - This is useful if you need to do something but require absolute certainty
+    that signal values won't toggle anymore during the current cycle
+      - E.g., emitting an event based on the state of certain wires
 - **Port**: Sensitive methods will now be added to the simulation queue on Port init
   - This ensures all process methods are run in the first cycle, eliminating
     the need for the "untouched" logic

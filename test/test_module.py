@@ -1,6 +1,7 @@
 import pytest
 from pyv.port import Input, Output
 from pyv.module import Module
+from pyv.simulator import Simulator
 
 
 class ModA(Module):
@@ -30,3 +31,27 @@ class TestModule:
         assert modA.A_i._processMethodHandler._processMethods == [modA.process]
         assert modA.B_i._processMethodHandler._processMethods == []
         assert modA.C_i._processMethodHandler._processMethods == [modA.foo]
+
+
+class TestOnStable:
+    class DummyModule(Module):
+        def __init__(self, name='UnnamedModule'):
+            super().__init__(name)
+            self.registerStableCallbacks([self.stable_callback_1, self.stable_callback_2])
+
+        def stable_callback_1(self):
+            pass
+
+        def stable_callback_2(self):
+            pass
+
+    def test_stable_callbacks_are_registered_in_module(self):
+        dut = self.DummyModule()
+        assert dut.stable_callback_1 in dut._stable_callbacks
+        assert dut.stable_callback_2 in dut._stable_callbacks
+
+    def test_stable_callbacks_are_added_to_sim_on_init(self, sim: Simulator):
+        dut = self.DummyModule()
+        dut._init()
+        assert dut.stable_callback_1 in sim._stable_callbacks
+        assert dut.stable_callback_2 in sim._stable_callbacks

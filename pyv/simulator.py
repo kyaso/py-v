@@ -41,6 +41,8 @@ class Simulator:
     the need to know about the specific simulator instance.
     """
 
+    _stable_callbacks: list[Callable] = []
+
     def __init__(self):
         Simulator.globalSim = self
 
@@ -88,6 +90,7 @@ class Simulator:
             commands.
         """
         self._process_changes()
+        self._process_onstable_callbacks()
         return self
 
     def _cycle(self):
@@ -137,6 +140,7 @@ class Simulator:
         """Clear list of registers, memories and ports"""
         Clock.clear()
         PortList.clear()
+        Simulator._stable_callbacks = []
 
     def _process_changes(self):
         while len(self._change_queue) > 0:
@@ -153,6 +157,10 @@ class Simulator:
             callback = event[2]
             logger.info(f"Triggering event -> {callback.__qualname__}()")
             callback()
+
+    def _process_onstable_callbacks(self):
+        for cb in Simulator._stable_callbacks:
+            cb()
 
     def _addToChangeQueue(self, fn):
         """Add a function to the simulation queue.
@@ -201,3 +209,14 @@ class Simulator:
                 cycle.
         """
         self.postEventAbs(self._cycles + time_rel, callback)
+
+    @staticmethod
+    def registerStableCallback(callback: Callable):
+        """Register a callback method to be called once signal values have
+        stabilized during the current cycle, and before the next clock tick
+        happens.
+
+        Args:
+            callback (Callable): The callback method
+        """
+        Simulator._stable_callbacks.append(callback)
