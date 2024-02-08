@@ -11,7 +11,7 @@ Py-V is a cycle-accurate simulator for RISC-V CPUs, written in pure Python. It i
 
 - _Yes, it won't be performant_
 - **But**:
-  - It's not just a binary simulator: it implements an actual CPU down to _register-transfer level_ (RTL)
+  - It's _not_ yet another RISC-V emulator: it implements an actual CPU down to _register-transfer level_ (RTL)
   - Cycle-accurate
   - Helps to learn about CPU architecture
     - Like a real hardware design, the CPUs are made from different modules that are connected with each other
