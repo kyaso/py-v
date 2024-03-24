@@ -1,5 +1,8 @@
 # Next version
 
+
+# 0.4.0
+
 - **NEW**: Added **CSR** instructions
   - Basic logic for CSR is implemented
   - Currently, only `misa`, but adding more CSRs is easy
