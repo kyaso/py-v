@@ -1,5 +1,11 @@
 # Next version
 
+- **NEW**: Added **VArray** and **VMap** structures.
+  - VArray: Groups PyVObj instances in a list-like manner.
+  - VMap: Groups PyVObj instances in a dictionary-like manner.
+  - These structures wrap around Python's `list` and `dict`, respectively, to ensure proper initialization of elements during simulation initialization.
+  - Elements can be accessed using the usual indexing and key access operators.
+
 
 # 0.4.0
 

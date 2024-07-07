@@ -1,5 +1,6 @@
 """Utility stuff."""
 
+from typing import Any, Dict, List
 import warnings
 
 
@@ -37,6 +38,104 @@ class Container(PyVObj):
     """
     def __init__(self):
         super().__init__()
+
+
+class VMap(PyVObj):
+    """A class to group together `PyVObj` instances in a dictionary-like manner.
+
+    VMap allows for the organization and manipulation of multiple `PyVObj` instances 
+    as a single collection, similar to a Python dictionary.
+    """
+
+    def __init__(self, dict_: dict) -> None:
+        """Create a new VMap.
+
+        Initialize the VMap with a dictionary of `PyVObj` objects.
+
+        Args:
+            dict_ (dict): A dictionary where keys are of any type and values are `PyVObj` objects.
+
+        Raises:
+            TypeError: If `dict_` is not a dictionary.
+        """
+        super().__init__()
+        if not isinstance(dict_, dict):
+            raise TypeError(f"ERROR: Please provide a valid dict to VMap!")
+        self._elems: Dict[Any, PyVObj] = dict_
+
+    def _init(self, parent: PyVObj = None):
+        """Initialize the VMap elements.
+
+        Sets the name and initializes each element in the VMap.
+
+        Args:
+            parent (PyVObj, optional): The parent object for initialization. Defaults to None.
+        """
+        if self._visited:
+            return
+        self._visited = True
+
+        for key, obj in self._elems.items():
+            obj.name = self.name + "." + key
+            obj._init(parent)
+
+    def __getitem__(self, key):
+        """Retrieve an element from the VMap by key.
+
+        Args:
+            key: The key of the element to retrieve.
+
+        Returns:
+            PyVObj: The element associated with the specified key.
+        """
+        return self._elems[key]
+
+
+class VArray(PyVObj):
+    """A class to group together `PyVObj` instances in a list-like manner.
+
+    VArray allows for the organization and manipulation of multiple `PyVObj` instances
+    as a single collection, similar to a Python list.
+    """
+
+    def __init__(self, *args) -> None:
+        """Create a new VArray.
+
+        The elements of the VArray are passed as positional arguments.
+        Each element provided as an argument will be included in the VArray.
+
+        Args:
+            *args: Variable length argument list. Each argument represents an element to be included in the VArray.
+        """
+        super().__init__()
+        self._elems: List[PyVObj] = list(args)
+
+    def _init(self, parent: PyVObj = None):
+        """Initialize the VArray elements.
+
+        Sets the name and initializes each element in the VArray.
+
+        Args:
+            parent (PyVObj, optional): The parent object for initialization. Defaults to None.
+        """
+        if self._visited:
+            return
+        self._visited = True
+
+        for i, obj in enumerate(self._elems):
+            obj.name = self.name + f"[{i}]"
+            obj._init(parent)
+
+    def __getitem__(self, idx):
+        """Retrieve an element from the VArray by index.
+
+        Args:
+            idx (int): The index of the element to retrieve.
+
+        Returns:
+            PyVObj: The element at the specified index.
+        """
+        return self._elems[idx]
 
 
 # XLEN
