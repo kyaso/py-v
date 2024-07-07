@@ -318,6 +318,20 @@ class TestPort:
         p.connect(c)
         assert p.read() == 42
 
+    def test_visited(self):
+        A = Input(int)
+        B = Output(int)
+        mod = Module()
+
+        assert A._visited == False
+        assert B._visited == False
+
+        A._init(mod)
+        B._init(mod)
+
+        assert A._visited == True
+        assert B._visited == True
+
 
 class TestPortList:
     def test_port_list(self):

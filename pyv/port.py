@@ -33,8 +33,9 @@ class Port(PyVObj, ABC):
         """Read the current port value"""
 
     def _init(self, parent=None):
-        # Empty _init to prevent further processing
-        pass
+        if self._visited:
+            return
+        self._visited = True
 
     def _addDownstreamInput(self, port: 'Port'):
         self._downstreamInputs.append(port)
@@ -251,9 +252,7 @@ class Input(PortRW[T]):
         self._processMethodHandler = _ProcessMethodHandler(sensitive_methods)
 
     def _init(self, parent: PyVObj):
-        if self._visited:
-            return
-        self._visited = True
+        super()._init(parent)
         self._processMethodHandler.init_process_methods(parent)
 
     def _set_root_driver(self, newRoot: Port):
