@@ -42,7 +42,7 @@ class TestVMap:
 
     def test_should_throw_exception_if_invalid_dict(self):
         with pytest.raises(TypeError):
-            map = VMap(42)
+            _ = VMap(42)
 
     def test_init_visited(self, map: VMap):
         assert map._visited == False

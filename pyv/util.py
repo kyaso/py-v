@@ -41,10 +41,11 @@ class Container(PyVObj):
 
 
 class VMap(PyVObj):
-    """A class to group together `PyVObj` instances in a dictionary-like manner.
+    """A class to group together `PyVObj` instances in a dictionary-like
+    manner.
 
-    VMap allows for the organization and manipulation of multiple `PyVObj` instances 
-    as a single collection, similar to a Python dictionary.
+    VMap allows for the organization and manipulation of multiple `PyVObj`
+    instances as a single collection, similar to a Python dictionary.
     """
 
     def __init__(self, dict_: dict) -> None:
@@ -53,14 +54,15 @@ class VMap(PyVObj):
         Initialize the VMap with a dictionary of `PyVObj` objects.
 
         Args:
-            dict_ (dict): A dictionary where keys are of any type and values are `PyVObj` objects.
+            dict_ (dict): A dictionary where keys are of any type and values
+            are `PyVObj` objects.
 
         Raises:
             TypeError: If `dict_` is not a dictionary.
         """
         super().__init__()
         if not isinstance(dict_, dict):
-            raise TypeError(f"ERROR: Please provide a valid dict to VMap!")
+            raise TypeError("ERROR: Please provide a valid dict to VMap!")
         self._elems: Dict[Any, PyVObj] = dict_
 
     def _init(self, parent: PyVObj = None):
@@ -69,7 +71,8 @@ class VMap(PyVObj):
         Sets the name and initializes each element in the VMap.
 
         Args:
-            parent (PyVObj, optional): The parent object for initialization. Defaults to None.
+            parent (PyVObj, optional): The parent object for initialization.
+            Defaults to None.
         """
         if self._visited:
             return
@@ -94,8 +97,8 @@ class VMap(PyVObj):
 class VArray(PyVObj):
     """A class to group together `PyVObj` instances in a list-like manner.
 
-    VArray allows for the organization and manipulation of multiple `PyVObj` instances
-    as a single collection, similar to a Python list.
+    VArray allows for the organization and manipulation of multiple `PyVObj`
+    instances as a single collection, similar to a Python list.
     """
 
     def __init__(self, *args) -> None:
@@ -105,7 +108,8 @@ class VArray(PyVObj):
         Each element provided as an argument will be included in the VArray.
 
         Args:
-            *args: Variable length argument list. Each argument represents an element to be included in the VArray.
+            *args: Variable length argument list. Each argument represents an
+            element to be included in the VArray.
         """
         super().__init__()
         self._elems: List[PyVObj] = list(args)
@@ -116,7 +120,8 @@ class VArray(PyVObj):
         Sets the name and initializes each element in the VArray.
 
         Args:
-            parent (PyVObj, optional): The parent object for initialization. Defaults to None.
+            parent (PyVObj, optional): The parent object for initialization.
+            Defaults to None.
         """
         if self._visited:
             return
