@@ -79,7 +79,7 @@ class VMap(PyVObj):
         self._visited = True
 
         for key, obj in self._elems.items():
-            obj.name = self.name + "." + key
+            obj.name = self.name + "." + str(key)
             obj._init(parent)
 
     def __getitem__(self, key):

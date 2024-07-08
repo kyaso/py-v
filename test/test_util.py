@@ -60,6 +60,12 @@ class TestVMap:
         assert map._elems['foo'].name == 'alpha.map.foo'
         assert map._elems['bar'].name == 'alpha.map.bar'
 
+    def test_init_subobj_naming_int_key(self, map: VMap):
+        map.name = "alpha.map"
+        map._elems[42] = PyVObj()
+        map._init()
+        assert map._elems[42].name == 'alpha.map.42'
+
     def test_init_parent_passthrough(self, map: VMap):
         parent = PyVObj()
         map._init(parent)
