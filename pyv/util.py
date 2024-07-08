@@ -93,6 +93,11 @@ class VMap(PyVObj):
         """
         return self._elems[key]
 
+    def items(self):
+        """Returns the list of items in _elems.
+        """
+        return self._elems.items()
+
 
 class VArray(PyVObj):
     """A class to group together `PyVObj` instances in a list-like manner.

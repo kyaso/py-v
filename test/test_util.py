@@ -84,6 +84,9 @@ class TestVMap:
 
         assert map['input']._processMethodHandler._processMethods == [mod.process]
 
+    def test_items(self, map: VMap):
+        assert map.items() == map._elems.items()
+
 
 class TestVArray:
     @pytest.fixture
