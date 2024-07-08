@@ -24,11 +24,12 @@ class CSRBlock(Module):
 
 
 class CSRBank(Container):
-    def __init__(self):
+    def __init__(self, write_val: Input):
         super().__init__()
         self.csrs = VMap({
             0x301: CSRBlock(0x4000_0100, read_only=False)
         })
+        self.connect_write_val(write_val)
 
     def get_csr(self, addr) -> CSRBlock:
         try:
@@ -52,7 +53,6 @@ class CSRBank(Container):
 class CSRUnit(Module):
     def __init__(self):
         super().__init__()
-        self.csr_bank = CSRBank()
 
         # TODO: interesting for docs: we shouldn't nest declare PyObjs inside
         # non-PyObjs -> Use Container class
@@ -60,7 +60,7 @@ class CSRUnit(Module):
         self.write_val_i = Input(int, [None])
         self.write_en_i = Input(bool, [self.write])
 
-        self.csr_bank.connect_write_val(self.write_val_i)
+        self.csr_bank = CSRBank(self.write_val_i)
 
     def _disable_write(self):
         self.csr_bank.disable_write()
