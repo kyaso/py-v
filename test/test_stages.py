@@ -526,7 +526,7 @@ class TestIDStage:
 
         # csrrw x5, misa, x12
         decode.regfile.regs[12] = 0x89
-        decode.csr.csr_bank.misa._csr_reg.cur.write(0x42)
+        decode.csr.csr_bank.csrs[0x301]._csr_reg.cur.write(0x42)
         decode.IFID_i.write(IFID_t(0x301612f3, 0x80000004))
         sim.run_comb_logic()
         out = decode.IDEX_o.read()
@@ -1950,6 +1950,8 @@ class TestWBStage:
         csr.write_en_i << wb.csr_write_en_o
         csr.write_val_i << wb.csr_write_val_o
 
+        misa = 0x301
+
         wb.MEMWB_i.write(MEMWB_t(
             rd=5,
             we=1,
@@ -1957,14 +1959,14 @@ class TestWBStage:
             pc4=87,
             mem_rdata=0xdeadbeef,
             wb_sel=3,
-            csr_addr=0x301,
+            csr_addr=misa,
             csr_read_val=65,
             csr_write_en=True,
             csr_write_val=45
         ))
         sim.step()
         assert wb.regfile.regs[5] == 65
-        assert csr.csr_bank.misa.csr_val_o.read() == 45
+        assert csr.csr_bank.csrs[misa].csr_val_o.read() == 45
 
         # No CSR
         wb.MEMWB_i.write(MEMWB_t(
@@ -1974,14 +1976,14 @@ class TestWBStage:
             pc4=87,
             mem_rdata=0xdeadbeef,
             wb_sel=0,
-            csr_addr=0x301,
+            csr_addr=misa,
             csr_read_val=65,
             csr_write_en=False,
             csr_write_val=56
         ))
         sim.step()
         assert wb.regfile.regs[5] == 42
-        assert csr.csr_bank.misa.csr_val_o.read() == 45
+        assert csr.csr_bank.csrs[misa].csr_val_o.read() == 45
 
 
 # ---------------------------------------

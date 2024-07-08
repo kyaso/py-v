@@ -1,7 +1,7 @@
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.reg import Reg
-from pyv.util import Container
+from pyv.util import Container, VMap
 from pyv.log import logger
 
 
@@ -26,17 +26,27 @@ class CSRBlock(Module):
 class CSRBank(Container):
     def __init__(self):
         super().__init__()
-        self.misa = CSRBlock(0x4000_0100, read_only=False)
+        self.csrs = VMap({
+            0x301: CSRBlock(0x4000_0100, read_only=False)
+        })
 
     def get_csr(self, addr) -> CSRBlock:
-        if addr == 0:
-            return None
-        elif addr == 0x301:
-            return self.misa
-        else:
+        try:
+            return self.csrs[addr]
+        except:
             logger.warning(
                 f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
             return None
+
+    def connect_write_val(self, write_val: Input):
+        csr: CSRBlock
+        for _, csr in self.csrs.items():
+            csr.write_val_i << write_val
+
+    def disable_write(self):
+        csr: CSRBlock
+        for _, csr in self.csrs.items():
+            csr.we_i.write(False)
 
 
 class CSRUnit(Module):
@@ -50,10 +60,10 @@ class CSRUnit(Module):
         self.write_val_i = Input(int, [None])
         self.write_en_i = Input(bool, [self.write])
 
-        self.csr_bank.misa.write_val_i << self.write_val_i
+        self.csr_bank.connect_write_val(self.write_val_i)
 
     def _disable_write(self):
-        self.csr_bank.misa.we_i.write(False)
+        self.csr_bank.disable_write()
 
     def write(self):
         self._disable_write()
