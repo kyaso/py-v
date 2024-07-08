@@ -3,6 +3,7 @@ from pyv.port import Input, Output
 from pyv.reg import Reg
 from pyv.util import Container, VMap
 from pyv.log import logger
+import pyv.isa as isa
 
 
 class CSRBlock(Module):
@@ -27,7 +28,8 @@ class CSRBank(Container):
     def __init__(self, write_val: Input):
         super().__init__()
         self.csrs = VMap({
-            0x301: CSRBlock(0x4000_0100, read_only=False)
+            isa.CSR["misa"]["addr"]: CSRBlock(
+                0x4000_0100, read_only=isa.CSR["misa"]["is_RO"])
         })
         self.connect_write_val(write_val)
 

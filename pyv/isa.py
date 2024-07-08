@@ -96,3 +96,14 @@ CSR_F3 = {
     "CSRRSI": 0b110,
     "CSRRCI": 0b111
 }
+
+
+# --------------------------------
+# Control and Status Registers (CSR)
+# --------------------------------
+CSR = {
+    "misa": {
+        "addr": 0x301,
+        "is_RO": False
+    }
+}
