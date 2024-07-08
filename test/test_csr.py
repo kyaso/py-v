@@ -1,6 +1,7 @@
 import pytest
 from pyv.clocked import Clock
-from pyv.csr import CSRBlock, CSRUnit
+from pyv.csr import CSRBank, CSRBlock, CSRUnit
+from pyv.port import Input
 from pyv.simulator import Simulator
 
 
@@ -26,6 +27,20 @@ class TestCSRBlock:
         csr_block.write_val_i.write(0x3)
         sim.step()
         assert csr_block.csr_val_o.read() == 0x123
+
+
+@pytest.fixture
+def csr_bank() -> CSRBank:
+    bank = CSRBank(Input(int))
+    return bank
+
+
+class TestCSRBank:
+    def test_get_csr(self, csr_bank: CSRBank):
+        assert csr_bank.get_csr(0x301) == csr_bank.csrs[0x301]
+
+    def test_get_invalid_csr(self, csr_bank: CSRBank):
+        assert csr_bank.get_csr(1) is None
 
 
 @pytest.fixture
