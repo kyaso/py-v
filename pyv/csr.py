@@ -36,7 +36,7 @@ class CSRBank(Container):
     def get_csr(self, addr) -> CSRBlock:
         try:
             return self.csrs[addr]
-        except:
+        except KeyError:
             logger.warning(
                 f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
             return None
