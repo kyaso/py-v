@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import copy
+import inspect
 from typing import Any, TypeVar, Generic, Type
 from pyv.log import logger
 from pyv.util import PyVObj
@@ -88,9 +89,14 @@ class _ProcessMethodHandler():
         if func not in self._processMethods:
             self._processMethods.append(func)
 
+    def _parent_has_process_method(self, parent: PyVObj):
+        return (hasattr(parent, 'process')
+                and inspect.ismethod(getattr(parent, 'process')))
+
     def init_process_methods(self, parent: PyVObj):
         if self._processMethods == []:
-            self._addProcessMethod(parent.process)
+            if self._parent_has_process_method(parent):
+                self._addProcessMethod(parent.process)
         elif self._processMethods == [None]:
             self._processMethods = []
 
@@ -240,13 +246,13 @@ class Input(PortRW[T]):
         Args:
             type (type[T]): Data type of this input
             sensitive_methods (list, optional): List of methods to trigger when
-                a write to this input changes its current value. If omitted,
-                only the parent module's `pyv.module.Module.process()` method
-                is taken. If `[None]` is passed, no sensitive method will be
-                associated with this port. **Important**: if you provide a
-                custom sensitivity list, but still want the default `process()`
-                to be triggered as well, you have to include it explicitly in
-                the list.
+                a write to this input changes its current value. If omitted, a
+                default method `process()` is taken as the only sensitive
+                method -- if the parent module has such a method defined. If
+                `[None]` is passed, no sensitive method will be associated with
+                this port. **Important**: if you provide a custom sensitivity
+                list, but still want the default `process()` to be triggered as
+                well, you have to include it explicitly in the list.
         """
         super().__init__(type)
         self._processMethodHandler = _ProcessMethodHandler(sensitive_methods)

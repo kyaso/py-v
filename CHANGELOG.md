@@ -7,6 +7,8 @@
   - Elements can be accessed using the usual indexing and key access operators.
   - VContainer: Groups PyVObj instances in a class-like manner.
     - Elements are just class members
+- **Module**: Removed `process()` method default implemenation from class
+  - The port sensitivity list API is not affected by this
 
 
 # 0.4.0

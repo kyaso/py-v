@@ -22,12 +22,6 @@ class Module(PyVObj):
         for sb in self._stable_callbacks:
             Simulator.registerStableCallback(sb)
 
-    def process(self):
-        """Generates module's combinatorial outputs for current cycle based on
-        inputs.
-        """
-        pass
-
     def registerStableCallbacks(self, callbacks: list[Callable]):
         """Register methods to be called back once all signal values during the
         current cycle have stabilized.
