@@ -82,10 +82,16 @@ class TestVMap:
         assert map['bar'] == map._elems['bar']
 
     def test_module_process_pass_through(self, map: VMap):
-        mod = Module()
-        mod.map = map
-        map._elems['input'] = Input(int)
+        class Mod(Module):
+            def __init__(self, name=''):
+                super().__init__(name)
+                self.map = map
+                self.map._elems['input'] = Input(int)
 
+            def process(self):
+                pass
+
+        mod = Mod()
         mod._init()
 
         assert map['input']._processMethodHandler._processMethods == [mod.process]
@@ -140,10 +146,16 @@ class TestVArray:
         assert arr[1] == arr._elems[1]
 
     def test_module_process_pass_through(self, arr: VArray):
-        mod = Module()
-        mod.arr = arr
-        arr._elems.append(Input(int))
+        class Mod(Module):
+            def __init__(self, name=''):
+                super().__init__(name)
+                self.arr = arr
+                self.arr._elems.append(Input(int))
 
+            def process(self):
+                pass
+
+        mod = Mod()
         mod._init()
 
         assert arr[2]._processMethodHandler._processMethods == [mod.process]

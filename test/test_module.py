@@ -16,10 +16,24 @@ class ModA(Module):
     def foo(self):
         pass
 
+    def process(self):
+        pass
+
+
+class ModB(Module):
+    def __init__(self, name):
+        super().__init__(name)
+        self.A_i = Input(int)
+
 
 @pytest.fixture
 def modA() -> Module:
     return ModA('ModA')
+
+
+@pytest.fixture
+def modB() -> Module:
+    return ModB('ModB')
 
 
 class TestModule:
@@ -31,6 +45,10 @@ class TestModule:
         assert modA.A_i._processMethodHandler._processMethods == [modA.process]
         assert modA.B_i._processMethodHandler._processMethods == []
         assert modA.C_i._processMethodHandler._processMethods == [modA.foo]
+
+    def test_port_init_without_process_method(self, modB: ModB):
+        modB._init()
+        assert modB.A_i._processMethodHandler._processMethods == []
 
 
 class TestOnStable:
