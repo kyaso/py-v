@@ -1,7 +1,7 @@
 from pyv.module import Module
 from pyv.port import Input, Output
 from pyv.reg import Reg
-from pyv.util import Container, VMap
+from pyv.util import VContainer, VMap
 from pyv.log import logger
 import pyv.isa as isa
 
@@ -24,7 +24,7 @@ class CSRBlock(Module):
         self._csr_reg.next.write(val)
 
 
-class CSRBank(Container):
+class CSRBank(VContainer):
     def __init__(self, write_val: Input):
         super().__init__()
         self.csrs = VMap({

@@ -33,7 +33,7 @@ class PyVObj:
                 obj._init(self)
 
 
-class Container(PyVObj):
+class VContainer(PyVObj):
     """This class can be used to group together one or more `PyVObj`s.
     """
     def __init__(self):
