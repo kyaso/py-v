@@ -1,10 +1,12 @@
 # Next version
 
-- **NEW**: Added **VArray** and **VMap** structures.
+- **NEW**: Added **VArray**, **VMap**, and **VContainer** structures.
   - VArray: Groups PyVObj instances in a list-like manner.
   - VMap: Groups PyVObj instances in a dictionary-like manner.
   - These structures wrap around Python's `list` and `dict`, respectively, to ensure proper initialization of elements during simulation initialization.
   - Elements can be accessed using the usual indexing and key access operators.
+  - VContainer: Groups PyVObj instances in a class-like manner.
+    - Elements are just class members
 
 
 # 0.4.0
