@@ -7,14 +7,15 @@ from pyv.simulator import Simulator
 
 @pytest.fixture
 def csr_block() -> CSRBlock:
-    csr = CSRBlock(0)
+    csr = CSRBlock(reset_val=0, read_only=False, read_mask=0xFFFF_FFFF)
     csr._init()
     return csr
 
 
 class TestCSRBlock:
-    def test_read(self, csr_block: CSRBlock):
+    def test_read(self, sim: Simulator, csr_block: CSRBlock):
         csr_block._csr_reg.cur._val = 0x42
+        sim.step()
         assert csr_block.csr_val_o.read() == 0x42
 
     def test_write(self, sim: Simulator, csr_block: CSRBlock):
@@ -27,6 +28,12 @@ class TestCSRBlock:
         csr_block.write_val_i.write(0x3)
         sim.step()
         assert csr_block.csr_val_o.read() == 0x123
+
+    def test_read_with_mask(self, sim: Simulator, csr_block: CSRBlock):
+        csr_block._read_mask = 0xDEAD_BEEF
+        csr_block._csr_reg.cur._val = 0xFFFF_FFFF
+        sim.step()
+        assert csr_block.csr_val_o.read() == 0xDEAD_BEEF
 
 
 @pytest.fixture
