@@ -105,5 +105,10 @@ CSR = {
     "misa": {
         "addr": 0x301,
         "is_RO": False
+    },
+    "mepc": {
+        "addr": 0x341,
+        "is_RO": False,
+        "read_mask": 0xFFFF_FFFE
     }
 }

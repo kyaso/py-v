@@ -35,7 +35,13 @@ class CSRBank(VContainer):
         super().__init__()
         self.csrs = VMap({
             isa.CSR["misa"]["addr"]: CSRBlock(
-                0x4000_0100, read_only=isa.CSR["misa"]["is_RO"])
+                0x4000_0100,
+                read_only=isa.CSR["misa"]["is_RO"]),
+            isa.CSR["mepc"]["addr"]: CSRBlock(
+                0,
+                read_only=isa.CSR["mepc"]["is_RO"],
+                read_mask=isa.CSR["mepc"]["read_mask"]
+            )
         })
         self.connect_write_val(write_val)
 
