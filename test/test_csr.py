@@ -70,9 +70,10 @@ def csr_read(csr_unit: CSRUnit, csr_num: int):
 
 
 class TestCSRUnit:
-    def test_csr_read(self, csr_unit: CSRUnit):
+    def test_csr_read(self, sim: Simulator, csr_unit: CSRUnit):
         misa = 0x301
         csr_unit.csr_bank.csrs[misa]._csr_reg.cur._val = 0x456
+        sim.step()
         assert csr_read(csr_unit, misa) == 0x456
 
     def test_csr_write(self, sim: Simulator, csr_unit: CSRUnit):
@@ -102,9 +103,20 @@ class TestCSRUnit:
     def test_m_mode_csrs(self, sim: Simulator, csr_unit: CSRUnit):
         # ---- misa ----
         misa = 0x301
+        sim.step()
         reset_val = csr_read(csr_unit, misa)
         assert reset_val == 0x4000_0100
 
         csr_write(csr_unit, misa, 0xFFFF_FFFF, sim)
         read_back = csr_read(csr_unit, misa)
         assert read_back == 0xFFFF_FFFF
+
+        # ---- mepc ----
+        mepc = 0x341
+        sim.step()
+        reset_val = csr_read(csr_unit, mepc)
+        assert reset_val == 0
+
+        csr_write(csr_unit, mepc, 0xFFFF_FFFF, sim)
+        read_back = csr_read(csr_unit, mepc)
+        assert read_back == 0xFFFF_FFFE
