@@ -103,12 +103,13 @@ CSR_F3 = {
 # --------------------------------
 CSR = {
     "misa": {
-        "addr": 0x301,
-        "is_RO": False
+        "addr": 0x301
     },
     "mepc": {
         "addr": 0x341,
-        "is_RO": False,
         "read_mask": 0xFFFF_FFFE
+    },
+    "mcause": {
+        "addr": 0x342
     }
 }

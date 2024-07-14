@@ -101,22 +101,20 @@ class TestCSRUnit:
         assert csr_read(csr_unit, 0x301) == 0x42
 
     def test_m_mode_csrs(self, sim: Simulator, csr_unit: CSRUnit):
-        # ---- misa ----
-        misa = 0x301
-        sim.step()
-        reset_val = csr_read(csr_unit, misa)
-        assert reset_val == 0x4000_0100
+        def run_check(csr_addr, expected_reset_val, expected_read_back):
+            sim.step()
+            reset_val = csr_read(csr_unit, csr_addr)
+            assert reset_val == expected_reset_val
 
-        csr_write(csr_unit, misa, 0xFFFF_FFFF, sim)
-        read_back = csr_read(csr_unit, misa)
-        assert read_back == 0xFFFF_FFFF
+            csr_write(csr_unit, csr_addr, 0xFFFF_FFFF, sim)
+            read_back = csr_read(csr_unit, csr_addr)
+            assert read_back == expected_read_back
+
+        # ---- misa ----
+        run_check(0x301, 0x4000_0100, 0xFFFF_FFFF)
 
         # ---- mepc ----
-        mepc = 0x341
-        sim.step()
-        reset_val = csr_read(csr_unit, mepc)
-        assert reset_val == 0
+        run_check(0x341, 0, 0xFFFF_FFFE)
 
-        csr_write(csr_unit, mepc, 0xFFFF_FFFF, sim)
-        read_back = csr_read(csr_unit, mepc)
-        assert read_back == 0xFFFF_FFFE
+        # ---- mcause ----
+        run_check(0x342, 0, 0xFFFF_FFFF)
