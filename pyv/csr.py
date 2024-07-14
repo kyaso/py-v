@@ -7,7 +7,7 @@ import pyv.isa as isa
 
 
 class CSRBlock(Module):
-    def __init__(self, reset_val, read_only=False, read_mask=0xFFFF_FFFF):
+    def __init__(self, reset_val=0, read_only=False, read_mask=0xFFFF_FFFF):
         super().__init__()
         self.read_only = read_only
         self._read_mask = read_mask
@@ -38,7 +38,6 @@ class CSRBank(VContainer):
                 0x4000_0100
             ),
             isa.CSR["mepc"]["addr"]: CSRBlock(
-                0,
                 read_mask=isa.CSR["mepc"]["read_mask"]
             ),
             isa.CSR["mcause"]["addr"]: CSRBlock(
