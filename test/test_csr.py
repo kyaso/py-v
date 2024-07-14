@@ -118,3 +118,6 @@ class TestCSRUnit:
 
         # ---- mcause ----
         run_check(0x342, 0, 0xFFFF_FFFF)
+
+        # ---- mtvec -----
+        run_check(0x305, 0, 0xFFFF_FFF1)

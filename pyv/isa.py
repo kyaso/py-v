@@ -105,11 +105,15 @@ CSR = {
     "misa": {
         "addr": 0x301
     },
+    "mtvec": {
+        "addr": 0x305,
+        "read_mask": 0xFFFF_FFF1
+    },
     "mepc": {
         "addr": 0x341,
         "read_mask": 0xFFFF_FFFE
     },
     "mcause": {
         "addr": 0x342
-    }
+    },
 }
