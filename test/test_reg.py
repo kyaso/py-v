@@ -20,6 +20,18 @@ def test_reg_init():
     assert reg._resetVal == 42
 
 
+def test_sensitive_methods():
+    def foo():
+        pass
+
+    regA = Reg(int)
+    regA._init()
+    assert regA.cur._processMethodHandler._processMethods == []
+
+    regB = Reg(int, sensitive_methods=[foo])
+    assert regB.cur._processMethodHandler._processMethods == [foo]
+
+
 def test_reg(reg):
     RegList.reset()
     assert reg.cur.read() == 0

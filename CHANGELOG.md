@@ -9,6 +9,7 @@
     - Elements are just class members
 - **Module**: Removed `process()` method default implemenation from class
   - The port sensitivity list API is not affected by this
+- **Registers**: It is now possible to assign sensitive methods to a register output
 
 
 # 0.4.0

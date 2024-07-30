@@ -1,6 +1,6 @@
 import copy
 from pyv.util import PyVObj
-from pyv.port import Input, Output
+from pyv.port import Input, Wire
 from pyv.clocked import Clocked, RegList
 from pyv.log import logger
 from typing import TypeVar, Generic, Type
@@ -11,11 +11,14 @@ T = TypeVar('T')
 class Reg(PyVObj, Clocked, Generic[T]):
     """Represents a register."""
 
-    def __init__(self, type: Type[T], resetVal: T = 0):
+    def __init__(self, type: Type[T], resetVal: T = 0, sensitive_methods=[]):
         """Create a new register.
 
         Args:
             resetVal (int, optional): Reset value. Defaults to 0.
+            sensitive_methods (list, optional): List of methods to trigger when
+                this register's output (current) value changes. By default, no
+                sensitive methods will be assigned.
         """
         super().__init__(name='UnnamedRegister')
 
@@ -24,7 +27,7 @@ class Reg(PyVObj, Clocked, Generic[T]):
 
         self.next: Input = Input(type, [None])
         """Next value input"""
-        self.cur: Output = Output(type)
+        self.cur: Wire = Wire(type, sensitive_methods)
         """Current value output"""
         self.rst: Input = Input(int, [None])
         """Synchronous Reset in (active high)"""
