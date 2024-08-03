@@ -918,6 +918,9 @@ class BranchUnit(Module):
         self.pc_i = Input(int)
         self.take_branch_i = Input(bool)
         self.target_i = Input(int)
+        self.raise_exception_i = Input(bool)
+        self.mtvec_i = Input(int, [None])
+
         self.npc_o = Output(int)
 
     def process(self):
@@ -925,11 +928,15 @@ class BranchUnit(Module):
         pc = self.pc_i.read()
         take_branch = self.take_branch_i.read()
         target = self.target_i.read()
+        raise_ex = self.raise_exception_i.read()
+        mtvec = self.mtvec_i.read()
 
         # Compute NPC
         npc = pc + 4
         if take_branch:
             npc = target
+        if raise_ex:
+            npc = mtvec
 
         # Outputs
         self.npc_o.write(npc)

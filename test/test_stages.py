@@ -2007,6 +2007,8 @@ class TestBranchUnit:
         assert bu.pc_i._type == int
         assert bu.take_branch_i._type == bool
         assert bu.target_i._type == int
+        assert bu.raise_exception_i._type == bool
+        assert bu.mtvec_i._type == int
         assert bu.npc_o._type == int
 
     def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
@@ -2018,3 +2020,13 @@ class TestBranchUnit:
         self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, False, 0x0)
         sim.step()
         assert bu.npc_o.read() == 0x40000000
+
+    def test_exception_without_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, True, 0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_exception_with_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, True, 0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
