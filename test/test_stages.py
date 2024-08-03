@@ -1996,6 +1996,13 @@ class TestBranchUnit:
         bu._init()
         return bu
 
+    def set_inputs(self, bu: BranchUnit, pc, tb, target, re, mtvec):
+        bu.pc_i.write(pc)
+        bu.take_branch_i.write(tb)
+        bu.target_i.write(target)
+        bu.raise_exception_i.write(re)
+        bu.mtvec_i.write(mtvec)
+
     def test_ports(self, bu: BranchUnit):
         assert bu.pc_i._type == int
         assert bu.take_branch_i._type == bool
@@ -2003,15 +2010,11 @@ class TestBranchUnit:
         assert bu.npc_o._type == int
 
     def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
-        bu.pc_i.write(0x80000000)
-        bu.take_branch_i.write(False)
-        bu.target_i.write(0x40000000)
+        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, False, 0x0)
         sim.step()
         assert bu.npc_o.read() == 0x80000004
 
     def test_taken_branch(self, sim: Simulator, bu: BranchUnit):
-        bu.pc_i.write(0x80000000)
-        bu.take_branch_i.write(True)
-        bu.target_i.write(0x40000000)
+        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, False, 0x0)
         sim.step()
         assert bu.npc_o.read() == 0x40000000
