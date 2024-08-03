@@ -1989,26 +1989,29 @@ class TestWBStage:
 # ---------------------------------------
 # Test Branch Unit
 # ---------------------------------------
-def test_branch_unit(sim):
-    bu = BranchUnit()
-    bu._init()
+class TestBranchUnit:
+    @pytest.fixture
+    def bu(self) -> BranchUnit:
+        bu = BranchUnit()
+        bu._init()
+        return bu
 
-    # Test ports
-    assert bu.pc_i._type == int
-    assert bu.take_branch_i._type == bool
-    assert bu.target_i._type == int
-    assert bu.npc_o._type == int
+    def test_ports(self, bu: BranchUnit):
+        assert bu.pc_i._type == int
+        assert bu.take_branch_i._type == bool
+        assert bu.target_i._type == int
+        assert bu.npc_o._type == int
 
-    # Test regular PC increment
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(False)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x80000004
+    def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
+        bu.pc_i.write(0x80000000)
+        bu.take_branch_i.write(False)
+        bu.target_i.write(0x40000000)
+        sim.step()
+        assert bu.npc_o.read() == 0x80000004
 
-    # Test taken branch
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(True)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x40000000
+    def test_taken_branch(self, sim: Simulator, bu: BranchUnit):
+        bu.pc_i.write(0x80000000)
+        bu.take_branch_i.write(True)
+        bu.target_i.write(0x40000000)
+        sim.step()
+        assert bu.npc_o.read() == 0x40000000
