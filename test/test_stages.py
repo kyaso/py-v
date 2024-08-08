@@ -1989,26 +1989,44 @@ class TestWBStage:
 # ---------------------------------------
 # Test Branch Unit
 # ---------------------------------------
-def test_branch_unit(sim):
-    bu = BranchUnit()
-    bu._init()
+class TestBranchUnit:
+    @pytest.fixture
+    def bu(self) -> BranchUnit:
+        bu = BranchUnit()
+        bu._init()
+        return bu
 
-    # Test ports
-    assert bu.pc_i._type == int
-    assert bu.take_branch_i._type == bool
-    assert bu.target_i._type == int
-    assert bu.npc_o._type == int
+    def set_inputs(self, bu: BranchUnit, pc, tb, target, re, mtvec):
+        bu.pc_i.write(pc)
+        bu.take_branch_i.write(tb)
+        bu.target_i.write(target)
+        bu.raise_exception_i.write(re)
+        bu.mtvec_i.write(mtvec)
 
-    # Test regular PC increment
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(False)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x80000004
+    def test_ports(self, bu: BranchUnit):
+        assert bu.pc_i._type == int
+        assert bu.take_branch_i._type == bool
+        assert bu.target_i._type == int
+        assert bu.raise_exception_i._type == bool
+        assert bu.mtvec_i._type == int
+        assert bu.npc_o._type == int
 
-    # Test taken branch
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(True)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x40000000
+    def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, False, 0x0)
+        sim.step()
+        assert bu.npc_o.read() == 0x80000004
+
+    def test_taken_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, False, 0x0)
+        sim.step()
+        assert bu.npc_o.read() == 0x40000000
+
+    def test_exception_without_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, True, 0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_exception_with_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, True, 0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000

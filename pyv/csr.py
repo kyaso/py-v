@@ -1,5 +1,5 @@
 from pyv.module import Module
-from pyv.port import Input, Output
+from pyv.port import Input, Output, Wire
 from pyv.reg import Reg
 from pyv.util import VContainer, VMap
 from pyv.log import logger
@@ -7,15 +7,17 @@ import pyv.isa as isa
 
 
 class CSRBlock(Module):
-    def __init__(self, reset_val, read_only=False):
+    def __init__(self, reset_val=0, read_only=False, read_mask=0xFFFF_FFFF):
         super().__init__()
         self.read_only = read_only
+        self._read_mask = read_mask
         self._csr_reg = Reg(int, reset_val)
         self.we_i = Input(bool)
         self.write_val_i = Input(int)
         self.csr_val_o = Output(int)
+        self.csr_val_w = Wire(int, [self.output])
 
-        self.csr_val_o << self._csr_reg.cur
+        self.csr_val_w << self._csr_reg.cur
 
     def process(self):
         val = self._csr_reg.cur.read()
@@ -23,13 +25,25 @@ class CSRBlock(Module):
             val = self.write_val_i.read()
         self._csr_reg.next.write(val)
 
+    def output(self):
+        val = self.csr_val_w.read()
+        self.csr_val_o.write(val & self._read_mask)
+
 
 class CSRBank(VContainer):
     def __init__(self, write_val: Input):
         super().__init__()
         self.csrs = VMap({
             isa.CSR["misa"]["addr"]: CSRBlock(
-                0x4000_0100, read_only=isa.CSR["misa"]["is_RO"])
+                reset_val=0x4000_0100
+            ),
+            isa.CSR["mepc"]["addr"]: CSRBlock(
+                read_mask=isa.CSR["mepc"]["read_mask"]
+            ),
+            isa.CSR["mcause"]["addr"]: CSRBlock(),
+            isa.CSR["mtvec"]["addr"]: CSRBlock(
+                read_mask=isa.CSR["mtvec"]["read_mask"]
+            ),
         })
         self.connect_write_val(write_val)
 

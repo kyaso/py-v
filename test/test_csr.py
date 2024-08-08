@@ -7,14 +7,15 @@ from pyv.simulator import Simulator
 
 @pytest.fixture
 def csr_block() -> CSRBlock:
-    csr = CSRBlock(0)
+    csr = CSRBlock(reset_val=0, read_only=False, read_mask=0xFFFF_FFFF)
     csr._init()
     return csr
 
 
 class TestCSRBlock:
-    def test_read(self, csr_block: CSRBlock):
+    def test_read(self, sim: Simulator, csr_block: CSRBlock):
         csr_block._csr_reg.cur._val = 0x42
+        sim.step()
         assert csr_block.csr_val_o.read() == 0x42
 
     def test_write(self, sim: Simulator, csr_block: CSRBlock):
@@ -27,6 +28,12 @@ class TestCSRBlock:
         csr_block.write_val_i.write(0x3)
         sim.step()
         assert csr_block.csr_val_o.read() == 0x123
+
+    def test_read_with_mask(self, sim: Simulator, csr_block: CSRBlock):
+        csr_block._read_mask = 0xDEAD_BEEF
+        csr_block._csr_reg.cur._val = 0xFFFF_FFFF
+        sim.step()
+        assert csr_block.csr_val_o.read() == 0xDEAD_BEEF
 
 
 @pytest.fixture
@@ -63,9 +70,10 @@ def csr_read(csr_unit: CSRUnit, csr_num: int):
 
 
 class TestCSRUnit:
-    def test_csr_read(self, csr_unit: CSRUnit):
+    def test_csr_read(self, sim: Simulator, csr_unit: CSRUnit):
         misa = 0x301
         csr_unit.csr_bank.csrs[misa]._csr_reg.cur._val = 0x456
+        sim.step()
         assert csr_read(csr_unit, misa) == 0x456
 
     def test_csr_write(self, sim: Simulator, csr_unit: CSRUnit):
@@ -93,11 +101,23 @@ class TestCSRUnit:
         assert csr_read(csr_unit, 0x301) == 0x42
 
     def test_m_mode_csrs(self, sim: Simulator, csr_unit: CSRUnit):
-        # ---- misa ----
-        misa = 0x301
-        reset_val = csr_read(csr_unit, misa)
-        assert reset_val == 0x4000_0100
+        def run_check(csr_addr, expected_reset_val, expected_read_back):
+            sim.step()
+            reset_val = csr_read(csr_unit, csr_addr)
+            assert reset_val == expected_reset_val
 
-        csr_write(csr_unit, misa, 0xFFFF_FFFF, sim)
-        read_back = csr_read(csr_unit, misa)
-        assert read_back == 0xFFFF_FFFF
+            csr_write(csr_unit, csr_addr, 0xFFFF_FFFF, sim)
+            read_back = csr_read(csr_unit, csr_addr)
+            assert read_back == expected_read_back
+
+        # ---- misa ----
+        run_check(0x301, 0x4000_0100, 0xFFFF_FFFF)
+
+        # ---- mepc ----
+        run_check(0x341, 0, 0xFFFF_FFFE)
+
+        # ---- mcause ----
+        run_check(0x342, 0, 0xFFFF_FFFF)
+
+        # ---- mtvec -----
+        run_check(0x305, 0, 0xFFFF_FFF1)
