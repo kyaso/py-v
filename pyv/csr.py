@@ -94,3 +94,9 @@ class CSRUnit(Module):
             return csr.csr_val_o.read()
         else:
             return 0
+
+    def _dbg_set_csr(self, addr, val):
+        self.csr_bank.csrs[addr]._csr_reg.cur._val = val
+
+    def _dbg_get_csr(self, addr):
+        return self.csr_bank.csrs[addr]._csr_reg.cur._val
