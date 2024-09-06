@@ -1,5 +1,5 @@
 import pytest
-from pyv.util import getBit, getBits, getBitVector, VMap, PyVObj, VArray
+from pyv.util import VContainer, getBit, getBits, getBitVector, VMap, PyVObj, VArray
 from unittest.mock import MagicMock
 from pyv.module import Module
 from pyv.port import Input
@@ -26,6 +26,53 @@ def test_getBitVector():
         assert getBitVector(0x39, 4) == [1, 0, 0, 1]
 
 
+class TestVContainer:
+    class DUT_Container(VContainer):
+        def __init__(self):
+            super().__init__()
+
+            self.obj1 = PyVObj()
+            self.obj1._init = MagicMock()
+            self.obj2 = PyVObj()
+            self.obj2._init = MagicMock()
+            self.A_i = Input(int)
+
+    @pytest.fixture
+    def con(self) -> DUT_Container:
+        return self.DUT_Container()
+
+    def test_init_visited(self, con: DUT_Container):
+        assert con._visited == False
+        con._init(None)
+        assert con._visited == True
+
+    def test_init_parent_passthrough(self, con: DUT_Container):
+        parent = PyVObj()
+        con._init(parent)
+        con.obj1._init.assert_called_once_with(parent)
+        con.obj2._init.assert_called_once_with(parent)
+
+    def test_module_process_pass_through(self, con: DUT_Container):
+        class Mod(Module):
+            def __init__(self, name=''):
+                super().__init__(name)
+                self.con = con
+
+            def process(self):
+                pass
+
+        mod = Mod()
+        mod._init()
+
+        assert con.A_i._processMethodHandler._processMethods == [mod.process]
+
+    def test_init_subobj_naming(self, con: DUT_Container):
+        con.name = "alpha.foo"
+        con._init(None)
+        assert con.obj1.name == "alpha.foo.obj1"
+        assert con.obj2.name == "alpha.foo.obj2"
+        assert con.A_i.name == "alpha.foo.A_i"
+
 class TestVMap:
     @pytest.fixture
     def map(self) -> VMap:
@@ -46,24 +93,24 @@ class TestVMap:
 
     def test_init_visited(self, map: VMap):
         assert map._visited == False
-        map._init()
+        map._init(None)
         assert map._visited == True
 
     def test_init_subobjs(self, map: VMap):
-        map._init()
+        map._init(None)
         map._elems['foo']._init.assert_called_once()
         map._elems['bar']._init.assert_called_once()
 
     def test_init_subobj_naming(self, map: VMap):
         map.name = "alpha.map"
-        map._init()
+        map._init(None)
         assert map._elems['foo'].name == 'alpha.map.foo'
         assert map._elems['bar'].name == 'alpha.map.bar'
 
     def test_init_subobj_naming_int_key(self, map: VMap):
         map.name = "alpha.map"
         map._elems[42] = PyVObj()
-        map._init()
+        map._init(None)
         assert map._elems[42].name == 'alpha.map.42'
 
     def test_init_parent_passthrough(self, map: VMap):
@@ -116,17 +163,17 @@ class TestVArray:
 
     def test_init_visited(self, arr: VArray):
         assert arr._visited == False
-        arr._init()
+        arr._init(None)
         assert arr._visited == True
 
     def test_init_subobjs(self, arr: VArray):
-        arr._init()
+        arr._init(None)
         arr._elems[0]._init.assert_called_once()
         arr._elems[1]._init.assert_called_once()
 
     def test_init_subobj_naming(self, arr: VArray):
         arr.name = "alpha.arr"
-        arr._init()
+        arr._init(None)
         assert arr._elems[0].name == 'alpha.arr[0]'
         assert arr._elems[1].name == 'alpha.arr[1]'
 
