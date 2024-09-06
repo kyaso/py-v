@@ -34,10 +34,22 @@ class PyVObj:
 
 
 class VContainer(PyVObj):
-    """This class can be used to group together one or more `PyVObj`s.
+    """A class to group together `PyVObj` instances in a class-like
+    manner.
     """
     def __init__(self):
         super().__init__()
+
+    def _init(self, parent: PyVObj):
+        if self._visited:
+            return
+        self._visited = True
+
+        for key in self.__dict__:
+            obj = self.__dict__[key]
+            if isinstance(obj, (PyVObj)):
+                obj.name = self.name + "." + key
+                obj._init(parent)
 
 
 class VMap(PyVObj):
@@ -65,7 +77,7 @@ class VMap(PyVObj):
             raise TypeError("ERROR: Please provide a valid dict to VMap!")
         self._elems: Dict[Any, PyVObj] = dict_
 
-    def _init(self, parent: PyVObj = None):
+    def _init(self, parent: PyVObj):
         """Initialize the VMap elements.
 
         Sets the name and initializes each element in the VMap.
@@ -119,7 +131,7 @@ class VArray(PyVObj):
         super().__init__()
         self._elems: List[PyVObj] = list(args)
 
-    def _init(self, parent: PyVObj = None):
+    def _init(self, parent: PyVObj):
         """Initialize the VArray elements.
 
         Sets the name and initializes each element in the VArray.
