@@ -73,6 +73,7 @@ class TestVContainer:
         assert con.obj2.name == "alpha.foo.obj2"
         assert con.A_i.name == "alpha.foo.A_i"
 
+
 class TestVMap:
     @pytest.fixture
     def map(self) -> VMap:
