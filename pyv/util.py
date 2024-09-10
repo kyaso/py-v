@@ -26,8 +26,7 @@ class PyVObj:
             return
         self._visited = True
 
-        for key in self.__dict__:
-            obj = self.__dict__[key]
+        for key, obj in self.__dict__.items():
             if isinstance(obj, (PyVObj)):
                 obj.name = self.name + "." + key
                 obj._init(self)
@@ -45,8 +44,7 @@ class VContainer(PyVObj):
             return
         self._visited = True
 
-        for key in self.__dict__:
-            obj = self.__dict__[key]
+        for key, obj in self.__dict__.items():
             if isinstance(obj, (PyVObj)):
                 obj.name = self.name + "." + key
                 obj._init(parent)
