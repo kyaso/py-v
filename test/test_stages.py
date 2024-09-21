@@ -253,7 +253,7 @@ class TestIDStage:
     def test_IDStage(self, sim: Simulator, decode: IDStage):
         def validate(rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem, ecall):
             out = decode.IDEX_o.read()
-            ecall_o=decode.ecall_o.read()
+            ecall_o = decode.ecall_o.read()
 
             if rs1:
                 assert out.rs1 == rs1
