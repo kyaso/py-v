@@ -12,7 +12,8 @@ def core() -> SingleCycle:
     return core
 
 
-def mem_write_word(mem: list, addr, val):
+def mem_write_word(core: SingleCycle, addr, val):
+    mem = core.mem.mem
     for i in range(4):
         mem[addr + i] = 0xff & val
         val >>= 8
@@ -26,8 +27,8 @@ class TestCSR:
         inst = 0x301612f3
         nop = 0x13
         core.regf.regs[12] = 0xdeadbeef
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0xdeadbeef
@@ -39,8 +40,8 @@ class TestCSR:
         inst = 0x30161073
         nop = 0x13
         core.regf.regs[12] = 0xdeadbeef
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] != 0x4000_0100
         assert core.csr_unit.read(0x301) == 0xdeadbeef
@@ -52,8 +53,8 @@ class TestCSR:
         inst = 0x301622f3
         nop = 0x13
         core.regf.regs[12] = 0xdeadbeef
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0xdeadbfef
@@ -65,8 +66,8 @@ class TestCSR:
         inst = 0x301632f3
         nop = 0x13
         core.regf.regs[12] = 0xdeadbeef
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x100
@@ -77,8 +78,8 @@ class TestCSR:
         # csrrs x5, misa, x0
         inst = 0x301022f3
         nop = 0x13
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x4000_0100
@@ -89,8 +90,8 @@ class TestCSR:
         # csrrwi x5, misa, 26
         inst = 0x301d52f3
         nop = 0x13
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 26
@@ -101,8 +102,8 @@ class TestCSR:
         # csrrsi x5, misa, 26
         inst = 0x301d62f3
         nop = 0x13
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x4000_011A
@@ -113,8 +114,8 @@ class TestCSR:
         # csrrci x5, misa, 26
         inst = 0x301d72f3
         nop = 0x13
-        mem_write_word(core.mem.mem, 0, inst)
-        mem_write_word(core.mem.mem, 4, nop)
+        mem_write_word(core, 0, inst)
+        mem_write_word(core, 4, nop)
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x4000_0100
