@@ -1,7 +1,7 @@
 import pytest
+from pyv import isa
 from pyv.clocked import Clock
 from pyv.csr import CSRBank, CSRBlock, CSRUnit
-from pyv.port import Input
 from pyv.simulator import Simulator
 
 
@@ -38,7 +38,7 @@ class TestCSRBlock:
 
 @pytest.fixture
 def csr_bank() -> CSRBank:
-    bank = CSRBank(Input(int))
+    bank = CSRBank()
     return bank
 
 
@@ -48,6 +48,39 @@ class TestCSRBank:
 
     def test_get_invalid_csr(self, csr_bank: CSRBank):
         assert csr_bank.get_csr(1) is None
+
+    def test_set_write_val(self, csr_bank: CSRBank):
+        csr_addr = isa.CSR["mepc"]["addr"]
+        csr_bank.set_write_val(csr_addr, 0xdeadbeef)
+        assert csr_bank.csrs[csr_addr].write_val_i.read() == 0xdeadbeef
+
+    def test_set_write_en(self, csr_bank: CSRBank):
+        csr_addr = isa.CSR["mepc"]["addr"]
+        csr_bank.set_write_en(csr_addr)
+        assert csr_bank.csrs[csr_addr].we_i.read() == True
+
+    def test_disable_write(self, csr_bank: CSRBank):
+        csr: CSRBlock
+        for _, csr in csr_bank.csrs.items():
+            csr.we_i.write(True)
+
+        csr_bank.disable_write()
+
+        for _, csr in csr_bank.csrs.items():
+            assert csr.we_i.read() == False
+
+    def test_exception_we(self, csr_bank: CSRBank):
+        csr_bank.set_exception_we()
+        assert csr_bank.csrs[isa.CSR["mepc"]["addr"]].we_i.read() == True
+        assert csr_bank.csrs[isa.CSR["mcause"]["addr"]].we_i.read() == True
+
+    def test_exception_write_val(self, csr_bank: CSRBank):
+        csr_bank.set_exception_write_val(
+            mepc=0xdeadbeef,
+            mcause=0xaffeaffe
+        )
+        assert csr_bank.csrs[isa.CSR["mepc"]["addr"]].write_val_i.read() == 0xdeadbeef
+        assert csr_bank.csrs[isa.CSR["mcause"]["addr"]].write_val_i.read() == 0xaffeaffe
 
     def test_dbg_set_get(self, csr_bank: CSRBank):
         misa = 0x301
@@ -133,3 +166,36 @@ class TestCSRUnit:
 
         # ---- mtvec -----
         run_check(0x305, 0, 0xFFFF_FFF1)
+
+
+class TestException:
+    mepc = 0x341
+    mcause = 0x342
+
+    def test_mepc_is_set_during_exception(self, csr_unit: CSRUnit, sim: Simulator):
+        csr_unit.ex_i.write(True)
+        csr_unit.write_en_i.write(True)
+        csr_unit.mepc_i.write(0xdeadbeef)
+        sim.step()
+        assert csr_unit._dbg_get_csr(self.mepc) == 0xdeadbeef
+
+    def test_mepc_is_not_set_when_no_exception(self, csr_unit: CSRUnit, sim: Simulator):
+        csr_unit._dbg_set_csr(self.mepc, 0x8000_0000)
+        csr_unit.ex_i.write(False)
+        csr_unit.mepc_i.write(0)
+        sim.step()
+        assert csr_unit._dbg_get_csr(self.mepc) == 0x8000_0000
+
+    def test_mcause_is_set_during_exception(self, csr_unit: CSRUnit, sim: Simulator):
+        csr_unit.ex_i.write(True)
+        csr_unit.write_en_i.write(True)
+        csr_unit.mcause_i.write(0xdeadbeef)
+        sim.step()
+        assert csr_unit._dbg_get_csr(self.mcause) == 0xdeadbeef
+
+    def test_mcause_is_not_set_when_no_exception(self, csr_unit: CSRUnit, sim: Simulator):
+        csr_unit._dbg_set_csr(self.mcause, 0x8000_0000)
+        csr_unit.ex_i.write(False)
+        csr_unit.mcause_i.write(0)
+        sim.step()
+        assert csr_unit._dbg_get_csr(self.mcause) == 0x8000_0000

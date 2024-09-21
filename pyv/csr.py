@@ -31,7 +31,7 @@ class CSRBlock(Module):
 
 
 class CSRBank(VContainer):
-    def __init__(self, write_val: Input):
+    def __init__(self):
         super().__init__()
         self.csrs = VMap({
             isa.CSR["misa"]["addr"]: CSRBlock(
@@ -45,7 +45,6 @@ class CSRBank(VContainer):
                 read_mask=isa.CSR["mtvec"]["read_mask"]
             ),
         })
-        self.connect_write_val(write_val)
 
     def get_csr(self, addr) -> CSRBlock:
         try:
@@ -55,15 +54,35 @@ class CSRBank(VContainer):
                 f"CSR: Ignoring access to invalid/unimplemented CSR {addr}.")
             return None
 
-    def connect_write_val(self, write_val: Input):
-        csr: CSRBlock
-        for _, csr in self.csrs.items():
-            csr.write_val_i << write_val
+    def read_csr(self, addr):
+        csr = self.get_csr(addr)
+        if csr:
+            return csr.csr_val_o.read()
+        else:
+            return 0
+
+    def set_write_val(self, addr, val):
+        csr = self.get_csr(addr)
+        if csr:
+            csr.write_val_i.write(val)
+
+    def set_write_en(self, addr):
+        csr = self.get_csr(addr)
+        if csr:
+            csr.we_i.write(True)
 
     def disable_write(self):
         csr: CSRBlock
         for _, csr in self.csrs.items():
             csr.we_i.write(False)
+
+    def set_exception_we(self):
+        self.csrs[isa.CSR["mepc"]["addr"]].we_i.write(True)
+        self.csrs[isa.CSR["mcause"]["addr"]].we_i.write(True)
+
+    def set_exception_write_val(self, mepc, mcause):
+        self.csrs[isa.CSR["mepc"]["addr"]].write_val_i.write(mepc)
+        self.csrs[isa.CSR["mcause"]["addr"]].write_val_i.write(mcause)
 
     def _dbg_set_csr(self, addr, val):
         self.csrs[addr]._csr_reg.cur._val = val
@@ -76,30 +95,32 @@ class CSRUnit(Module):
     def __init__(self):
         super().__init__()
 
-        # TODO: interesting for docs: we shouldn't nest declare PyObjs inside
-        # non-PyObjs -> Use Container class
-        self.write_addr_i = Input(int, [self.write])
-        self.write_val_i = Input(int, [None])
-        self.write_en_i = Input(bool, [self.write])
+        self.write_addr_i = Input(int)
+        self.write_val_i = Input(int)
+        self.write_en_i = Input(bool)
 
-        self.csr_bank = CSRBank(self.write_val_i)
+        self.ex_i = Input(bool)
+        self.mepc_i = Input(int)
+        self.mcause_i = Input(int)
 
-    def _disable_write(self):
+        self.csr_bank = CSRBank()
+
+    def process(self):
         self.csr_bank.disable_write()
 
-    def write(self):
-        self._disable_write()
-        if self.write_en_i.read():
+        if self.ex_i.read():
+            mepc = self.mepc_i.read()
+            mcause = self.mcause_i.read()
+            self.csr_bank.set_exception_write_val(mepc, mcause)
+            self.csr_bank.set_exception_we()
+        elif self.write_en_i.read():
             addr = self.write_addr_i.read()
-            csr = self.csr_bank.get_csr(addr)
-            csr.we_i.write(True)
+            val = self.write_val_i.read()
+            self.csr_bank.set_write_val(addr, val)
+            self.csr_bank.set_write_en(addr)
 
     def read(self, addr):
-        csr = self.csr_bank.get_csr(addr)
-        if csr is not None:
-            return csr.csr_val_o.read()
-        else:
-            return 0
+        return self.csr_bank.read_csr(addr)
 
     def _dbg_set_csr(self, addr, val):
         self.csr_bank._dbg_set_csr(addr, val)
