@@ -134,6 +134,7 @@ class IDStage(Module):
 
         # Outputs
         self.IDEX_o = Output(IDEX_t)
+        self.ecall_o = Output(bool)
 
     def process(self):
         # Read inputs
@@ -177,10 +178,13 @@ class IDStage(Module):
         if csr_isImm:
             rs1 = csr_uimm
 
+        ecall = self.is_ecall(inst)
+
         # Outputs
         self.IDEX_o.write(IDEX_t(
             rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
             opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
+        self.ecall_o.write(ecall)
 
     def is_csr(self, opcode, f3):
         return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
@@ -191,6 +195,9 @@ class IDStage(Module):
             isa.CSR_F3["CSRRSI"],
             isa.CSR_F3["CSRRCI"]
         ]
+
+    def is_ecall(self, inst):
+        return inst == 0x73
 
     def we(self, opcode, f3):
         return (
