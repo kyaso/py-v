@@ -49,6 +49,12 @@ class TestCSRBank:
     def test_get_invalid_csr(self, csr_bank: CSRBank):
         assert csr_bank.get_csr(1) is None
 
+    def test_dbg_set_get(self, csr_bank: CSRBank):
+        misa = 0x301
+        csr_bank._dbg_set_csr(misa, 0xdeadbeef)
+        assert csr_bank.csrs[misa]._csr_reg.cur._val == 0xdeadbeef
+        assert csr_bank._dbg_get_csr(misa) == 0xdeadbeef
+
 
 @pytest.fixture
 def csr_unit() -> CSRUnit:
@@ -70,10 +76,11 @@ def csr_read(csr_unit: CSRUnit, csr_num: int):
 
 
 class TestCSRUnit:
-    def test_dbg_set(self, csr_unit: CSRUnit):
+    def test_dbg_set_get(self, csr_unit: CSRUnit):
         misa = 0x301
         csr_unit._dbg_set_csr(misa, 0xdeadbeef)
         assert csr_unit.csr_bank.csrs[misa]._csr_reg.cur._val == 0xdeadbeef
+        assert csr_unit._dbg_get_csr(misa) == 0xdeadbeef
 
     def test_csr_read(self, sim: Simulator, csr_unit: CSRUnit):
         misa = 0x301

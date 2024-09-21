@@ -65,6 +65,12 @@ class CSRBank(VContainer):
         for _, csr in self.csrs.items():
             csr.we_i.write(False)
 
+    def _dbg_set_csr(self, addr, val):
+        self.csrs[addr]._csr_reg.cur._val = val
+
+    def _dbg_get_csr(self, addr):
+        return self.csrs[addr]._csr_reg.cur._val
+
 
 class CSRUnit(Module):
     def __init__(self):
@@ -96,7 +102,7 @@ class CSRUnit(Module):
             return 0
 
     def _dbg_set_csr(self, addr, val):
-        self.csr_bank.csrs[addr]._csr_reg.cur._val = val
+        self.csr_bank._dbg_set_csr(addr, val)
 
     def _dbg_get_csr(self, addr):
-        return self.csr_bank.csrs[addr]._csr_reg.cur._val
+        return self.csr_bank._dbg_get_csr(addr)
