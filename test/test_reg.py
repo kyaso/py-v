@@ -74,10 +74,8 @@ def test_regfile():
     rf = Regfile()
 
     # Test read after initial state
-    val1 = rf.read(0)
-    val2 = rf.read(29)
-    assert val1 == 0
-    assert val2 == 0
+    for r in range(0, 32):
+        assert rf.read(r) == 0
 
     # Write some values
     rf.writeRequest(14, 0xdeadbeef)
