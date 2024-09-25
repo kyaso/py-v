@@ -73,7 +73,7 @@ class Regfile(Clocked):
 
     def __init__(self):
         RegList.add_to_reg_list(self)
-        self.regs = [0 for _ in range(0, 32)]
+        self.regs = [0] * 32
         self._nextWIdx = 0
         self._nextWval = 0
         self.we = False
@@ -145,7 +145,7 @@ class Regfile(Clocked):
 
     def _reset(self):
         """Resets the register file."""
-        self.regs = [0 for _ in range(0, 32)]
+        self.regs = [0] * 32
         # TODO: Similar story as above in _tick(): These signals are driven by
         # external modules, so it's actually not the memories responsibility to
         # reset them. We still do for additional simulation safety.
