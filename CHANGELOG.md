@@ -10,6 +10,9 @@
 - **Module**: Removed `process()` method default implemenation from class
   - The port sensitivity list API is not affected by this
 - **Registers**: It is now possible to assign sensitive methods to a register output
+- **Tests**
+  - Added a module `test_utils` which will contain useful utility stuff for writing tests
+    - Currently, it has a function `check_port` that can be used to assert the existence and the type of a port
 
 
 # 0.4.0
