@@ -119,3 +119,23 @@ class TestCSR:
         sim.run(2, False)
         assert core.regf.regs[5] == 0x4000_0100
         assert core.csr_unit.read(0x301) == 0x4000_0100
+
+
+class TestECALL:
+    def test_ecall(self, sim: Simulator, core: SingleCycle):
+        sim.reset()
+
+        inst = 0x73
+        nop = 0x13
+        mtvec_addr = 0x305
+        mepc_addr = 0x341
+        mcause_addr = 0x342
+        mtvec = 16
+        core.csr_unit._dbg_set_csr(mtvec_addr, mtvec)
+        mem_write_word(core, 0, nop)
+        mem_write_word(core, 4, inst)
+        mem_write_word(core, 16, nop)
+        sim.run(3, False)
+        assert core.csr_unit.read(mepc_addr) == 4
+        assert core.csr_unit.read(mcause_addr) == 11
+        assert core.pc.read() == mtvec

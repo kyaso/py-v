@@ -1,4 +1,5 @@
 from pyv.csr import CSRUnit
+from pyv.exception_unit import ExceptionUnit
 from pyv.stages import EXMEM_t, IFID_t, IFStage, IDStage, EXStage, MEMStage, \
     WBStage, BranchUnit
 from pyv.mem import Memory
@@ -34,6 +35,8 @@ class SingleCycle(Module):
         """Write-back"""
         self.bu = BranchUnit()
         """Branch unit"""
+        self.excep = ExceptionUnit(self.csr_unit)
+        """Exception unit"""
 
         # Wires
         self.IFID = Wire(IFID_t, sensitive_methods=[self.connects])
@@ -54,6 +57,15 @@ class SingleCycle(Module):
         self.bu.pc_i          << self.pc
         self.bu.take_branch_i << self.take_branch
         self.bu.target_i      << self.alu_res
+
+        # Connect exception logic
+        self.excep.pc_i       << self.pc
+        self.bu.raise_exception_i << self.excep.raise_exception_o
+        self.bu.mtvec_i << self.excep.npc_o
+        self.csr_unit.ex_i << self.excep.raise_exception_o
+        self.csr_unit.mepc_i << self.excep.mepc_o
+        self.csr_unit.mcause_i << self.excep.mcause_o
+        self.excep.ecall_i    << self.id_stg.ecall_o
 
         # Connect WBStage to CSR unit
         self.csr_unit.write_en_i << self.wb_stg.csr_write_en_o

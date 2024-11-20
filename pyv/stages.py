@@ -916,6 +916,8 @@ class BranchUnit(Module):
         pc_i: Program counter (PC)
         take_branch_i: Whether to take the branch or not
         target_i: Branch target address
+        raise_exception_i: Whether an exception should be taken
+        mtvec_i: Address of interrupt handler
 
     Outputs:
         npc_o: Next PC
