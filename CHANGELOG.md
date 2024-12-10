@@ -1,5 +1,9 @@
-# Next version
+# 0.5.0
 
+- **NEW**: Added **ECALL** and **MRET** instructions (#31)
+  - Currently, `mret` only sets `pc` to what is stored in `mepc`. It does
+    not do anything else. This is not fully compliant to section 3.1.6.1,
+    priv. spec. If needed in the future, the missing logic can be added.
 - **NEW**: Added **VArray**, **VMap**, and **VContainer** structures.
   - VArray: Groups PyVObj instances in a list-like manner.
   - VMap: Groups PyVObj instances in a dictionary-like manner.

@@ -251,9 +251,10 @@ class TestIDStage:
         assert res == 3
 
     def test_IDStage(self, sim: Simulator, decode: IDStage):
-        def validate(rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem, ecall):
+        def validate(rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem, ecall, mret):
             out = decode.IDEX_o.read()
             ecall_o = decode.ecall_o.read()
+            mret_o = decode.mret_o.read()
 
             if rs1:
                 assert out.rs1 == rs1
@@ -288,6 +289,8 @@ class TestIDStage:
 
             assert ecall_o == ecall
 
+            assert mret_o == mret
+
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
 
         # Write some values into the relevant registers
@@ -311,7 +314,8 @@ class TestIDStage:
             funct3=2,
             funct7=None,
             mem=2,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test OP-IMM -----------------------------------
@@ -332,7 +336,8 @@ class TestIDStage:
             funct3=0,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test SHAMT -----------------------------------
@@ -353,7 +358,8 @@ class TestIDStage:
             funct3=0b101,
             funct7=0,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test OP -----------------------------------
@@ -377,7 +383,8 @@ class TestIDStage:
             funct3=0,
             funct7=0b0100000,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test LOAD -----------------------------------
@@ -398,7 +405,8 @@ class TestIDStage:
             funct3=0b010,
             funct7=None,
             mem=1,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test JALR -----------------------------------
@@ -419,7 +427,8 @@ class TestIDStage:
             funct3=0b000,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test BRANCH -----------------------------------
@@ -441,7 +450,8 @@ class TestIDStage:
             funct3=0b001,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test AUIPC -----------------------------------
@@ -460,7 +470,8 @@ class TestIDStage:
             funct3=None,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test LUI -----------------------------------
@@ -479,7 +490,8 @@ class TestIDStage:
             funct3=None,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # ---- Test JAL -----------------------------------
@@ -498,7 +510,8 @@ class TestIDStage:
             funct3=None,
             funct7=None,
             mem=0,
-            ecall=False
+            ecall=False,
+            mret=False
         )
 
         # TODO: Test FENCE
@@ -519,7 +532,27 @@ class TestIDStage:
             funct3=None,
             funct7=None,
             mem=0,
-            ecall=True
+            ecall=True,
+            mret=False
+        )
+
+        # ---- Test MRET -----------------------------------
+        decode.IFID_i.write(IFID_t(0x30200073, 0x80000004))
+        sim.step()
+        validate(
+            rs1=None,
+            rs2=None,
+            imm=None,
+            pc=None,
+            rd=None,
+            we=False,
+            wb_sel=None,
+            opcode=None,
+            funct3=None,
+            funct7=None,
+            mem=0,
+            ecall=False,
+            mret=True
         )
 
     def test_csr(self, sim: Simulator, decode: IDStage):
@@ -2017,12 +2050,23 @@ class TestBranchUnit:
         bu._init()
         return bu
 
-    def set_inputs(self, bu: BranchUnit, pc, tb, target, re, mtvec):
+    def set_inputs(
+            self,
+            bu: BranchUnit,
+            pc=0x8000_0000,
+            tb=False,
+            target=0x4000_0000,
+            re=False,
+            mtvec=0x0,
+            tr=False,
+            mepc=0x0):
         bu.pc_i.write(pc)
         bu.take_branch_i.write(tb)
         bu.target_i.write(target)
         bu.raise_exception_i.write(re)
         bu.mtvec_i.write(mtvec)
+        bu.trap_return_i.write(tr)
+        bu.mepc_i.write(mepc)
 
     def test_ports(self, bu: BranchUnit):
         assert bu.pc_i._type == int
@@ -2031,23 +2075,35 @@ class TestBranchUnit:
         assert bu.raise_exception_i._type == bool
         assert bu.mtvec_i._type == int
         assert bu.npc_o._type == int
+        assert bu.trap_return_i._type == bool
+        assert bu.mepc_i._type == int
 
     def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
-        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, False, 0x0)
+        self.set_inputs(bu)
         sim.step()
         assert bu.npc_o.read() == 0x80000004
 
     def test_taken_branch(self, sim: Simulator, bu: BranchUnit):
-        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, False, 0x0)
+        self.set_inputs(bu, tb=True)
         sim.step()
         assert bu.npc_o.read() == 0x40000000
 
     def test_exception_without_branch(self, sim: Simulator, bu: BranchUnit):
-        self.set_inputs(bu, 0x8000_0000, False, 0x4000_0000, True, 0x4100_0000)
+        self.set_inputs(bu, tb=False, re=True, mtvec=0x4100_0000)
         sim.step()
         assert bu.npc_o.read() == 0x4100_0000
 
     def test_exception_with_branch(self, sim: Simulator, bu: BranchUnit):
-        self.set_inputs(bu, 0x8000_0000, True, 0x4000_0000, True, 0x4100_0000)
+        self.set_inputs(bu, tb=True, target=0x4000_0000, re=True, mtvec=0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_trap_return(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, tr=True, mepc=0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_exception_with_trap_return(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, re=True, mtvec=0x4100_0000, tr=True, mepc=0x8100_0000)
         sim.step()
         assert bu.npc_o.read() == 0x4100_0000

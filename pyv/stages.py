@@ -135,6 +135,7 @@ class IDStage(Module):
         # Outputs
         self.IDEX_o = Output(IDEX_t)
         self.ecall_o = Output(bool)
+        self.mret_o = Output(bool)
 
     def process(self):
         # Read inputs
@@ -179,12 +180,14 @@ class IDStage(Module):
             rs1 = csr_uimm
 
         ecall = self.is_ecall(inst)
+        mret = self.is_mret(inst)
 
         # Outputs
         self.IDEX_o.write(IDEX_t(
             rs1, rs2, imm, self.pc, rd_idx, we, wb_sel,
             opcode, funct3, funct7, mem, csr_addr, csr_read_val, csr_write_en))
         self.ecall_o.write(ecall)
+        self.mret_o.write(mret)
 
     def is_csr(self, opcode, f3):
         return opcode == isa.OPCODES["SYSTEM"] and f3 in isa.CSR_F3.values()
@@ -198,6 +201,9 @@ class IDStage(Module):
 
     def is_ecall(self, inst):
         return inst == 0x73
+
+    def is_mret(self, inst):
+        return inst == 0x30200073
 
     def we(self, opcode, f3):
         return (
@@ -929,6 +935,8 @@ class BranchUnit(Module):
         self.target_i = Input(int)
         self.raise_exception_i = Input(bool)
         self.mtvec_i = Input(int, [None])
+        self.trap_return_i = Input(bool)
+        self.mepc_i = Input(int)
 
         self.npc_o = Output(int)
 
@@ -939,11 +947,15 @@ class BranchUnit(Module):
         target = self.target_i.read()
         raise_ex = self.raise_exception_i.read()
         mtvec = self.mtvec_i.read()
+        trap_ret = self.trap_return_i.read()
+        mepc = self.mepc_i.read()
 
         # Compute NPC
         npc = pc + 4
         if take_branch:
             npc = target
+        if trap_ret:
+            npc = mepc
         if raise_ex:
             npc = mtvec
 
