@@ -1,9 +1,11 @@
 from unittest.mock import MagicMock, patch
 import pytest
 from pyv.csr import CSRUnit
+from pyv.port import Input, Output
 from pyv.simulator import Simulator
 from pyv.stages import IFStage, IDStage, EXStage, MEMStage, WBStage, BranchUnit, IFID_t, IDEX_t, EXMEM_t, MEMWB_t
 from pyv.reg import Regfile
+from pyv.test_utils import check_port
 from pyv.util import MASK_32
 from pyv.mem import Memory
 
@@ -86,8 +88,9 @@ class TestIDStage:
 
         assert regf == decode.regfile
         assert csr == decode.csr
-        assert decode.IFID_i._type == IFID_t
-        assert decode.IDEX_o._type == IDEX_t
+        check_port(decode.IFID_i, Input, IFID_t)
+        check_port(decode.IDEX_o, Output, IDEX_t)
+        check_port(decode.ecall_o, Output, bool)
 
     def test_decImm(self, decode: IDStage):
         # --- Test I-type -------------------------
@@ -248,24 +251,45 @@ class TestIDStage:
         assert res == 3
 
     def test_IDStage(self, sim: Simulator, decode: IDStage):
-        def validate(out: IDEX_t, rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem):
-            if rs1 is not None:
+        def validate(rs1, rs2, imm, pc, rd, we, wb_sel, opcode, funct3, funct7, mem, ecall, mret):
+            out = decode.IDEX_o.read()
+            ecall_o = decode.ecall_o.read()
+            mret_o = decode.mret_o.read()
+
+            if rs1:
                 assert out.rs1 == rs1
-            if rs2 is not None:
+
+            if rs2:
                 assert out.rs2 == rs2
-            if imm is not None:
+
+            if imm:
                 assert out.imm == imm
-            assert out.pc == pc
-            if rd is not None:
+
+            if pc:
+                assert out.pc == pc
+
+            if rd:
                 assert out.rd == rd
+
             assert out.we == we
-            assert out.wb_sel == wb_sel
-            assert out.opcode == opcode
-            if funct3 is not None:
+
+            if wb_sel:
+                assert out.wb_sel == wb_sel
+
+            if opcode:
+                assert out.opcode == opcode
+
+            if funct3:
                 assert out.funct3 == funct3
-            if funct7 is not None:
+
+            if funct7:
                 assert out.funct7 == funct7
+
             assert out.mem == mem
+
+            assert ecall_o == ecall
+
+            assert mret_o == mret
 
         # ---- SW a0,-20(s0) = SW, x10, -20(x8) (x8=rs1, x10=rs2)
 
@@ -278,9 +302,7 @@ class TestIDStage:
         sim.step()
 
         # Validate outputs
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=0x80000000,
             rs2=42,
             imm=0xffffffec,
@@ -291,7 +313,9 @@ class TestIDStage:
             opcode=0b01000,
             funct3=2,
             funct7=None,
-            mem=2
+            mem=2,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test OP-IMM -----------------------------------
@@ -300,9 +324,7 @@ class TestIDStage:
         decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x05918393, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=120,
             rs2=None,
             imm=89,
@@ -313,7 +335,9 @@ class TestIDStage:
             opcode=0b00100,
             funct3=0,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test SHAMT -----------------------------------
@@ -322,9 +346,7 @@ class TestIDStage:
         decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x0080d413, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=120,
             rs2=None,
             imm=8,
@@ -335,7 +357,9 @@ class TestIDStage:
             opcode=0b00100,
             funct3=0b101,
             funct7=0,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test OP -----------------------------------
@@ -347,9 +371,7 @@ class TestIDStage:
 
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=43,
             rs2=12,
             imm=None,
@@ -360,7 +382,9 @@ class TestIDStage:
             opcode=0b01100,
             funct3=0,
             funct7=0b0100000,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test LOAD -----------------------------------
@@ -369,9 +393,7 @@ class TestIDStage:
         sim.step()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=0x40000000,
             rs2=None,
             imm=0x456,
@@ -382,7 +404,9 @@ class TestIDStage:
             opcode=0b00000,
             funct3=0b010,
             funct7=None,
-            mem=1
+            mem=1,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test JALR -----------------------------------
@@ -391,9 +415,7 @@ class TestIDStage:
         sim.step()
         decode.IFID_i.write(IFID_t(0x401e06e7, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=0x40000000,
             rs2=None,
             imm=1025,
@@ -404,7 +426,9 @@ class TestIDStage:
             opcode=0b11001,
             funct3=0b000,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test BRANCH -----------------------------------
@@ -414,9 +438,7 @@ class TestIDStage:
         decode.regfile.we = False
         decode.IFID_i.write(IFID_t(0x22821a63, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=42,
             rs2=12,
             imm=564,
@@ -427,16 +449,16 @@ class TestIDStage:
             opcode=0b11000,
             funct3=0b001,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test AUIPC -----------------------------------
         # auipc x6, 546
         decode.IFID_i.write(IFID_t(0x00222317, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=None,
             rs2=None,
             imm=546 << 12,
@@ -447,16 +469,16 @@ class TestIDStage:
             opcode=0b00101,
             funct3=None,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test LUI -----------------------------------
         # lui x12, 123
         decode.IFID_i.write(IFID_t(0x0007b637, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=None,
             rs2=None,
             imm=123 << 12,
@@ -467,16 +489,16 @@ class TestIDStage:
             opcode=0b01101,
             funct3=None,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # ---- Test JAL -----------------------------------
         # jal x9, 122
         decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
         sim.step()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             rs1=None,
             rs2=None,
             imm=122,
@@ -487,15 +509,55 @@ class TestIDStage:
             opcode=0b11011,
             funct3=None,
             funct7=None,
-            mem=0
+            mem=0,
+            ecall=False,
+            mret=False
         )
 
         # TODO: Test FENCE
 
-        # TODO: Test ECALL / EBREAK
+        # TODO: Test EBREAK
+        # ---- Test ECALL -----------------------------------
+        decode.IFID_i.write(IFID_t(0x00000073, 0x80000004))
+        sim.step()
+        validate(
+            rs1=None,
+            rs2=None,
+            imm=None,
+            pc=None,
+            rd=None,
+            we=False,
+            wb_sel=None,
+            opcode=None,
+            funct3=None,
+            funct7=None,
+            mem=0,
+            ecall=True,
+            mret=False
+        )
+
+        # ---- Test MRET -----------------------------------
+        decode.IFID_i.write(IFID_t(0x30200073, 0x80000004))
+        sim.step()
+        validate(
+            rs1=None,
+            rs2=None,
+            imm=None,
+            pc=None,
+            rd=None,
+            we=False,
+            wb_sel=None,
+            opcode=None,
+            funct3=None,
+            funct7=None,
+            mem=0,
+            ecall=False,
+            mret=True
+        )
 
     def test_csr(self, sim: Simulator, decode: IDStage):
-        def validate(out: IDEX_t, csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None):
+        def validate(csr_addr=None, csr_read_val=None, csr_write_en=None, rs1=None, rd=None, wb_sel=None, f3=None, we=None):
+            out = decode.IDEX_o.read()
             if csr_addr is not None:
                 assert out.csr_addr == csr_addr
             if csr_read_val is not None:
@@ -516,9 +578,7 @@ class TestIDStage:
         # Not a CSR inst
         decode.IFID_i.write(IFID_t(0x07a004ef, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0,
             csr_read_val=0,
             csr_write_en=False
@@ -529,9 +589,7 @@ class TestIDStage:
         decode.csr.csr_bank.csrs[0x301]._csr_reg.cur.write(0x42)
         decode.IFID_i.write(IFID_t(0x301612f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
@@ -546,9 +604,7 @@ class TestIDStage:
         # csrrw x0, misa, x12
         decode.IFID_i.write(IFID_t(0x30161073, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0,
             csr_write_en=True,
@@ -562,9 +618,7 @@ class TestIDStage:
         # csrrs x5, misa, x0
         decode.IFID_i.write(IFID_t(0x301022f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
@@ -577,9 +631,7 @@ class TestIDStage:
         # csrrc x5, misa, x0
         decode.IFID_i.write(IFID_t(0x301032f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
@@ -606,9 +658,7 @@ class TestIDStage:
         # csrrwi x5, misa, 26
         decode.IFID_i.write(IFID_t(0x301d52f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
@@ -622,9 +672,7 @@ class TestIDStage:
         # csrrwi x0, misa, 26
         decode.IFID_i.write(IFID_t(0x301d5073, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0,
             csr_write_en=True,
@@ -638,9 +686,7 @@ class TestIDStage:
         # csrrsi x5, misa, 26
         decode.IFID_i.write(IFID_t(0x301d62f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
@@ -654,9 +700,7 @@ class TestIDStage:
         # csrrsi x5, misa, 0
         decode.IFID_i.write(IFID_t(0x301062f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
@@ -670,9 +714,7 @@ class TestIDStage:
         # csrrci x5, misa, 26
         decode.IFID_i.write(IFID_t(0x301d72f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=True,
@@ -686,9 +728,7 @@ class TestIDStage:
         # csrrci x5, misa, 0
         decode.IFID_i.write(IFID_t(0x301072f3, 0x80000004))
         sim.run_comb_logic()
-        out = decode.IDEX_o.read()
         validate(
-            out=out,
             csr_addr=0x301,
             csr_read_val=0x42,
             csr_write_en=False,
@@ -697,6 +737,20 @@ class TestIDStage:
             wb_sel=3,
             f3=7,
             we=1
+        )
+
+        # ECALL shouldn't do anything
+        decode.IFID_i.write(IFID_t(0x73, 0x80000004))
+        sim.run_comb_logic()
+        validate(
+            csr_addr=None,
+            csr_read_val=None,
+            csr_write_en=False,
+            rs1=None,
+            rd=None,
+            wb_sel=None,
+            f3=None,
+            we=0
         )
 
 
@@ -1989,26 +2043,67 @@ class TestWBStage:
 # ---------------------------------------
 # Test Branch Unit
 # ---------------------------------------
-def test_branch_unit(sim):
-    bu = BranchUnit()
-    bu._init()
+class TestBranchUnit:
+    @pytest.fixture
+    def bu(self) -> BranchUnit:
+        bu = BranchUnit()
+        bu._init()
+        return bu
 
-    # Test ports
-    assert bu.pc_i._type == int
-    assert bu.take_branch_i._type == bool
-    assert bu.target_i._type == int
-    assert bu.npc_o._type == int
+    def set_inputs(
+            self,
+            bu: BranchUnit,
+            pc=0x8000_0000,
+            tb=False,
+            target=0x4000_0000,
+            re=False,
+            mtvec=0x0,
+            tr=False,
+            mepc=0x0):
+        bu.pc_i.write(pc)
+        bu.take_branch_i.write(tb)
+        bu.target_i.write(target)
+        bu.raise_exception_i.write(re)
+        bu.mtvec_i.write(mtvec)
+        bu.trap_return_i.write(tr)
+        bu.mepc_i.write(mepc)
 
-    # Test regular PC increment
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(False)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x80000004
+    def test_ports(self, bu: BranchUnit):
+        assert bu.pc_i._type == int
+        assert bu.take_branch_i._type == bool
+        assert bu.target_i._type == int
+        assert bu.raise_exception_i._type == bool
+        assert bu.mtvec_i._type == int
+        assert bu.npc_o._type == int
+        assert bu.trap_return_i._type == bool
+        assert bu.mepc_i._type == int
 
-    # Test taken branch
-    bu.pc_i.write(0x80000000)
-    bu.take_branch_i.write(True)
-    bu.target_i.write(0x40000000)
-    sim.step()
-    assert bu.npc_o.read() == 0x40000000
+    def test_regular_pc_increment(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu)
+        sim.step()
+        assert bu.npc_o.read() == 0x80000004
+
+    def test_taken_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, tb=True)
+        sim.step()
+        assert bu.npc_o.read() == 0x40000000
+
+    def test_exception_without_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, tb=False, re=True, mtvec=0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_exception_with_branch(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, tb=True, target=0x4000_0000, re=True, mtvec=0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_trap_return(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, tr=True, mepc=0x4100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000
+
+    def test_exception_with_trap_return(self, sim: Simulator, bu: BranchUnit):
+        self.set_inputs(bu, re=True, mtvec=0x4100_0000, tr=True, mepc=0x8100_0000)
+        sim.step()
+        assert bu.npc_o.read() == 0x4100_0000

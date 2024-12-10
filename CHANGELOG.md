@@ -1,5 +1,9 @@
-# Next version
+# 0.5.0
 
+- **NEW**: Added **ECALL** and **MRET** instructions (#31)
+  - Currently, `mret` only sets `pc` to what is stored in `mepc`. It does
+    not do anything else. This is not fully compliant to section 3.1.6.1,
+    priv. spec. If needed in the future, the missing logic can be added.
 - **NEW**: Added **VArray**, **VMap**, and **VContainer** structures.
   - VArray: Groups PyVObj instances in a list-like manner.
   - VMap: Groups PyVObj instances in a dictionary-like manner.
@@ -10,6 +14,9 @@
 - **Module**: Removed `process()` method default implemenation from class
   - The port sensitivity list API is not affected by this
 - **Registers**: It is now possible to assign sensitive methods to a register output
+- **Tests**
+  - Added a module `test_utils` which will contain useful utility stuff for writing tests
+    - Currently, it has a function `check_port` that can be used to assert the existence and the type of a port
 
 
 # 0.4.0
