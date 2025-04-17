@@ -33,7 +33,7 @@ class Model:
         # Register module as global top module
         self.top = mod
 
-    def setProbes(self, probes: list[str] = []):
+    def set_probes(self, probes: list[str] = []):
         """Setup probes for ports.
 
         Only ports whose full hierarchical name match at least one element from
@@ -43,7 +43,7 @@ class Model:
         Args:
             probes (list[str]): List of strings to match ports to probe
         """
-        self.sim.setProbes(probes)
+        self.sim.set_probes(probes)
 
     def run(self, num_cycles=1):
         """Runs the simulation.
@@ -53,10 +53,10 @@ class Model:
         """
         self.sim.run(num_cycles)
 
-    def getCycles(self):
+    def get_cycles(self):
         """Get number cycles executed.
 
         Returns:
             int: Number of executed cycles.
         """
-        return self.sim.getCycles()
+        return self.sim.get_cycles()

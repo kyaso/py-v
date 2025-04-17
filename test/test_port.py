@@ -11,7 +11,7 @@ class TestPort:
         A = Input(int)
         assert type(A._val) is int
         assert A._val == 0
-        assert A._processMethodHandler._processMethods == []
+        assert A._process_method_handler._process_methods == []
 
         A = Output(float)
         assert type(A._val) is float
@@ -71,9 +71,9 @@ class TestPort:
         B.connect(A)
         C.connect(A)
 
-        assert A._downstreamInputs == [B]
-        assert B._downstreamInputs == []
-        assert C._downstreamInputs == []
+        assert A._downstream_inputs == [B]
+        assert B._downstream_inputs == []
+        assert C._downstream_inputs == []
 
         #       ┌── E(I)
         # D(O) ─┤
@@ -87,7 +87,7 @@ class TestPort:
         F.connect(D)
         G.connect(F)
 
-        assert D._downstreamInputs == [E, G]
+        assert D._downstream_inputs == [E, G]
 
         # Connect D to B
         #                        ┌── E(I)
@@ -95,8 +95,8 @@ class TestPort:
         # A(I)─┤                 └── F(O) ── G(I)
         #      └── C(O)
         D.connect(B)
-        assert D._downstreamInputs == []
-        assert A._downstreamInputs == [B, E, G]
+        assert D._downstream_inputs == []
+        assert A._downstream_inputs == [B, E, G]
 
     def test_connect(self):
         A = Input(int)
@@ -206,7 +206,7 @@ class TestPort:
         with pytest.raises(Exception):
             B.connect(A)
 
-    def test_defaultVal(self, sim):
+    def test_default_val(self, sim):
         # This tests checks whether the forced propagation on the
         # very first write works.
         class modA(Module):
@@ -252,7 +252,7 @@ class TestPort:
 
         # (also don't allow any duplicates)
         p = Input(int, sensitive_methods=[foo, bar, bar])
-        assert p._processMethodHandler._processMethods == [foo, bar]
+        assert p._process_method_handler._process_methods == [foo, bar]
 
     def test_sensitive_methods_get_added_to_simq_on_init(self, sim):
         def foo():
@@ -386,7 +386,7 @@ class TestPortList:
         PortList.clear()
         assert PortList.port_list_filtered == []
 
-    def test_logPorts(self):
+    def test_log_ports(self):
         PortList.clear()
         A = Input(int)
         A.name = 'top.mod1.A'
@@ -409,7 +409,7 @@ class TestPortList:
         E.read = MagicMock()
 
         # First, test logging all ports
-        PortList.logPorts()
+        PortList.log_ports()
         assert A.read.call_count == 1
         assert B.read.call_count == 1
         assert C.read.call_count == 1
@@ -421,7 +421,7 @@ class TestPortList:
         PortList.filter([
             'mod2'
         ])
-        PortList.logPorts()
+        PortList.log_ports()
         assert A.read.call_count == 1
         assert B.read.call_count == 1
         assert C.read.call_count == 2

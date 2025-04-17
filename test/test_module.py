@@ -42,20 +42,20 @@ class TestModule:
 
     def test_port_init(self, modA: ModA):
         modA._init()
-        assert modA.A_i._processMethodHandler._processMethods == [modA.process]
-        assert modA.B_i._processMethodHandler._processMethods == []
-        assert modA.C_i._processMethodHandler._processMethods == [modA.foo]
+        assert modA.A_i._process_method_handler._process_methods == [modA.process]
+        assert modA.B_i._process_method_handler._process_methods == []
+        assert modA.C_i._process_method_handler._process_methods == [modA.foo]
 
     def test_port_init_without_process_method(self, modB: ModB):
         modB._init()
-        assert modB.A_i._processMethodHandler._processMethods == []
+        assert modB.A_i._process_method_handler._process_methods == []
 
 
 class TestOnStable:
     class DummyModule(Module):
         def __init__(self, name='UnnamedModule'):
             super().__init__(name)
-            self.registerStableCallbacks([self.stable_callback_1, self.stable_callback_2])
+            self.register_stable_callbacks([self.stable_callback_1, self.stable_callback_2])
 
         def stable_callback_1(self):
             pass

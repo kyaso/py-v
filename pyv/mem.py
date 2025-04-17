@@ -132,7 +132,7 @@ class Memory(Module, Clocked):
     def process_read1(self):
         self._process_read(self.read_port1)
 
-    def _prepareNextVal(self):
+    def _prepare_next_val(self):
         # We need this also in Memory, because it could happen that these pins
         # are driven by registers, so we save the values first before the
         # registers tick.

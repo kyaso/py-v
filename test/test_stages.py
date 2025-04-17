@@ -92,65 +92,65 @@ class TestIDStage:
         check_port(decode.IDEX_o, Output, IDEX_t)
         check_port(decode.ecall_o, Output, bool)
 
-    def test_decImm(self, decode: IDStage):
+    def test_dec_imm(self, decode: IDStage):
         # --- Test I-type -------------------------
         # 001100110000 10000 000 00001 0010011
         inst = 0b00110011000010000000000010010011
-        imm = decode.decImm(0b00100, inst)
+        imm = decode.dec_imm(0b00100, inst)
         assert imm == 0b001100110000
 
         # Test sign-ext
         # 101100110000 10000 000 00001 0010011
         inst = 0b10110011000010000000000010010011
-        imm = decode.decImm(0b00100, inst)
+        imm = decode.dec_imm(0b00100, inst)
         assert imm == 0xFFFFFB30
 
         # --- Test S-type -------------------------
         # 0111010 00000 00000 010 11100 0100011
         inst = 0b01110100000000000010111000100011
-        imm = decode.decImm(0b01000, inst)
+        imm = decode.dec_imm(0b01000, inst)
         assert imm == 0b011101011100
 
         # Test sign-ext
         # 1111010 00000 00000 010 11100 0100011
         inst = 0b11110100000000000010111000100011
-        imm = decode.decImm(0b01000, inst)
+        imm = decode.dec_imm(0b01000, inst)
         assert imm == 0xFFFFFF5C
 
         # --- Test B-type -------------------------
         # 0 100110 00000 00000 000 0110 1 1100011
         inst = 0b01001100000000000000011011100011
-        imm = decode.decImm(0b11000, inst)
+        imm = decode.dec_imm(0b11000, inst)
         assert imm == 0b0110011001100
 
         # Test sign-ext
         # 1 100110 00000 00000 000 0110 1 1100011
         inst = 0b11001100000000000000011011100011
-        imm = decode.decImm(0b11000, inst)
+        imm = decode.dec_imm(0b11000, inst)
         assert imm == 0xFFFFFCCC
 
         # --- Test U-type -------------------------
         # 00001011001111000101 00000 0110111
         inst = 0b00001011001111000101000000110111
-        imm = decode.decImm(0b01101, inst)
+        imm = decode.dec_imm(0b01101, inst)
         assert imm == 0x0B3C5000
 
         # Test sign-ext
         # 10001011001111000101 00000 0110111
         inst = 0b10001011001111000101000000110111
-        imm = decode.decImm(0b01101, inst)
+        imm = decode.dec_imm(0b01101, inst)
         assert imm == 0x8B3C5000
 
         # --- Test J-type -------------------------
         # 0 1111010110 0 00011010 00000 1101111
         inst = 0b01111010110000011010000001101111
-        imm = decode.decImm(0b11011, inst)
+        imm = decode.dec_imm(0b11011, inst)
         assert imm == 0x1A7AC
 
         # Test sign-ext
         # 1 1111010110 0 00011010 00000 1101111
         inst = 0b11111010110000011010000001101111
-        imm = decode.decImm(0b11011, inst)
+        imm = decode.dec_imm(0b11011, inst)
         assert imm == 0xFFF1A7AC
 
     def test_exception(self, caplog, sim: Simulator, decode: IDStage):
@@ -240,7 +240,7 @@ class TestIDStage:
             with pytest.raises(Exception, match=f"Illegal instruction @ PC = 0x{pc:08X} detected: '0x{inst:08x}'"):
                 sim.step()
 
-    def test_wbSel(self, decode: IDStage):
+    def test_wb_sel(self, decode: IDStage):
         res = decode.wb_sel(0b11011, 0)
         assert res == 1
         res = decode.wb_sel(0, 0)
@@ -364,9 +364,9 @@ class TestIDStage:
 
         # ---- Test OP -----------------------------------
         # SUB x14, x7, x5
-        decode.regfile.writeRequest(7, 43)
+        decode.regfile.write_request(7, 43)
         sim.step()
-        decode.regfile.writeRequest(5, 12)
+        decode.regfile.write_request(5, 12)
         sim.step()
 
         decode.IFID_i.write(IFID_t(0x40538733, 0x80000004))
@@ -389,7 +389,7 @@ class TestIDStage:
 
         # ---- Test LOAD -----------------------------------
         # LW x15, x8, 0x456
-        decode.regfile.writeRequest(8, 0x40000000)
+        decode.regfile.write_request(8, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x45642783, 0x80000004))
         sim.step()
@@ -411,7 +411,7 @@ class TestIDStage:
 
         # ---- Test JALR -----------------------------------
         # jalr x13, 1025(x28)
-        decode.regfile.writeRequest(28, 0x40000000)
+        decode.regfile.write_request(28, 0x40000000)
         sim.step()
         decode.IFID_i.write(IFID_t(0x401e06e7, 0x80000004))
         sim.step()
@@ -770,7 +770,7 @@ class TestEXStage:
         assert ex.IDEX_i._type == IDEX_t
         assert ex.EXMEM_o._type == EXMEM_t
 
-    def test_passThrough(self, sim: Simulator, ex: EXStage):
+    def test_pass_through(self, sim: Simulator, ex: EXStage):
         ex.IDEX_i.write(IDEX_t(
             rd=1,
             we=1,
@@ -1749,7 +1749,7 @@ class TestMEMStage:
         assert mem_stage.EXMEM_i._type == EXMEM_t
         assert mem_stage.MEMWB_o._type == MEMWB_t
 
-    def test_passThrough(self, mem_stage, sim):
+    def test_pass_through(self, mem_stage, sim):
         mem_stage._init()
 
         mem_stage.EXMEM_i.write(EXMEM_t(

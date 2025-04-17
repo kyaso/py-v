@@ -133,7 +133,7 @@ class TestSimulator:
         dut.name = 'ExampleTop'
         dut._init()
         PortList.filter = MagicMock()
-        sim.setProbes(['ExampleTop.inA', 'ExampleTop.B1_i'])
+        sim.set_probes(['ExampleTop.inA', 'ExampleTop.B1_i'])
         PortList.filter.assert_called_once_with(['ExampleTop.inA', 'ExampleTop.B1_i'])
 
     def test_queue(self, sim: Simulator):
@@ -192,7 +192,7 @@ class TestSimulator:
         # sim.step()
         # assert dut.out.read() == 4475
 
-        assert sim.getCycles() == 4
+        assert sim.get_cycles() == 4
         assert sim._process_events.call_count == 5
 
 
@@ -320,7 +320,7 @@ class TestEvents:
         sim._cycles = 100
 
         add_event = sim._event_queue.add_event = MagicMock()
-        sim.postEventAbs(1024, callback)
+        sim.post_event_abs(1024, callback)
         add_event.assert_called_once_with(1024, callback)
 
     def test_add_event_relative(self, sim: Simulator):
@@ -328,7 +328,7 @@ class TestEvents:
             pass
         sim._cycles = 100
         add_event = sim._event_queue.add_event = MagicMock()
-        sim.postEventRel(42, callback)
+        sim.post_event_rel(42, callback)
         add_event.assert_called_once_with(142, callback)
 
     def test_process_events(self, sim: Simulator):
@@ -341,10 +341,10 @@ class TestEvents:
         callback4 = MagicMock()
         callback4.__qualname__ = "cb4"
 
-        sim.postEventAbs(5, callback1)   # event1
-        sim.postEventAbs(11, callback3)  # event3
-        sim.postEventAbs(10, callback2)  # event2
-        sim.postEventAbs(11, callback4)  # event4
+        sim.post_event_abs(5, callback1)   # event1
+        sim.post_event_abs(11, callback3)  # event3
+        sim.post_event_abs(10, callback2)  # event2
+        sim.post_event_abs(11, callback4)  # event4
 
         sim._cycles = 1
         sim._process_events()
@@ -372,10 +372,10 @@ class TestEvents:
     def test_invalid_event_time(self, sim: Simulator):
         sim._cycles = 10
         with pytest.raises(Exception):
-            sim.postEventAbs(5, None)
+            sim.post_event_abs(5, None)
 
         with pytest.raises(Exception):
-            sim.postEventRel(-1, None)
+            sim.post_event_rel(-1, None)
 
 
 class TestOnStable:
@@ -396,5 +396,5 @@ class TestOnStable:
         cb2 = MagicMock()
         cb3 = MagicMock()
         Simulator._stable_callbacks = [cb1, cb2]
-        Simulator.registerStableCallback(cb3)
+        Simulator.register_stable_callback(cb3)
         assert Simulator._stable_callbacks == [cb1, cb2, cb3]

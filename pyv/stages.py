@@ -4,7 +4,7 @@ from pyv.port import Input, Output, Wire, Constant
 from pyv.reg import Reg, Regfile
 from pyv.mem import ReadPort, WritePort
 import pyv.isa as isa
-from pyv.util import getBit, getBits, MASK_32, XLEN, msb_32, signext
+from pyv.util import get_bit, get_bits, MASK_32, XLEN, msb_32, signext
 from pyv.log import logger
 from dataclasses import dataclass
 
@@ -91,8 +91,8 @@ class IFStage(Module):
         self.ir_reg = Reg(int, 0x00000013)
 
         # Helper wires
-        self.pc_reg_w = Wire(int, [self.writeOutput])
-        self.ir_reg_w = Wire(int, [self.writeOutput])
+        self.pc_reg_w = Wire(int, [self.write_output])
+        self.ir_reg_w = Wire(int, [self.write_output])
         self.pc_reg_w << self.pc_reg.cur
         self.ir_reg_w << self.ir_reg.cur
 
@@ -108,7 +108,7 @@ class IFStage(Module):
         # Connect next PC to input of PC reg
         self.pc_reg.next << self.npc_i
 
-    def writeOutput(self):
+    def write_output(self):
         self.IFID_o.write(IFID_t(self.ir_reg_w.read(), self.pc_reg_w.read()))
 
 
@@ -127,7 +127,7 @@ class IDStage(Module):
         self.regfile = regf
         self.csr = csr
 
-        self.registerStableCallbacks([self.check_exception])
+        self.register_stable_callbacks([self.check_exception])
 
         # Inputs
         self.IFID_i = Input(IFID_t)
@@ -144,25 +144,25 @@ class IDStage(Module):
         self.pc = val.pc
 
         # Determine opcode (inst[6:2])
-        opcode = getBits(inst, 6, 2)
+        opcode = get_bits(inst, 6, 2)
 
         # funct3, funct7
-        funct3 = getBits(inst, 14, 12)
-        funct7 = getBits(inst, 31, 25)
+        funct3 = get_bits(inst, 14, 12)
+        funct7 = get_bits(inst, 31, 25)
 
         self.check_exception_inputs = (inst, opcode, funct3, funct7)
 
         # Determine register indeces
-        rs1_idx = getBits(inst, 19, 15)
-        rs2_idx = getBits(inst, 24, 20)
-        rd_idx = getBits(inst, 11, 7)
+        rs1_idx = get_bits(inst, 19, 15)
+        rs2_idx = get_bits(inst, 24, 20)
+        rd_idx = get_bits(inst, 11, 7)
 
         # Read regfile
         rs1 = self.regfile.read(rs1_idx)
         rs2 = self.regfile.read(rs2_idx)
 
         # Decode immediate
-        imm = self.decImm(opcode, inst)
+        imm = self.dec_imm(opcode, inst)
 
         # Determine register file write enable
         we = self.we(opcode, funct3)
@@ -174,9 +174,9 @@ class IDStage(Module):
         mem = self.mem_sel(opcode)
 
         # CSR
-        csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm = \
+        csr_addr, csr_read_val, csr_write_en, csr_is_imm, csr_uimm = \
             self.dec_csr(inst, opcode, funct3, rd_idx, rs1_idx)
-        if csr_isImm:
+        if csr_is_imm:
             rs1 = csr_uimm
 
         ecall = self.is_ecall(inst)
@@ -248,7 +248,7 @@ class IDStage(Module):
         else:
             return 0
 
-    def decImm(self, opcode, inst):
+    def dec_imm(self, opcode, inst):
         """Decodes the immediate from the instruction word.
 
         Args:
@@ -260,30 +260,30 @@ class IDStage(Module):
         """
 
         # Save sign bit
-        sign = getBit(inst, 31)
+        sign = get_bit(inst, 31)
 
         sign_ext = 0
 
         imm = 0
         # Decode + sign-extend immediate
         if opcode in isa.INST_I:
-            imm_11_0 = getBits(inst, 31, 20)
+            imm_11_0 = get_bits(inst, 31, 20)
             imm = imm_11_0
             if sign:
                 sign_ext = 0xfffff << 12
 
         elif opcode in isa.INST_S:
-            imm_11_5 = getBits(inst, 31, 25)
-            imm_4_0 = getBits(inst, 11, 7)
+            imm_11_5 = get_bits(inst, 31, 25)
+            imm_4_0 = get_bits(inst, 11, 7)
             imm = (imm_11_5 << 5) | imm_4_0
             if sign:
                 sign_ext = 0xfffff << 12
 
         elif opcode in isa.INST_B:
-            imm_12 = getBit(inst, 31)
-            imm_10_5 = getBits(inst, 30, 25)
-            imm_4_1 = getBits(inst, 11, 8)
-            imm_11 = getBits(inst, 7, 7)
+            imm_12 = get_bit(inst, 31)
+            imm_10_5 = get_bits(inst, 30, 25)
+            imm_4_1 = get_bits(inst, 11, 8)
+            imm_11 = get_bits(inst, 7, 7)
             imm = (
                 (imm_12 << 12)
                 | (imm_11 << 11)
@@ -293,14 +293,14 @@ class IDStage(Module):
                 sign_ext = 0x7ffff << 13
 
         elif opcode in isa.INST_U:
-            imm_31_12 = getBits(inst, 31, 12)
+            imm_31_12 = get_bits(inst, 31, 12)
             imm = imm_31_12 << 12
 
         elif opcode in isa.INST_J:
-            imm_20 = getBit(inst, 31)
-            imm_10_1 = getBits(inst, 30, 21)
-            imm_11 = getBits(inst, 20, 20)
-            imm_19_12 = getBits(inst, 19, 12)
+            imm_20 = get_bit(inst, 31)
+            imm_10_1 = get_bits(inst, 30, 21)
+            imm_11 = get_bits(inst, 20, 20)
+            imm_19_12 = get_bits(inst, 19, 12)
             imm = (
                 (imm_20 << 20)
                 | (imm_19_12 << 12)
@@ -315,12 +315,12 @@ class IDStage(Module):
         csr_addr = 0
         csr_read_val = 0
         csr_write_en = False
-        csr_isImm = False
+        csr_is_imm = False
         csr_uimm = rs1_idx
 
         if self.is_csr(opcode, f3):
-            csr_addr = getBits(inst, 31, 20)
-            csr_isImm = self.is_csr_imm(f3)
+            csr_addr = get_bits(inst, 31, 20)
+            csr_is_imm = self.is_csr_imm(f3)
             # Note that we do a CSR read regardless of which CSR instruction.
             # The spec says for example that, for CSRRW, if rd=x0, no read
             # should happen to the CSR. -> But our CSR implementation has no
@@ -337,7 +337,7 @@ class IDStage(Module):
 
         # TODO: Check for illegal instruction (e.g. write to RO CSR)
 
-        return csr_addr, csr_read_val, csr_write_en, csr_isImm, csr_uimm
+        return csr_addr, csr_read_val, csr_write_en, csr_is_imm, csr_uimm
 
     def check_exception(self):
         inst, opcode, f3, f7 = self.check_exception_inputs
@@ -404,14 +404,14 @@ class EXStage(Module):
     def __init__(self):
         super().__init__()
         self.IDEX_i = Input(
-            IDEX_t, sensitive_methods=[self.process, self.passThrough])
+            IDEX_t, sensitive_methods=[self.process, self.pass_through])
 
-        self.registerStableCallbacks([self.check_exception])
+        self.register_stable_callbacks([self.check_exception])
 
         self.EXMEM_o = Output(EXMEM_t)
         self.exmem_val = EXMEM_t()
 
-    def writeOutput(self):
+    def write_output(self):
         self.EXMEM_o.write(EXMEM_t(
             self.exmem_val.rd,
             self.exmem_val.we,
@@ -428,7 +428,7 @@ class EXStage(Module):
             self.exmem_val.csr_write_val
         ))
 
-    def passThrough(self):
+    def pass_through(self):
         val = self.IDEX_i.read()
         self.exmem_val.rd = val.rd
         self.exmem_val.we = val.we
@@ -440,7 +440,7 @@ class EXStage(Module):
         self.exmem_val.csr_write_en = val.csr_write_en
         self.exmem_val.csr_read_val = val.csr_read_val
 
-        self.writeOutput()
+        self.write_output()
 
     def process(self):
         # Read inputs
@@ -480,7 +480,7 @@ class EXStage(Module):
         self.exmem_val.pc4 = pc4
         self.exmem_val.alu_res = alu_res
         self.exmem_val.csr_write_val = csr_write_val
-        self.writeOutput()
+        self.write_output()
 
     def alu(self, opcode, rs1, rs2, imm, pc, f3, f7):
         """Implements arithmetic-logic unit (ALU)
@@ -511,8 +511,8 @@ class EXStage(Module):
                 0 otherwise
             """
 
-            msb_r = getBit(val1, 31)
-            msb_i = getBit(val2, 31)
+            msb_r = get_bit(val1, 31)
+            msb_i = get_bit(val2, 31)
 
             # Check if both operands are positive
             if (msb_r == 0) and (msb_i == 0):
@@ -589,7 +589,7 @@ class EXStage(Module):
                 Arithmetic right shift of val1 by val2 (5 bits)
             """
 
-            msb_r = getBit(val1, 31)
+            msb_r = get_bit(val1, 31)
             shamt = 0x1f & val2
             # Mask so that bits above bit 31 turn to zero (for Python)
             rshift = (MASK_32 & (val1 >> shamt))
@@ -746,7 +746,7 @@ class MEMStage(Module):
         self.MEMWB_o = Output(MEMWB_t)
         self.load_val = Wire(int, [self.process_load])
 
-        self.registerStableCallbacks([self.check_exception])
+        self.register_stable_callbacks([self.check_exception])
 
         # Main memory
         self.read_port = dmem_read
@@ -891,7 +891,7 @@ class WBStage(Module):
 
         wb_val = 0
         # Default to no write.
-        # If write, then `writeRequest()` below will
+        # If write, then `write_request()` below will
         # enable write in regfile.
         self.regfile.we = False
 
@@ -908,7 +908,7 @@ class WBStage(Module):
                 raise Exception(
                     f'ERROR (WBStage, process): Invalid wb_sel {wb_sel}')
 
-            self.regfile.writeRequest(rd, wb_val)
+            self.regfile.write_request(rd, wb_val)
 
         self.csr_write_addr_o.write(csr_addr)
         self.csr_write_val_o.write(csr_write_val)

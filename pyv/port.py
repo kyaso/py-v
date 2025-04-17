@@ -20,14 +20,14 @@ class Port(PyVObj, ABC):
             # Take the type's default value
             self._val = self._type()
         self._root_driver = self
-        self._downstreamInputs: list[Input] = []
+        self._downstream_inputs: list[Input] = []
 
         # Who drives this port?
         self._parent = None
         # Which ports does this port drive?
         self._children = []
 
-        PortList.addPort(self)
+        PortList.add_port(self)
 
     @abstractmethod
     def read(self):
@@ -38,12 +38,12 @@ class Port(PyVObj, ABC):
             return
         self._visited = True
 
-    def _addDownstreamInput(self, port: 'Port'):
-        self._downstreamInputs.append(port)
+    def _add_downstream_input(self, port: 'Port'):
+        self._downstream_inputs.append(port)
 
     def _clear_root_attrs(self):
         del self._val
-        self._downstreamInputs = []
+        self._downstream_inputs = []
 
 
 class PortList:
@@ -51,7 +51,7 @@ class PortList:
     port_list_filtered: list[Port] = []
 
     @staticmethod
-    def addPort(port):
+    def add_port(port):
         PortList.port_list.append(port)
 
     @staticmethod
@@ -60,7 +60,7 @@ class PortList:
         PortList.port_list_filtered = []
 
     @staticmethod
-    def logPorts():
+    def log_ports():
         if len(PortList.port_list_filtered) > 0:
             ports_to_log = PortList.port_list_filtered
         else:
@@ -81,24 +81,24 @@ class PortList:
 class _ProcessMethodHandler():
     def __init__(self, sensitive_methods) -> None:
         # Setup sensitivity list
-        self._processMethods = []
+        self._process_methods = []
         for m in sensitive_methods:
-            self._addProcessMethod(m)
+            self._add_process_method(m)
 
-    def _addProcessMethod(self, func):
-        if func not in self._processMethods:
-            self._processMethods.append(func)
+    def _add_process_method(self, func):
+        if func not in self._process_methods:
+            self._process_methods.append(func)
 
     def _parent_has_process_method(self, parent: PyVObj):
         return (hasattr(parent, 'process')
                 and inspect.ismethod(getattr(parent, 'process')))
 
     def init_process_methods(self, parent: PyVObj):
-        if self._processMethods == []:
+        if self._process_methods == []:
             if self._parent_has_process_method(parent):
-                self._addProcessMethod(parent.process)
-        elif self._processMethods == [None]:
-            self._processMethods = []
+                self._add_process_method(parent.process)
+        elif self._process_methods == [None]:
+            self._process_methods = []
 
         # Add process methods to simulation queue so they get executed in the
         # first cycle no matter what
@@ -106,8 +106,8 @@ class _ProcessMethodHandler():
 
     def add_methods_to_sim_queue(self):
         import pyv.simulator as simulator
-        for func in self._processMethods:
-            simulator.Simulator.globalSim._addToChangeQueue(func)
+        for func in self._process_methods:
+            simulator.Simulator.globalSim._add_to_change_queue(func)
 
 
 class PortRW(Port, Generic[T]):
@@ -170,7 +170,7 @@ class PortRW(Port, Generic[T]):
         """
         logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
-        for port in self._downstreamInputs:
+        for port in self._downstream_inputs:
             logger.debug(f"Notifying {port.name}")
             port._notify()
 
@@ -255,15 +255,15 @@ class Input(PortRW[T]):
                 well, you have to include it explicitly in the list.
         """
         super().__init__(type)
-        self._processMethodHandler = _ProcessMethodHandler(sensitive_methods)
+        self._process_method_handler = _ProcessMethodHandler(sensitive_methods)
 
     def _init(self, parent: PyVObj):
         super()._init(parent)
-        self._processMethodHandler.init_process_methods(parent)
+        self._process_method_handler.init_process_methods(parent)
 
     def _set_root_driver(self, newRoot: Port):
         super()._set_root_driver(newRoot)
-        newRoot._addDownstreamInput(self)
+        newRoot._add_downstream_input(self)
 
     def _propagate(self, oldVal: T, newVal: T):
         # TODO: Figure out how to log the change before the log of process
@@ -271,11 +271,11 @@ class Input(PortRW[T]):
 
         # logger.debug(f"Port {self.name} changed from {oldVal} to {newVal}.")
 
-        self._processMethodHandler.add_methods_to_sim_queue()
+        self._process_method_handler.add_methods_to_sim_queue()
         super()._propagate(oldVal, newVal)
 
     def _notify(self):
-        self._processMethodHandler.add_methods_to_sim_queue()
+        self._process_method_handler.add_methods_to_sim_queue()
 
 
 class Output(PortRW[T]):

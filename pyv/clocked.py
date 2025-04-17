@@ -13,12 +13,12 @@ class Clock:
     def tick():
         """Performs a clock tick (rising edge).
 
-        First, saves the current inputs (`RegList.prepareNextVal()`,
-        `MemList.prepareNextVal()`). Then, applies tick to all registers
+        First, saves the current inputs (`RegList.prepare_next_val()`,
+        `MemList.prepare_next_val()`). Then, applies tick to all registers
         (`RegList.tick()`) and memories (`MemList.tick()`).
         """
-        RegList.prepareNextVal()
-        MemList.prepareNextVal()
+        RegList.prepare_next_val()
+        MemList.prepare_next_val()
         RegList.tick()
         MemList.tick()
 
@@ -42,11 +42,11 @@ class Clock:
 class Clocked(ABC):
     """Base class for all clocked elements.
 
-    Methods `_prepareNextVal()`, `_tick()`, and `_reset()` must be implemented
+    Methods `_prepare_next_val()`, `_tick()`, and `_reset()` must be implemented
     by any class inheriting.
     """
     @abstractmethod
-    def _prepareNextVal(self):
+    def _prepare_next_val(self):
         """Saves current input(s)"""
 
     @abstractmethod
@@ -75,10 +75,10 @@ class RegList():
         RegList._reg_list.append(obj)
 
     @staticmethod
-    def prepareNextVal():
+    def prepare_next_val():
         """Saves inputs of registers"""
         for r in RegList._reg_list:
-            r._prepareNextVal()
+            r._prepare_next_val()
 
     @staticmethod
     def tick():
@@ -117,10 +117,10 @@ class MemList():
         MemList._mem_list.append(obj)
 
     @staticmethod
-    def prepareNextVal():
+    def prepare_next_val():
         """Saves inputs of memories."""
         for m in MemList._mem_list:
-            m._prepareNextVal()
+            m._prepare_next_val()
 
     @staticmethod
     def tick():

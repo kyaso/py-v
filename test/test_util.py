@@ -1,29 +1,29 @@
 import pytest
-from pyv.util import VContainer, getBit, getBits, getBitVector, VMap, PyVObj, VArray
+from pyv.util import VContainer, get_bit, get_bits, get_bit_vector, VMap, PyVObj, VArray
 from unittest.mock import MagicMock
 from pyv.module import Module
 from pyv.port import Input
 
 
-def test_getBit():
-    assert getBit(1, 0) == 1
-    assert getBit(1, 1) == 0
-    assert getBit(8, 3) == 1
+def test_get_bit():
+    assert get_bit(1, 0) == 1
+    assert get_bit(1, 1) == 0
+    assert get_bit(8, 3) == 1
 
 
-def test_getBits():
-    assert getBits(3, 1, 0) == 3
-    assert getBits(3, 1, 1) == 1
-    assert getBits(3, 0, 0) == 1
-    assert getBits(15, 3, 2) == 3
-    assert getBits(0xdeadbeef, 31, 1) == 0x6F56DF77
+def test_get_bits():
+    assert get_bits(3, 1, 0) == 3
+    assert get_bits(3, 1, 1) == 1
+    assert get_bits(3, 0, 0) == 1
+    assert get_bits(15, 3, 2) == 3
+    assert get_bits(0xdeadbeef, 31, 1) == 0x6F56DF77
 
 
-def test_getBitVector():
-    assert getBitVector(0xAA, 0) == [1, 0, 1, 0, 1, 0, 1, 0]
-    assert getBitVector(0xAA, 11) == [0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+def test_get_bit_vector():
+    assert get_bit_vector(0xAA, 0) == [1, 0, 1, 0, 1, 0, 1, 0]
+    assert get_bit_vector(0xAA, 11) == [0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0]
     with pytest.warns(UserWarning):
-        assert getBitVector(0x39, 4) == [1, 0, 0, 1]
+        assert get_bit_vector(0x39, 4) == [1, 0, 0, 1]
 
 
 class TestVContainer:
@@ -64,7 +64,7 @@ class TestVContainer:
         mod = Mod()
         mod._init()
 
-        assert con.A_i._processMethodHandler._processMethods == [mod.process]
+        assert con.A_i._process_method_handler._process_methods == [mod.process]
 
     def test_init_subobj_naming(self, con: DUT_Container):
         con.name = "alpha.foo"
@@ -142,7 +142,7 @@ class TestVMap:
         mod = Mod()
         mod._init()
 
-        assert map['input']._processMethodHandler._processMethods == [mod.process]
+        assert map['input']._process_method_handler._process_methods == [mod.process]
 
     def test_items(self, map: VMap):
         assert map.items() == map._elems.items()
@@ -206,4 +206,4 @@ class TestVArray:
         mod = Mod()
         mod._init()
 
-        assert arr[2]._processMethodHandler._processMethods == [mod.process]
+        assert arr[2]._process_method_handler._process_methods == [mod.process]

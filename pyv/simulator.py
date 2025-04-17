@@ -50,7 +50,7 @@ class Simulator:
         self._event_queue = _EventQueue()
         self._cycles = 0
 
-    def setProbes(self, probes: list[str] = []):
+    def set_probes(self, probes: list[str] = []):
         """Setup probes for ports.
 
         Only ports whose full hierarchical name match at least one element from
@@ -66,7 +66,7 @@ class Simulator:
         logger.info(f"\n**** Cycle {self._cycles} ****")
 
     def _log_ports(self):
-        PortList.logPorts()
+        PortList.log_ports()
 
     def _log(self):
         self._log_cycle()
@@ -162,7 +162,7 @@ class Simulator:
         for cb in Simulator._stable_callbacks:
             cb()
 
-    def _addToChangeQueue(self, fn):
+    def _add_to_change_queue(self, fn):
         """Add a function to the simulation queue.
 
         Args:
@@ -174,7 +174,7 @@ class Simulator:
         else:
             logger.debug(f"{fn.__qualname__} already in queue.")
 
-    def getCycles(self):
+    def get_cycles(self):
         """Returns the current number of cycles.
 
         Returns:
@@ -182,7 +182,7 @@ class Simulator:
         """
         return self._cycles
 
-    def postEventAbs(self, time_abs, callback):
+    def post_event_abs(self, time_abs, callback):
         """Post an event into the future with *absolute* time.
 
         Args:
@@ -197,7 +197,7 @@ class Simulator:
 
         self._event_queue.add_event(time_abs, callback)
 
-    def postEventRel(self, time_rel, callback):
+    def post_event_rel(self, time_rel, callback):
         """Post an event into the future with *relative* time.
 
         Args:
@@ -208,10 +208,10 @@ class Simulator:
             Exception: Resulting event time is less then or equal to current
                 cycle.
         """
-        self.postEventAbs(self._cycles + time_rel, callback)
+        self.post_event_abs(self._cycles + time_rel, callback)
 
     @staticmethod
-    def registerStableCallback(callback: Callable):
+    def register_stable_callback(callback: Callable):
         """Register a callback method to be called once signal values have
         stabilized during the current cycle, and before the next clock tick
         happens.

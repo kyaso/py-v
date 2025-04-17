@@ -20,7 +20,7 @@ def execute_bin(
     core.load_binary(path_to_bin)
 
     # Set probes
-    core.setProbes([])
+    core.set_probes([])
 
     # Simulate
     print("* Starting simulation...\n")
@@ -30,7 +30,7 @@ def execute_bin(
     end = time.perf_counter()
 
     print(
-        f"Simulation done at cycle {core.getCycles()} after {end - start}s.\n")
+        f"Simulation done at cycle {core.get_cycles()} after {end - start}s.\n")
 
     return core
 

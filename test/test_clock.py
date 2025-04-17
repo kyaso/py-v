@@ -11,7 +11,7 @@ class Mem(Clocked):
         MemList.add_to_mem_list(self)
         self.val = 0
 
-    def _prepareNextVal(self):
+    def _prepare_next_val(self):
         self.next_val = 12
 
     def _tick(self):
@@ -30,7 +30,7 @@ def test_init():
     assert MemList._mem_list == [mem1, mem2]
 
 
-def test_abstractMethods():
+def test_abstract_methods():
     class Foo(Clocked):
         pass
 

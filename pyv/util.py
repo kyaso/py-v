@@ -171,13 +171,13 @@ def msb_32(val) -> int:
     return (val & 0x80000000) >> 31
 
 
-def getBit(val, idx: int) -> int:
+def get_bit(val, idx: int) -> int:
     """Gets a bit."""
 
     return (val >> idx) & 1
 
 
-def getBits(val, hiIdx: int, loIdx: int) -> int:
+def get_bits(val, hiIdx: int, loIdx: int) -> int:
     """Returns a bit slice of a value.
 
     Args:
@@ -195,7 +195,7 @@ def getBits(val, hiIdx: int, loIdx: int) -> int:
 def signext(val, width: int):
     """Sign-extends a value (`val`) of width `width` bits to 32-bits."""
 
-    msb = getBit(val, width - 1)
+    msb = get_bit(val, width - 1)
 
     if msb:  # 1
         val = MASK_32 & ((-1) << width | val)
@@ -203,7 +203,7 @@ def signext(val, width: int):
     return val
 
 
-def getBitVector(val: int, len: int = 0):
+def get_bit_vector(val: int, len: int = 0):
     """Convert a number into a list with its binary representation.
 
     The list is assumed to be in "MSB-at-index-0" ordering.
@@ -228,13 +228,13 @@ def getBitVector(val: int, len: int = 0):
                 + [1 if digit == '1' else 0 for digit in bin(val)[2:]])
     else:
         num_trunc_bits = val.bit_length() - len
-        warnings.warn(f"Util getBitVector(): Requested vector length ({len}) shorter than bit_length of value ({val.bit_length()}). Truncating upper {num_trunc_bits} bits.")  # noqa: E501
+        warnings.warn(f"Util get_bit_vector(): Requested vector length ({len}) shorter than bit_length of value ({val.bit_length()}). Truncating upper {num_trunc_bits} bits.")  # noqa: E501
         return [
             1 if digit == '1' else 0 for digit in bin(val)[2 + num_trunc_bits:]
         ]
 
 
-def bitVector2num(bitVec: list):
+def bit_vector_2_num(bitVec: list):
     """Convert a bit list to a number.
 
     The list is assumed to be in "MSB-at-index-0" ordering.

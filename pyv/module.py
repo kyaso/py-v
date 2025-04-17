@@ -20,9 +20,9 @@ class Module(PyVObj):
 
     def _init_stable_callbacks(self):
         for sb in self._stable_callbacks:
-            Simulator.registerStableCallback(sb)
+            Simulator.register_stable_callback(sb)
 
-    def registerStableCallbacks(self, callbacks: list[Callable]):
+    def register_stable_callbacks(self, callbacks: list[Callable]):
         """Register methods to be called back once all signal values during the
         current cycle have stabilized.
 

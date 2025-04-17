@@ -33,39 +33,39 @@ class Reg(PyVObj, Clocked, Generic[T]):
         """Synchronous Reset in (active high)"""
 
         self._nextv = 0
-        self._resetVal = resetVal
+        self._reset_val = resetVal
 
         # Whether to do a reset on the next tick
-        self._doReset = False
+        self._do_reset = False
 
-    def _prepareNextVal(self):
+    def _prepare_next_val(self):
         """Copies the next value to an internal variable.
 
         This method is required to prevent the next val input from being
         overridden after the _propagateNextVal() of a potentially preceding
         register has been called.
         """
-        self._doReset = False
-        self._doTick = False
+        self._do_reset = False
+        self._do_tick = False
 
         if self.rst.read() == 1:
-            self._doReset = True
+            self._do_reset = True
         elif self.rst.read() == 0:
             if self.cur.read() != self.next.read():
                 self._nextv = copy.deepcopy(self.next.read())
-                self._doTick = True
+                self._do_tick = True
         else:
             raise Exception("Error: Invalid rst signal!")
 
     def _tick(self):
-        if self._doReset:
-            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._resetVal}.")  # noqa: E501
+        if self._do_reset:
+            logger.debug(f"Sync reset on register {self.name}. Reset value: {self._reset_val}.")  # noqa: E501
             self._reset()
-        elif self._doTick:
+        elif self._do_tick:
             self.cur.write(self._nextv)
 
     def _reset(self):
-        self.cur.write(self._resetVal)
+        self.cur.write(self._reset_val)
 
 
 class Regfile(Clocked):
@@ -74,8 +74,8 @@ class Regfile(Clocked):
     def __init__(self):
         RegList.add_to_reg_list(self)
         self.regs = [0] * 32
-        self._nextWIdx = 0
-        self._nextWval = 0
+        self._next_w_idx = 0
+        self._next_w_val = 0
         self.we = False
         """Write enable."""
         # Read enable
@@ -109,7 +109,7 @@ class Regfile(Clocked):
 
             return val
 
-    def writeRequest(self, reg: int, val: int):
+    def write_request(self, reg: int, val: int):
         """Writes a value to a register.
 
         The write is committed with the next _tick().
@@ -120,11 +120,11 @@ class Regfile(Clocked):
         """
         if reg != 0:
             # self.regs[reg] = val
-            self._nextWidx = reg
-            self._nextWval = val
+            self._next_w_idx = reg
+            self._next_w_val = val
             self.we = True
 
-    def _prepareNextVal(self):
+    def _prepare_next_val(self):
         # Not needed for now, as we don't have Input ports here
         pass
 
@@ -136,8 +136,8 @@ class Regfile(Clocked):
         if not self.we:
             return
 
-        logger.debug(f"Regfile WRITE: x{self._nextWidx} changed from {self.regs[self._nextWidx]} to {self._nextWval}")  # noqa: E501
-        self.regs[self._nextWidx] = self._nextWval
+        logger.debug(f"Regfile WRITE: x{self._next_w_idx} changed from {self.regs[self._next_w_idx]} to {self._next_w_val}")  # noqa: E501
+        self.regs[self._next_w_idx] = self._next_w_val
 
         # TODO: Technically, it shouldn't be the regfile's responsibility to
         # reset the write enables. But we leave it now for safety.

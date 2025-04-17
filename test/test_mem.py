@@ -27,15 +27,15 @@ class TestInit():
         rp0 = mem.read_port0
         assert isinstance(rp0.re_i, Input)
         assert rp0.re_i._type == bool
-        assert rp0.re_i._processMethodHandler._processMethods == [mem.process_read0]
+        assert rp0.re_i._process_method_handler._process_methods == [mem.process_read0]
 
         assert isinstance(rp0.width_i, Input)
         assert rp0.width_i._type == int
-        assert rp0.width_i._processMethodHandler._processMethods == [mem.process_read0]
+        assert rp0.width_i._process_method_handler._process_methods == [mem.process_read0]
 
         assert isinstance(rp0.addr_i, Input)
         assert rp0.addr_i._type == int
-        assert rp0.addr_i._processMethodHandler._processMethods == [mem.process_read0]
+        assert rp0.addr_i._process_method_handler._process_methods == [mem.process_read0]
 
         assert isinstance(rp0.rdata_o, Output)
         assert rp0.rdata_o._type == int
@@ -44,15 +44,15 @@ class TestInit():
         rp1 = mem.read_port1
         assert isinstance(rp1.re_i, Input)
         assert rp1.re_i._type == bool
-        assert rp1.re_i._processMethodHandler._processMethods == [mem.process_read1]
+        assert rp1.re_i._process_method_handler._process_methods == [mem.process_read1]
 
         assert isinstance(rp1.width_i, Input)
         assert rp1.width_i._type == int
-        assert rp1.width_i._processMethodHandler._processMethods == [mem.process_read1]
+        assert rp1.width_i._process_method_handler._process_methods == [mem.process_read1]
 
         assert isinstance(rp1.addr_i, Input)
         assert rp1.addr_i._type == int
-        assert rp1.addr_i._processMethodHandler._processMethods == [mem.process_read1]
+        assert rp1.addr_i._process_method_handler._process_methods == [mem.process_read1]
 
         assert isinstance(rp1.rdata_o, Output)
         assert rp1.rdata_o._type == int
