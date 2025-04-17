@@ -29,8 +29,7 @@ def execute_bin(
     core.run(num_cycles)
     end = time.perf_counter()
 
-    print(
-        f"Simulation done at cycle {core.get_cycles()} after {end - start}s.\n")
+    print(f"Sim done at cycle {core.get_cycles()} after {end - start}s.\n")
 
     return core
 

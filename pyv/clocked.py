@@ -42,8 +42,8 @@ class Clock:
 class Clocked(ABC):
     """Base class for all clocked elements.
 
-    Methods `_prepare_next_val()`, `_tick()`, and `_reset()` must be implemented
-    by any class inheriting.
+    Methods `_prepare_next_val()`, `_tick()`, and `_reset()` must be
+    implemented by any class inheriting.
     """
     @abstractmethod
     def _prepare_next_val(self):
