@@ -31,7 +31,6 @@ As of now, there are the following core models:
 - Classic 5-stage RISC CPU (`SingleCycle`)
   - Single-cycle
   - 8 KiB memory
-  - Pipelined version planned
 
 ## Running a test program
 
