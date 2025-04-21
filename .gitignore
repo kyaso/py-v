@@ -10,3 +10,5 @@ venv
 gitlint.test
 *.diff
 launch.json
+*.html
+*.js
