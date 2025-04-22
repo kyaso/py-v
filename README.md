@@ -51,16 +51,17 @@ Then, navigate back to the top-level directory, and start the simulation by runn
 python3 main.py
 ```
 
-By default, this will simulate the `fibonacci` and `loop_acc` test programs. The output should look something like this:
+By default, this will simulate the `loop_acc`, `fibonacci`, and `endless_loop` test programs. The output should look something like this:
 
 ```
 $ python3 main.py
 ===== LOOP_ACC =====
 * Creating core instance...
+Initializing model...
 * Loading binary...
 * Starting simulation...
 
-Simulation done at cycle 3000 after 0.11450981599773513s.
+Sim done at cycle 2010 after 0.17237685999998575s.
 
 x1 = 1000
 x2 = 1000
@@ -70,12 +71,21 @@ mem@4096 =  ['0xe8', '0x3', '0x0', '0x0']
 
 ===== FIBONACCI =====
 * Creating core instance...
+Initializing model...
 * Loading binary...
 * Starting simulation...
 
-Simulation done at cycle 3000 after 0.12019554300059099s.
+Sim done at cycle 140 after 0.026833664999998064s.
 
 Result =  ['0x37', '0x0', '0x0', '0x0']
+
+===== ENDLESS_LOOP =====
+* Creating core instance...
+Initializing model...
+* Loading binary...
+* Starting simulation...
+
+Sim done at cycle 1000 after 0.20991769700000873s.
 ```
 
 _Note_: The simulation times can vary from machine to machine. Also, in the meantime (as of Jan 2022), I added logging which could additionally slow down the simulation. There still some work to do when it comes to runtime optimiztions!
