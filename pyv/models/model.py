@@ -14,7 +14,8 @@ class Model:
 
         # Initialize modules
         try:
-            self.top._init()
+            self.sim.addObj(self.top)
+            self.sim.init()
         except:  # noqa: E722
             print(traceback.format_exc())
             print("Something went wrong during init. Aborting.")

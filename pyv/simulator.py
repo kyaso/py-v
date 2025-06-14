@@ -2,6 +2,7 @@ from pyv.port import PortList
 from collections import deque
 from pyv.log import logger
 from pyv.clocked import Clock
+from pyv.util import PyVObj
 from queue import PriorityQueue
 from typing import TypeAlias, Callable
 import uuid
@@ -46,9 +47,31 @@ class Simulator:
     def __init__(self):
         Simulator.globalSim = self
 
+        self._objs = []
         self._change_queue = deque()
         self._event_queue = _EventQueue()
         self._cycles = 0
+
+    def init(self):
+        """Initialize the simulator.
+        This method initializes all objects that have been added to the
+        simulator. It should be called before running the simulation.
+        """
+        for obj in self._objs:
+            obj._init(self)
+
+    def addObj(self, obj: PyVObj):
+        """Add an object to the simulator.
+
+        Args:
+            obj (PyVObj): The object to add to the simulator.
+        Raises:
+            TypeError: If the object is not an instance of PyVObj.
+        """
+        if isinstance(obj, PyVObj):
+            self._objs.append(obj)
+        else:
+            raise TypeError(f"Object {obj} is not a PyVObj instance.")
 
     def set_probes(self, probes: list[str] = []):
         """Setup probes for ports.

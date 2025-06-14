@@ -1,3 +1,12 @@
+# Next version
+
+- **Simulator**: The simulator can now handle the initialization of objects
+  - Simply add modules (or any other `PyVObj`) via the new `Simulator.addObj()`
+    method
+  - Before running the simulation, call the new `Simulator.init()` method to
+    initialize the registered modules/objects
+
+
 # 0.5.0
 
 - **NEW**: Added **ECALL** and **MRET** instructions (#31)

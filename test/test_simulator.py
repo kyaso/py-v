@@ -128,6 +128,33 @@ class TestSimulator:
         assert sim._cycles == 0
         assert Simulator.globalSim == sim
 
+    def test_obj_registry(self, sim: Simulator):
+        dut = ExampleTop()
+        sim.addObj(dut)
+        assert sim._objs == [dut]
+
+        dut2 = ExampleTop()
+        sim.addObj(dut2)
+        assert sim._objs == [dut, dut2]
+
+    def test_obj_registry_invalid_type(self, sim: Simulator):
+        class InvalidObj:
+            pass
+
+        with pytest.raises(TypeError):
+            sim.addObj(InvalidObj())
+
+    def test_obj_init(self, sim: Simulator):
+        dut = ExampleTop()
+        dut2 = ExampleTop()
+        sim.addObj(dut)
+        sim.addObj(dut2)
+        dut._init = MagicMock()
+        dut2._init = MagicMock()
+        sim.init()
+        dut._init.assert_called_once()
+        dut2._init.assert_called_once()
+
     def test_probes(self, sim: Simulator):
         dut = ExampleTop()
         dut.name = 'ExampleTop'
