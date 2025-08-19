@@ -116,6 +116,8 @@ class NAND(Module):
 # Create an instance of the NAND gate
 nand_gate = NAND()
 # Add the NAND gate to the simulator
+# Note that we don't have to add the NOT and AND gates separately
+# as they will be initialized recursively
 sim.addObj(nand_gate)
 # Initialize the simulator again
 sim.init()
