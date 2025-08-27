@@ -1,4 +1,4 @@
-# Next version
+# 0.6.0
 
 - **Simulator**: The simulator can now handle the initialization of objects
   - Simply add modules (or any other `PyVObj`) via the new `Simulator.addObj()`
