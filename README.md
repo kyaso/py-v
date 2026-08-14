@@ -3,6 +3,7 @@
 <p align="center">
     <img src="https://img.shields.io/github/v/tag/kyaso/py-v">
     <img src="https://img.shields.io/github/license/kyaso/py-v">
+    <a href="https://deepwiki.com/kyaso/py-v"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
 
 Py-V is a cycle-accurate simulator for RISC-V CPUs, written in pure Python. It is also a (WIP) library for designing and modelling any digital hardware.
@@ -107,7 +108,7 @@ Unordered (and probably incomplete) list of things I plan to integrate in the (n
 
 ## Designing your own systems
 
-Py-V also contains a library that can be used to model any digital hardware at RTL level. Although detailed documentation is currently underway, you can get started by cloning this repository and examining the examples in `pyv/stages.py` and `pyv/models`.
+Py-V also contains a library that can be used to model any digital hardware at RTL level. You can get started by cloning this repository and examining the examples in `pyv/stages.py` and `pyv/models`.
 
 Py-V is structured around the following building blocks:
 
@@ -124,13 +125,17 @@ Py-V currently supports one implicit global **clock**. On each clock tick, all r
 
 Please refer to the API documentation for more information: https://kyaso.github.io/py-v/.
 
+> [!TIP]
+> You can query the AI docs (see [Under the hood](#under-the-hood)) to get coding examples, and understand Py-V better!
+
+
 ---
 
 ## Under the hood
 
-This section is intended to explain how Py-V (and the language behind it) works internally. 🚧 I am still working on a proper documentation for Py-V, so currently there is no ETA on when this section will be finished.
+There are now AI generated docs at [DeepWiki](https://deepwiki.com/kyaso/py-v) or [Codewiki](https://codewiki.google/github.com/kyaso/py-v). They generate summaries of the main building blocks and architecture of Py-V. Also, there is a chat window through which you can directly query the docs. I've tried it, and it works reasonably well.
 
-On the other hand, you can have a look into the source code as I tried to reduce complexity as much as possible, so the code should be almost self-documenting (otherwise please let me know!).
+You can also have a look into the source code as I tried to reduce complexity as much as possible, so the code should be almost self-documenting (otherwise please let me know!).
 
 ### Source files
 
