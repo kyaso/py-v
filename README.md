@@ -133,6 +133,8 @@ Please refer to the API documentation for more information: https://kyaso.github
 
 ## Docs
 
+For the order of events, signal updates, and clock edges, see [How the simulator advances a cycle](docs/simulator.md).
+
 There are now AI generated docs at [DeepWiki](https://deepwiki.com/kyaso/py-v) or [Codewiki](https://codewiki.google/github.com/kyaso/py-v). They generate summaries of the main building blocks and architecture of Py-V. Also, there is a chat window through which you can directly query the docs. I've tried it, and it works reasonably well.
 
 You can also have a look into the source code as I tried to reduce complexity as much as possible, so the code should be almost self-documenting (otherwise please let me know!).
