@@ -89,7 +89,7 @@ Initializing model...
 Sim done at cycle 1000 after 0.20991769700000873s.
 ```
 
-_Note_: The simulation times can vary from machine to machine. Also, in the meantime (as of Jan 2022), I added logging which could additionally slow down the simulation. There still some work to do when it comes to runtime optimiztions!
+Simulation times vary by machine and logging mode. See the [simulator benchmarks](docs/benchmarks.md) for measured examples and a recipe to repeat the comparison.
 
 ### Adding custom programs
 
